@@ -32,6 +32,12 @@ class Intervention extends Model
     {
         return $this->belongsTo(Equipement::class, 'id_equipement', 'id_equipement');
     }
+    public function suiviActions()
+    {
+        // Une intervention a plusieurs (hasMany) actions de suivi
+        return $this->hasMany(SuiviAction::class, 'id_int', 'id_int')
+            ->orderBy('date_action_suivi', 'desc'); // Les plus récents en premier
+    }
 
     // la catégorie de l'intervention (ex: électricité, voirie, etc.)
     public function categorie()

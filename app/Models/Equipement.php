@@ -11,6 +11,7 @@ class Equipement extends Model
 
     protected $table = 'equipement';
     protected $primaryKey = 'id_equipement';
+    public $timestamps = false;
     protected $guarded = [];
 
     // Un équipement a souvent une catégorie ou une famille
@@ -23,5 +24,37 @@ class Equipement extends Model
     public function adresse()
     {
         return $this->belongsTo(Adresse::class, 'id_adresse', 'id_adresse');
+    }
+    public function interventions()
+    {
+        return $this->belongsToMany(Intervention::class, 'intervention_equipement', 'id_equipement', 'id_int');
+    }
+
+    public function famille()
+    {
+        return $this->belongsTo(FamilleEquipement::class, 'id_famille');
+    }
+
+    // Relation avec la table pivot soumis_a_controle
+    public function controles()
+    {
+        return $this->belongsToMany(
+            ControleReglementaire::class,
+            'soumis_a_controle',
+            'id_equipement',
+            'id_controle'
+        )->withPivot('date_controle'); // <-- On demande à Laravel de charger ce champ !
+    }
+
+    // Relation avec le Local
+    public function local()
+    {
+        return $this->belongsTo(Local::class, 'id_local', 'id_local');
+    }
+
+    // Relation avec le Lieu Public
+    public function lieuPublic()
+    {
+        return $this->belongsTo(LieuPublic::class, 'id_lieu', 'id_lieu');
     }
 }

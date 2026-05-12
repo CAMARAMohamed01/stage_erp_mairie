@@ -19,7 +19,7 @@ return new class extends Migration {
             $table->time('horaire_fermeture')->nullable();
 
             $table->unsignedBigInteger('id_decision_reglement')->nullable();
-            $table->unsignedBigInteger('id_tiers'); // NOT NULL
+            $table->unsignedBigInteger('id_tiers')->nullable();
             $table->unsignedBigInteger('id_batiment')->nullable();
             $table->unsignedBigInteger('id_type_erp')->nullable();
             $table->unsignedBigInteger('id_parcelle'); // NOT NULL

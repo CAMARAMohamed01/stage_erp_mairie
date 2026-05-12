@@ -24,6 +24,9 @@
             <a href="{{ route('interventions.index') }}"
                 class="flex items-center px-4 py-3 text-slate-300 hover:bg-slate-800 rounded-lg"><span
                     class="mr-3">🚧</span> Interventions</a>
+            <a href="{{ route('equipements.index') }}"
+                class="flex items-center px-4 py-3 text-slate-300 hover:bg-slate-800 rounded-lg"><span
+                    class="mr-3">🧰</span> Équipements</a>
         </nav>
         <div class="p-4 border-t border-slate-800 text-sm text-slate-400">
             Agent : Pierre (Technique)

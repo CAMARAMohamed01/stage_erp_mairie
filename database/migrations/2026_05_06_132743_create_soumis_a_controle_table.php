@@ -16,6 +16,7 @@ return new class extends Migration {
             $table->primary(['id_controle', 'id_equipement']);
             $table->foreign('id_controle')->references('id_controle')->on('controle_reglementaire');
             $table->foreign('id_equipement')->references('id_equipement')->on('equipement');
+            $table->date('date_controle')->nullable();
         });
     }
 

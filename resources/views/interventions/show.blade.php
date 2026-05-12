@@ -42,6 +42,38 @@
                     </div>
                 </div>
 
+                <div class="mt-8 bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+                    <h2 class="text-lg font-bold text-slate-800 mb-6 border-b pb-2">Historique des interventions sur le
+                        terrain</h2>
+
+                    @if($intervention->suiviActions && $intervention->suiviActions->count() > 0)
+                        <div class="space-y-6">
+                            @foreach($intervention->suiviActions as $action)
+                                <div class="flex gap-4 pb-6 border-l-2 border-slate-100 ml-3 pl-6 relative">
+                                    <div class="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-blue-500 border-2 border-white">
+                                    </div>
+                                    <div class="flex-1">
+                                        <div class="flex justify-between items-start">
+                                            <p class="text-sm font-bold text-slate-900">Passage du
+                                                {{ \Carbon\Carbon::parse($action->date_action_suivi)->format('d/m/Y') }}
+                                            </p>
+                                            <span
+                                                class="text-xs bg-slate-100 px-2 py-1 rounded text-slate-500">{{ $action->temps_passe_heures }}h
+                                                passées</span>
+                                        </div>
+                                        <p class="text-slate-600 text-sm mt-2 leading-relaxed">{{ $action->description_etape }}</p>
+                                        <p class="text-xs mt-2 font-semibold text-blue-600">Statut final :
+                                            {{ $action->statut_apres_action }}
+                                        </p>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @else
+                        <p class="text-sm text-slate-400 italic">Aucun compte-rendu de terrain pour le moment.</p>
+                    @endif
+                </div>
+
                 <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
                     <h2 class="text-lg font-bold text-slate-800 mb-4 border-b pb-2 text-slate-900">Suivi des étapes</h2>
                     <div class="space-y-4">
@@ -75,14 +107,10 @@
                     <h3 class="font-bold text-slate-900 mb-4">Actions de gestion</h3>
 
                     @if($intervention->statut_global !== 'Terminé')
-                        <form action="{{ route('interventions.cloturer', $intervention->id_int) }}" method="POST">
-                            @csrf
-                            @method('PATCH')
-                            <button type="submit"
-                                class="w-full bg-green-600 text-white font-bold py-3 rounded-lg hover:bg-green-700 transition shadow-md mb-3">
-                                ✓ Clôturer les travaux
-                            </button>
-                        </form>
+                        <a href="{{ route('interventions.cloturer.form', $intervention->id_int) }}"
+                            class="w-full block text-center bg-green-600 text-white font-bold py-3 rounded-lg hover:bg-green-700 transition shadow-md mb-3">
+                            ✓ Clôturer avec compte-rendu
+                        </a>
                     @endif
 
                     <a href="{{ route('interventions.pdf', $intervention->id_int) }}"

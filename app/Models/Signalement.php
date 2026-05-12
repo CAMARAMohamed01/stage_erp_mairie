@@ -11,9 +11,10 @@ class Signalement extends Model
 
     protected $table = 'signalement';
     protected $primaryKey = 'id_sig';
+    public $timestamps = false;
     protected $guarded = [];
 
-    public $timestamps = false;
+
     // L'agent qui a saisi le signalement
     public function agent()
     {

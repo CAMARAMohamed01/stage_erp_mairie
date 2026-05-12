@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardTechniqueController;
 use App\Http\Controllers\SignalementController;
 use App\Http\Controllers\InterventionController;
+use App\Http\Controllers\EquipementController;
 
 
 
@@ -44,3 +45,19 @@ Route::patch('/interventions/{id}/cloturer', [InterventionController::class, 'cl
 
 Route::get('/interventions/{id}/pdf', [InterventionController::class, 'imprimer'])->name('interventions.pdf');
 Route::get('/interventions/export/excel', [InterventionController::class, 'exportExcel'])->name('interventions.excel');
+
+// Afficher le formulaire de compte-rendu
+Route::get('/interventions/{id}/cloturer', [InterventionController::class, 'formulaireCloture'])->name('interventions.cloturer.form');
+// Traiter la clôture (On utilise PATCH ou POST)
+Route::patch('/interventions/{id}/cloturer/save', [InterventionController::class, 'sauvegarderCloture'])->name('interventions.cloturer.save');
+
+// Route pour les équipements
+Route::get('/equipements', [EquipementController::class, 'index'])->name('equipements.index');
+
+// Afficher le formulaire de création
+Route::get('/equipements/create', [EquipementController::class, 'create'])->name('equipements.create');
+
+// Enregistrer les données en base
+Route::post('/equipements', [EquipementController::class, 'store'])->name('equipements.store');
+// Afficher la fiche détaillée d'un équipement
+Route::get('/equipements/{id}', [EquipementController::class, 'show'])->name('equipements.show');

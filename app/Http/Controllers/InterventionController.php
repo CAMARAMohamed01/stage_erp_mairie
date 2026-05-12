@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Intervention;
 use Illuminate\Http\Request;
-
+use App\Models\SuiviAction;
 class InterventionController extends Controller
 {
     public function index(Request $request)
@@ -80,8 +80,54 @@ class InterventionController extends Controller
 
     public function imprimer($id)
     {
-        $intervention = Intervention::with(['categorie', 'signalement'])->findOrFail($id);
+        $intervention = Intervention::with(['categorie', 'signalement', 'suiviActions'])->findOrFail($id);
         // On renvoie simplement une vue propre, et on déclenchera l'impression en JS
         return view('interventions.print', compact('intervention'));
     }
+
+    public function sauvegarderCloture(Request $request, $id)
+    {
+        try {
+            // 1. Validation rigoureuse
+            $request->validate([
+                'compte_rendu' => 'required|string|min:10',
+                'date_cloture' => 'required|date',
+                'temps_passe' => 'nullable|numeric|min:0',
+                'statut_final' => 'required|string'
+            ]);
+
+            // 2. Création du compte-rendu dans la table suivi_action
+            SuiviAction::create([
+                'date_action_suivi' => $request->date_cloture,
+                'description_etape' => $request->compte_rendu,
+                'temps_passe_heures' => $request->temps_passe ?? 0,
+                'statut_apres_action' => $request->statut_final,
+                'id_int' => $id,
+                'id_user' => 1, // À remplacer par auth()->id() plus tard
+                'cout_associe' => 0
+            ]);
+
+            // 3. Mise à jour de l'intervention parente
+            $intervention = Intervention::findOrFail($id);
+            $intervention->update([
+                'statut_global' => $request->statut_final,
+                'date_cloture' => ($request->statut_final == 'Terminé') ? $request->date_cloture : null
+            ]);
+
+            return redirect()->route('interventions.show', $id)
+                ->with('success', 'Le compte-rendu a été enregistré et le statut mis à jour.');
+        } catch (\Exception $e) {
+            dd($e->getMessage());
+        }
+    }
+
+    // 1. Affiche le formulaire
+    public function formulaireCloture($id)
+    {
+        $intervention = Intervention::findOrFail($id);
+        return view('interventions.cloture_form', compact('intervention'));
+    }
+
+    // 2. Sauvegarde les données et ferme l'intervention
+
 }

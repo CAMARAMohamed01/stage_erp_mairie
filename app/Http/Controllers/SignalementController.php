@@ -116,31 +116,35 @@ class SignalementController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'description' => 'required',
-            'id_cat' => 'required',
-            'mode_reception' => 'required',
-            'priorite' => 'required',
-            // Soit on choisit un tiers existant, soit on saisit un nouveau nom
-            'id_tiers' => 'nullable|exists:tiers,id_tiers',
-            'emetteur_nom' => 'required_without:id_tiers',
-            'emetteur_contact' => 'nullable|string|max:12'
-        ]);
+        try {
+            $validated = $request->validate([
+                'description' => 'required',
+                'id_cat' => 'required',
+                'mode_reception' => 'required',
+                'priorite' => 'required',
+                // Soit on choisit un tiers existant, soit on saisit un nouveau nom
+                'id_tiers' => 'nullable|exists:tiers,id_tiers',
+                'emetteur_nom' => 'required_without:id_tiers',
+                'emetteur_contact' => 'nullable|string|max:50'
+            ]);
 
-        $signalement = Signalement::create([
-            'date_creation' => now(),
-            'description' => $request->description,
-            'id_cat' => $request->id_cat,
-            'mode_reception' => $request->mode_reception,
-            'priorite' => $request->priorite,
-            'statut_signalement' => 'Nouveau',
-            'id_user' => 1,
-            // Logique de liaison
-            'id_tiers' => $request->id_tiers,
-            'emetteur_nom' => $request->id_tiers ? 'Citoyen Répertorié' : $request->emetteur_nom,
-            'emetteur_contact' => $request->emetteur_contact
-        ]);
+            $signalement = Signalement::create([
+                'date_creation' => now(),
+                'description' => $request->description,
+                'id_cat' => $request->id_cat,
+                'mode_reception' => $request->mode_reception,
+                'priorite' => $request->priorite,
+                'statut_signalement' => 'Nouveau',
+                'id_user' => 1,
+                // Logique de liaison
+                'id_tiers' => $request->id_tiers,
+                'emetteur_nom' => $request->id_tiers ? 'Citoyen Répertorié' : $request->emetteur_nom,
+                'emetteur_contact' => $request->emetteur_contact
+            ]);
 
-        return redirect()->route('signalements.index');
+            return redirect()->route('signalements.index');
+        } catch (\Exception $e) {
+            dd($e->getMessage());
+        }
     }
 }
