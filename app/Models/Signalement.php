@@ -13,6 +13,7 @@ class Signalement extends Model
     protected $primaryKey = 'id_sig';
     protected $guarded = [];
 
+    public $timestamps = false;
     // L'agent qui a saisi le signalement
     public function agent()
     {

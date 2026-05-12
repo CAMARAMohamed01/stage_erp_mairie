@@ -12,6 +12,7 @@ class Utilisateur extends Model
     protected $table = 'utilisateur';
     protected $primaryKey = 'id_user';
     protected $guarded = [];
+    public $timestamps = false;
 
     // Les agents pourront plus tard être reliés à leurs Interventions ou Signalements !
 }

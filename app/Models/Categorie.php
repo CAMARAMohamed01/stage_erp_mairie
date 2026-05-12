@@ -12,7 +12,7 @@ class Categorie extends Model
     protected $table = 'categorie';
     protected $primaryKey = 'id_cat';
     protected $guarded = [];
-
+    public $timestamps = false;
     // Une catégorie peut regrouper de nombreux signalements
     public function signalements()
     {
