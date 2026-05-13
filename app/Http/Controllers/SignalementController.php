@@ -189,7 +189,7 @@ class SignalementController extends Controller
                 'mode_reception' => $request->mode_reception,
                 'priorite' => $request->priorite,
                 'statut_signalement' => 'Nouveau',
-                'id_user' => 1, // À remplacer par auth()->id() plus tard
+                'id_user' => Auth::id(),
                 'id_tiers' => $id_tiers_final,
                 'emetteur_nom' => $emetteur_nom_final,
                 'emetteur_contact' => $emetteur_contact_final

@@ -31,4 +31,8 @@ class Tiers extends Model
     {
         return $this->hasOne(TiersMorale::class, 'id_tiers', 'id_tiers');
     }
+    public function signalements()
+    {
+        return $this->hasMany(Signalement::class, 'id_tiers', 'id_tiers');
+    }
 }

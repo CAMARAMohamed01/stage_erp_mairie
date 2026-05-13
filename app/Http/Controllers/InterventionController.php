@@ -1,7 +1,8 @@
 <?php
 
 namespace App\Http\Controllers;
-
+// Authentification controleur
+use Illuminate\Support\Facades\Auth;
 use App\Models\Intervention;
 use Illuminate\Http\Request;
 use App\Models\SuiviAction;
@@ -106,7 +107,7 @@ class InterventionController extends Controller
                 'temps_passe_heures' => $request->temps_passe ?? 0,
                 'statut_apres_action' => $request->statut_final,
                 'id_int' => $id,
-                'id_user' => 1, // À remplacer par auth()->id() plus tard
+                'id_user' => Auth::id(),
                 'cout_associe' => 0
             ]);
 

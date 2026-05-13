@@ -21,9 +21,10 @@
                             <h1 class="text-3xl font-extrabold text-slate-900">{{ $intervention->type_intervention }}</h1>
                         </div>
 
-                        <div class="flex flex-col items-end gap-3">
-                            <x-badge type="statut" :value="$intervention->statut_global" class="text-sm px-4 py-1" />
-
+                        @if(
+                                Auth::user()->role_appli === 'Administrateur' || Auth::user()->role_appli === 'Responsable
+                                                technique'
+                            )
                             <div class="flex items-center gap-2">
                                 <a href="{{ route('interventions.edit', $intervention->id_int) }}"
                                     class="text-xs bg-amber-100 text-amber-700 hover:bg-amber-200 px-3 py-1.5 rounded-lg font-bold transition">
@@ -40,7 +41,7 @@
                                     </button>
                                 </form>
                             </div>
-                        </div>
+                        @endif
                     </div>
 
                     <div class="prose max-w-none text-slate-600 mb-8">
@@ -154,10 +155,15 @@
                     <h3 class="font-bold text-slate-900 mb-4">Actions de gestion</h3>
 
                     @if($intervention->statut_global !== 'Terminé')
-                        <a href="{{ route('interventions.cloturer.form', $intervention->id_int) }}"
-                            class="w-full block text-center bg-green-600 text-white font-bold py-3 rounded-lg hover:bg-green-700 transition shadow-md mb-3">
-                            ✓ Clôturer avec compte-rendu
-                        </a>
+                        @if(
+                                Auth::user()->role_appli === 'Responsable technique' || Auth::user()->role_appli === 'Technicien' ||
+                                Auth::user()->role_appli === 'Administrateur'
+                            )
+                            <a href="{{ route('interventions.cloturer.form', $intervention->id_int) }}"
+                                class="w-full block text-center bg-green-600 text-white font-bold py-3 rounded-lg hover:bg-green-700 transition shadow-md mb-3">
+                                ✓ Clôturer avec compte-rendu
+                            </a>
+                        @endif
                     @endif
 
                     <a href="{{ route('interventions.pdf', $intervention->id_int) }}"

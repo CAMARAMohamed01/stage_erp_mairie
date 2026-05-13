@@ -60,7 +60,7 @@
                                 <x-badge type="statut" :value="$sig->statut_signalement" />
                             </td>
                             <td class="px-6 py-4 text-right">
-                                <a href="{{ route('signalement.show', $sig->id_sig) }}"
+                                <a href="{{ route('signalements.show', $sig->id_sig) }}"
                                     class="text-blue-600 hover:text-blue-800 font-medium">
                                     Consulter →
                                 </a>

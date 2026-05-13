@@ -23,4 +23,10 @@ class TiersPhysique extends Model
     {
         return $this->belongsTo(Tiers::class, 'id_tiers', 'id_tiers');
     }
+
+    // Lien retour vers la table parent Tiers
+    public function tiers()
+    {
+        return $this->belongsTo(Tiers::class, 'id_tiers', 'id_tiers');
+    }
 }
