@@ -1,68 +1,148 @@
 @extends('layouts.app')
 
-@section('title', 'Clôture Intervention #' . $intervention->id_int)
+@section('title', 'Clôture de l\'intervention #' . $intervention->id_int)
 
 @section('content')
-    <div class="max-w-2xl mx-auto">
-        <div class="bg-white rounded-xl border border-slate-200 shadow-lg overflow-hidden">
-            <div class="bg-green-600 px-6 py-4">
-                <h1 class="text-xl font-bold text-white">✅ Rapport de Fin d'Intervention</h1>
-                <p class="text-green-100 text-sm">Intervention : {{ $intervention->type_intervention }}</p>
+    <div class="max-w-5xl mx-auto">
+
+        <div class="mb-6">
+            <a href="{{ route('interventions.show', $intervention->id_int) }}"
+                class="text-slate-500 hover:text-slate-800 text-sm flex items-center font-medium transition">
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18">
+                    </path>
+                </svg>
+                Retour à la fiche
+            </a>
+        </div>
+
+        <div class="mb-8">
+            <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">Rapport d'intervention</h1>
+            <p class="text-slate-500 mt-2 text-sm">Veuillez détailler les actions réalisées sur le terrain pour clôturer le
+                dossier.</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+            <div class="lg:col-span-2">
+                <form action="{{ route('interventions.cloturer.save', $intervention->id_int) }}" method="POST"
+                    class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                    @csrf
+                    @method('PATCH')
+
+                    <div class="p-8 space-y-8">
+                        <div>
+                            <label class="block text-sm font-bold text-slate-800 mb-2">Observations et travaux réalisés
+                                <span class="text-red-500">*</span></label>
+                            <textarea name="compte_rendu" rows="6" required
+                                class="w-full border border-slate-300 rounded-lg shadow-sm px-4 py-3 focus:ring-blue-500 focus:border-blue-500 text-slate-700 bg-slate-50 focus:bg-white transition"
+                                placeholder="Détaillez les actions menées, le matériel utilisé, les problèmes rencontrés..."></textarea>
+                        </div>
+
+                        <div
+                            class="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-slate-50 rounded-lg border border-slate-100">
+                            <div>
+                                <label class="block text-sm font-bold text-slate-800 mb-2 flex items-center">
+                                    <svg class="w-4 h-4 mr-2 text-slate-400" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    Temps passé (heures)
+                                </label>
+                                <input type="number" name="temps_passe" step="0.25" placeholder="ex: 1.5"
+                                    class="w-full border-slate-300 rounded-lg shadow-sm px-4 py-2 focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-slate-800 mb-2 flex items-center">
+                                    <svg class="w-4 h-4 mr-2 text-slate-400" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
+                                        </path>
+                                    </svg>
+                                    Date d'achèvement <span class="text-red-500 ml-1">*</span>
+                                </label>
+                                <input type="date" name="date_cloture" value="{{ date('Y-m-d') }}" required
+                                    class="w-full border-slate-300 rounded-lg shadow-sm px-4 py-2 focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-bold text-slate-800 mb-2">Bilan de l'intervention</label>
+                                <select name="resultat"
+                                    class="w-full border-slate-300 rounded-lg shadow-sm px-4 py-2 focus:ring-blue-500 focus:border-blue-500 text-sm font-medium">
+                                    <option value="Succès">✔️ Action résolue avec succès</option>
+                                    <option value="Partiel">⚠️ Action résolue partiellement</option>
+                                    <option value="Echec">❌ Non résolu / Autre corps de métier nécessaire</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-slate-800 mb-2">Statut du dossier</label>
+                                <select name="statut_final"
+                                    class="w-full border border-green-500 rounded-lg shadow-sm px-4 py-2 focus:ring-green-500 focus:border-green-500 text-sm font-bold text-green-700 bg-green-50">
+                                    <option value="Terminé">Clôturer le dossier</option>
+                                    <option value="En cours">Maintenir "En cours"</option>
+                                    <option value="En attente">Mettre "En attente"</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="px-8 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
+                        <p class="text-xs text-slate-400 italic">Un historique sera conservé dans le registre de
+                            l'équipement.</p>
+                        <button type="submit"
+                            class="px-6 py-2.5 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition shadow-sm flex items-center">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7">
+                                </path>
+                            </svg>
+                            Enregistrer le rapport
+                        </button>
+                    </div>
+                </form>
             </div>
 
-            <form action="{{ route('interventions.cloturer.save', $intervention->id_int) }}" method="POST"
-                class="p-6 space-y-6">
-                @csrf
-                @method('PATCH')
+            <div class="lg:col-span-1 space-y-6">
+                <div class="bg-slate-800 rounded-xl shadow-sm p-6 text-white">
+                    <h3
+                        class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 border-b border-slate-700 pb-2">
+                        Rappel du dossier</h3>
 
-                <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-2">Observations et travaux réalisés</label>
-                    <textarea name="compte_rendu" rows="5" required
-                        class="w-full border-slate-300 rounded-lg shadow-sm focus:ring-green-500 focus:border-green-500"
-                        placeholder="Détaillez les actions menées, les pièces remplacées, etc..."></textarea>
-                </div>
-
-                <div class="grid grid-cols-2 gap-4 mb-4">
-                    <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-2">Temps passé (heures)</label>
-                        <input type="number" name="temps_passe" step="0.25" placeholder="ex: 1.5"
-                            class="w-full border-slate-300 rounded-lg shadow-sm">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-2">Statut après action</label>
-                        <select name="statut_final" class="w-full border-slate-300 rounded-lg shadow-sm text-sm">
-                            <option value="Terminé">✅ Terminé / Résolu</option>
-                            <option value="En cours">🚧 En cours (nécessite un autre passage)</option>
-                            <option value="En attente">⏳ En attente (pièce manquante)</option>
-                        </select>
+                    <div class="space-y-4">
+                        <div>
+                            <p class="text-xs text-slate-400 mb-1">Réf. Intervention</p>
+                            <p class="font-bold text-lg">#{{ $intervention->id_int }}</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-400 mb-1">Type d'opération</p>
+                            <p class="font-medium">{{ $intervention->type_intervention }}</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-400 mb-1">Date d'ouverture</p>
+                            <p class="font-medium">
+                                {{ \Carbon\Carbon::parse($intervention->date_ouverture)->format('d/m/Y') }}
+                            </p>
+                        </div>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-2">Date de clôture</label>
-                        <input type="date" name="date_cloture" value="{{ date('Y-m-d') }}" required
-                            class="w-full border-slate-300 rounded-lg shadow-sm">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-2">Résultat</label>
-                        <select name="resultat" class="w-full border-slate-300 rounded-lg shadow-sm">
-                            <option value="Succès">✅ Résolu avec succès</option>
-                            <option value="Partiel">⚠️ Résolu partiellement</option>
-                            <option value="Echec">❌ Non résolu / Nouveau devis nécessaire</option>
-                        </select>
-                    </div>
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+                    <h3 class="text-sm font-bold text-slate-800 mb-3 flex items-center">
+                        <svg class="w-4 h-4 mr-2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        Demande initiale
+                    </h3>
+                    <p class="text-sm text-slate-600 bg-slate-50 p-3 rounded border border-slate-100 italic">
+                        "{{ $intervention->description }}"
+                    </p>
                 </div>
+            </div>
 
-                <div class="pt-4 flex justify-end gap-3 border-t border-slate-100">
-                    <a href="{{ route('interventions.show', $intervention->id_int) }}"
-                        class="px-4 py-2 text-slate-500 font-medium">Annuler</a>
-                    <button type="submit"
-                        class="px-6 py-2 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 transition shadow-md">
-                        Valider et Clôturer l'intervention
-                    </button>
-                </div>
-            </form>
         </div>
     </div>
 @endsection

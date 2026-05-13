@@ -85,8 +85,78 @@ class EquipementController extends Controller
     public function show($id)
     {
         // On récupère l'équipement par sa clé primaire en "chargeant" ses relations (Eager Loading)
-        $equipement = Equipement::with(['famille', 'local', 'lieuPublic', 'controles'])->findOrFail($id);
+        $equipement = Equipement::with(['famille', 'local', 'lieuPublic', 'controles', 'interventions'])->findOrFail($id);
 
         return view('equipements.show', compact('equipement'));
+    }
+
+    public function edit($id)
+    {
+        // On récupère l'équipement avec ses relations pivot
+        $equipement = Equipement::with('controles')->findOrFail($id);
+
+        // On récupère toutes les listes pour les menus déroulants
+        $familles = FamilleEquipement::orderBy('libelle_famille')->get();
+        $locaux = Local::orderBy('nom_local')->get();
+        $lieux = LieuPublic::orderBy('nom_lieu')->get();
+        $controles = ControleReglementaire::orderBy('designation')->get();
+
+        return view('equipements.edit', compact('equipement', 'familles', 'locaux', 'lieux', 'controles'));
+    }
+
+    public function update(Request $request, $id)
+    {
+        $equipement = Equipement::findOrFail($id);
+
+        // 1. Validation (identique au store)
+        $validated = $request->validate([
+            'nom_equipement' => 'required|max:80',
+            'id_famille' => 'required|exists:famille_equipement,id_famille',
+            'marque' => 'nullable|max:50',
+            'couleur' => 'nullable|max:50',
+            'reference_serie' => 'nullable|max:80',
+            'date_achat' => 'nullable|date',
+            'duree_garantie_mois' => 'nullable|max:50',
+            'etat_fonctionnement' => 'nullable|max:50',
+            'id_local' => 'nullable|exists:local_,id_local',
+            'id_lieu' => 'nullable|exists:lieux_publics,id_lieu',
+            'dates_controles' => 'nullable|array',
+        ]);
+
+        // 2. Mise à jour de l'équipement (sans les dates_controles)
+        $equipementData = $validated;
+        unset($equipementData['dates_controles']);
+        $equipement->update($equipementData);
+
+        // 3. Synchronisation des contrôles (Table Pivot)
+        $pivotData = [];
+        if ($request->has('controles')) {
+            foreach ($request->controles as $id_controle) {
+                $date = $request->dates_controles[$id_controle] ?? null;
+                $pivotData[$id_controle] = ['date_controle' => $date];
+            }
+        }
+
+        // sync() va supprimer les anciens liens et créer les nouveaux/mis à jour
+        $equipement->controles()->sync($pivotData);
+
+        return redirect()->route('equipements.show', $equipement->id_equipement)
+            ->with('success', 'Équipement mis à jour avec succès !');
+    }
+    public function destroy($id)
+    {
+        // 1. On récupère l'équipement
+        $equipement = Equipement::findOrFail($id);
+
+        // 2. IMPORTANT : On détache les contrôles de la table pivot 
+        // pour ne pas laisser de données fantômes ou bloquer la suppression
+        $equipement->controles()->detach();
+
+        // 3. On supprime l'équipement de la base de données
+        $equipement->delete();
+
+        // 4. On redirige vers l'inventaire avec un message
+        return redirect()->route('equipements.index')
+            ->with('success', 'L\'équipement a été supprimé définitivement.');
     }
 }

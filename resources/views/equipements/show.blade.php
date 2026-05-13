@@ -15,19 +15,39 @@
                     Référence : {{ $equipement->reference_serie ?? 'Non renseignée' }}
                 </p>
             </div>
-            <div>
-                @if($equipement->etat_fonctionnement == 'Opérationnel')
-                    <span
-                        class="bg-green-100 text-green-800 text-sm font-bold px-4 py-2 rounded-full border border-green-200">🟢
-                        Opérationnel</span>
-                @elseif($equipement->etat_fonctionnement == 'En panne')
-                    <span class="bg-red-100 text-red-800 text-sm font-bold px-4 py-2 rounded-full border border-red-200">🔴 En
-                        panne</span>
-                @else
-                    <span
-                        class="bg-yellow-100 text-yellow-800 text-sm font-bold px-4 py-2 rounded-full border border-yellow-200">🟠
-                        {{ $equipement->etat_fonctionnement }}</span>
-                @endif
+
+            <div class="flex flex-col items-end space-y-3">
+                <div>
+                    @if($equipement->etat_fonctionnement == 'Opérationnel')
+                        <span
+                            class="bg-green-100 text-green-800 text-sm font-bold px-4 py-2 rounded-full border border-green-200">🟢
+                            Opérationnel</span>
+                    @elseif($equipement->etat_fonctionnement == 'En panne')
+                        <span class="bg-red-100 text-red-800 text-sm font-bold px-4 py-2 rounded-full border border-red-200">🔴
+                            En panne</span>
+                    @else
+                        <span
+                            class="bg-yellow-100 text-yellow-800 text-sm font-bold px-4 py-2 rounded-full border border-yellow-200">🟠
+                            {{ $equipement->etat_fonctionnement }}</span>
+                    @endif
+                </div>
+
+                <div class="flex space-x-2 mt-2">
+                    <a href="{{ route('equipements.edit', $equipement->id_equipement) }}"
+                        class="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-lg font-bold shadow-sm transition text-sm flex items-center">
+                        ✏️ Modifier
+                    </a>
+
+                    <form action="{{ route('equipements.destroy', $equipement->id_equipement) }}" method="POST"
+                        onsubmit="return confirm('⚠️ Êtes-vous sûr de vouloir supprimer cet équipement ? Cette action est irréversible et supprimera tout l\'historique associé.');">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit"
+                            class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-bold shadow-sm transition text-sm flex items-center">
+                            🗑️ Supprimer
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
 
@@ -49,12 +69,47 @@
                 </div>
 
                 <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
-                    <h3 class="text-lg font-bold text-slate-800 border-b pb-2 mb-4 flex items-center"><span
-                            class="mr-2">🚧</span> Historique des interventions</h3>
+                    <div class="flex justify-between items-center border-b pb-2 mb-4">
+                        <h3 class="text-lg font-bold text-slate-800 flex items-center">
+                            <span class="mr-2">🚧</span> Historique des interventions
+                        </h3>
 
-                    <div class="text-center py-6 text-slate-500 bg-slate-50 rounded border border-dashed border-slate-300">
-                        <p>Aucune intervention enregistrée sur cet équipement pour le moment.</p>
+                        <a href="{{ route('interventions.create', ['equipement_id' => $equipement->id_equipement]) }}"
+                            class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-1 px-3 rounded shadow-sm transition">
+                            + Signaler une panne
+                        </a>
                     </div>
+
+                    @if($equipement->interventions && $equipement->interventions->count() > 0)
+                        <div class="space-y-4">
+                            @foreach($equipement->interventions as $intervention)
+                                <div
+                                    class="flex justify-between items-center p-3 bg-slate-50 border border-slate-100 rounded-lg hover:bg-slate-100 transition">
+                                    <div>
+                                        <p class="font-bold text-slate-800 text-sm">
+                                            Intervention #{{ $intervention->id_int }}
+                                        </p>
+                                        <p class="text-xs text-slate-500 mt-1">
+                                            {{ $intervention->date_ouverture ? \Carbon\Carbon::parse($intervention->date_ouverture)->format('d/m/Y') : 'Date non définie' }}
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <span class="bg-slate-200 text-slate-700 text-xs font-semibold px-2 py-1 rounded">
+                                            {{ $intervention->statut_global }}
+                                        </span>
+                                    </div>
+                                    <a href="{{ route('interventions.show', $intervention->id_int) }}"
+                                        class="text-blue-500 hover:text-blue-700 text-sm font-medium">
+                                        Voir →
+                                    </a>
+                                </div>
+                            @endforeach
+                        </div>
+                    @else
+                        <div class="text-center py-6 text-slate-500 bg-slate-50 rounded border border-dashed border-slate-300">
+                            <p>Aucune intervention enregistrée sur cet équipement pour le moment.</p>
+                        </div>
+                    @endif
                 </div>
             </div>
 

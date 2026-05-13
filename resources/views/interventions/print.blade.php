@@ -11,42 +11,155 @@
                 display: none;
             }
 
+            /* Force l'impression des couleurs de fond (ex: pour les tableaux grisés) */
             body {
-                padding: 0;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
             }
         }
     </style>
 </head>
 
-<body class="p-10 bg-white" onload="window.print()">
-    <div class="no-print mb-10 p-4 bg-yellow-100 text-yellow-800 rounded">
-        Ceci est l'aperçu avant impression. <strong>Appuyez sur "Enregistrer en PDF"</strong> dans votre navigateur.
+<body class="p-8 max-w-4xl mx-auto bg-white text-slate-800 text-sm" onload="window.print()">
+
+    <div class="no-print mb-8 p-4 bg-blue-50 text-blue-800 rounded border border-blue-200 flex items-center shadow-sm">
+        <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z">
+            </path>
+        </svg>
+        <span>Ceci est l'aperçu avant impression. <strong>Appuyez sur "Imprimer" ou "Enregistrer en PDF"</strong> dans
+            la boîte de dialogue de votre navigateur.</span>
     </div>
 
-    <div class="border-b-4 border-blue-600 pb-4 mb-10 flex justify-between items-center">
+    <div class="border-b-2 border-slate-800 pb-4 mb-6 flex justify-between items-end">
         <div>
-            <h1 class="text-4xl font-bold">BON D'INTERVENTION #{{ $intervention->id_int }}</h1>
-            <p class="text-slate-500">Service Technique - Mairie de votre Commune</p>
+            <h1 class="text-3xl font-bold uppercase tracking-widest">Bon de Travaux <span
+                    class="text-slate-400 font-normal">#{{ $intervention->id_int }}</span></h1>
+            <p class="text-slate-500 mt-1 font-medium">Service Technique - Mairie de Dingy-Saint-Clair</p>
+        </div>
+        <div class="text-right">
+            <p class="font-bold text-lg">{{ strtoupper($intervention->statut_global) }}</p>
+            <p class="text-slate-500 text-xs mt-1">Édité le {{ date('d/m/Y à H:i') }}</p>
         </div>
     </div>
 
-    <div class="grid grid-cols-2 gap-10 mb-10">
-        <div class="border p-4 rounded">
-            <h2 class="font-bold border-b mb-2">Détails</h2>
-            <p><strong>Type :</strong> {{ $intervention->type_intervention }}</p>
-            <p><strong>Date :</strong> {{ $intervention->date_ouverture }}</p>
-            <p><strong>Statut :</strong> {{ $intervention->statut_global }}</p>
+    <div class="grid grid-cols-2 gap-6 mb-6">
+        <div class="border border-slate-200 p-4 rounded bg-slate-50">
+            <h2 class="font-bold uppercase text-xs text-slate-500 mb-3 border-b border-slate-200 pb-1">Informations du
+                dossier</h2>
+            <table class="w-full text-sm">
+                <tr>
+                    <td class="py-1 text-slate-500 w-1/3">Type :</td>
+                    <td class="py-1 font-semibold">{{ $intervention->type_intervention }}</td>
+                </tr>
+                <tr>
+                    <td class="py-1 text-slate-500">Ouverture :</td>
+                    <td class="py-1 font-semibold">
+                        {{ \Carbon\Carbon::parse($intervention->date_ouverture)->format('d/m/Y') }}
+                    </td>
+                </tr>
+                <tr>
+                    <td class="py-1 text-slate-500">Clôture :</td>
+                    <td class="py-1 font-semibold text-green-700">
+                        {{ $intervention->date_cloture ? \Carbon\Carbon::parse($intervention->date_cloture)->format('d/m/Y') : 'Non clôturé' }}
+                    </td>
+                </tr>
+            </table>
         </div>
-        <div class="border p-4 rounded">
-            <h2 class="font-bold border-b mb-2">Description</h2>
-            <p>{{ $intervention->description }}</p>
+
+        <div class="border border-slate-200 p-4 rounded bg-slate-50">
+            <h2 class="font-bold uppercase text-xs text-slate-500 mb-3 border-b border-slate-200 pb-1">Classification &
+                Budget</h2>
+            <table class="w-full text-sm">
+                <tr>
+                    <td class="py-1 text-slate-500 w-1/3">Catégorie :</td>
+                    <td class="py-1 font-semibold">{{ $intervention->categorie->libelle ?? 'N/A' }}</td>
+                </tr>
+                <tr>
+                    <td class="py-1 text-slate-500">Budget :</td>
+                    <td class="py-1 font-semibold">
+                        {{ $intervention->code_budget ? strtoupper($intervention->code_budget) : 'N/A' }}
+                    </td>
+                </tr>
+                <tr>
+                    <td class="py-1 text-slate-500">Origine :</td>
+                    <td class="py-1 font-semibold">
+                        {{ $intervention->id_sig ? 'Signalement #' . $intervention->id_sig : 'Interne' }}
+                    </td>
+                </tr>
+            </table>
         </div>
     </div>
 
-    <div class="mt-20 flex justify-between">
-        <div class="border-t-2 border-slate-300 w-48 pt-2 text-center text-sm">Visa Responsable</div>
-        <div class="border-t-2 border-slate-300 w-48 pt-2 text-center text-sm">Visa Agent</div>
+    @if($intervention->equipements && $intervention->equipements->count() > 0)
+        <div class="mb-6">
+            <h2 class="font-bold uppercase text-xs text-slate-800 mb-2 border-b border-slate-800 pb-1">Équipement(s)
+                concerné(s)</h2>
+            <ul class="list-disc list-inside text-sm mt-2">
+                @foreach($intervention->equipements as $equip)
+                    <li class="py-1 font-semibold">{{ $equip->nom_equipement }} <span class="font-normal text-slate-500">(Réf:
+                            {{ $equip->reference_serie ?? 'Non renseignée' }})</span></li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
+    <div class="mb-8">
+        <h2 class="font-bold uppercase text-xs text-slate-800 mb-2 border-b border-slate-800 pb-1">Demande initiale /
+            Descriptif</h2>
+        <div class="border border-slate-200 p-4 rounded text-sm bg-white">
+            {!! nl2br(e($intervention->description)) !!}
+        </div>
     </div>
+
+    <div class="mb-12">
+        <h2 class="font-bold uppercase text-xs text-slate-800 mb-2 border-b border-slate-800 pb-1">Historique &
+            Compte-rendus de terrain</h2>
+
+        @if($intervention->suiviActions && $intervention->suiviActions->count() > 0)
+            <table class="w-full text-sm border-collapse border border-slate-200 mt-2">
+                <thead>
+                    <tr class="bg-slate-100 text-left">
+                        <th class="border border-slate-200 p-2 w-24">Date</th>
+                        <th class="border border-slate-200 p-2 w-20 text-center">Temps</th>
+                        <th class="border border-slate-200 p-2">Observations / Travaux réalisés</th>
+                        <th class="border border-slate-200 p-2 w-32 text-center">Statut</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($intervention->suiviActions as $action)
+                        <tr>
+                            <td class="border border-slate-200 p-2">
+                                {{ \Carbon\Carbon::parse($action->date_action_suivi)->format('d/m/Y') }}
+                            </td>
+                            <td class="border border-slate-200 p-2 text-center font-bold">{{ $action->temps_passe_heures }}h
+                            </td>
+                            <td class="border border-slate-200 p-2">{!! nl2br(e($action->description_etape)) !!}</td>
+                            <td class="border border-slate-200 p-2 text-center text-xs font-semibold">
+                                {{ $action->statut_apres_action }}
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        @else
+            <p class="text-slate-500 italic text-sm mt-2">Aucun compte-rendu d'intervention n'a été enregistré à ce jour.
+            </p>
+        @endif
+    </div>
+
+    <div class="mt-16 flex justify-between px-10">
+        <div class="text-center w-56">
+            <p class="mb-20 text-xs uppercase font-bold text-slate-500">Visa du Responsable</p>
+            <div class="border-t border-slate-400 pt-2 text-xs text-slate-500">Date et Signature</div>
+        </div>
+        <div class="text-center w-56">
+            <p class="mb-20 text-xs uppercase font-bold text-slate-500">Visa du Technicien</p>
+            <div class="border-t border-slate-400 pt-2 text-xs text-slate-500">Date et Signature</div>
+        </div>
+    </div>
+
 </body>
 
 </html>

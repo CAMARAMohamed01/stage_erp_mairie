@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Intervention;
 use Illuminate\Http\Request;
 use App\Models\SuiviAction;
+use App\Models\Equipement;
+use App\Models\Categorie;
 class InterventionController extends Controller
 {
     public function index(Request $request)
@@ -25,8 +27,9 @@ class InterventionController extends Controller
 
     public function show($id)
     {
+
         // On récupère l'intervention avec ses relations
-        $intervention = Intervention::with(['categorie', 'signalement'])->findOrFail($id);
+        $intervention = Intervention::with(['equipements', 'categorie', 'signalement', 'suiviActions'])->findOrFail($id);
         return view('interventions.show', compact('intervention'));
     }
 
@@ -120,7 +123,112 @@ class InterventionController extends Controller
             dd($e->getMessage());
         }
     }
+    public function create(Request $request)
+    {
+        // On récupère l'ID passé dans l'URL par le bouton de la fiche équipement
+        $equipement_preselectionne = $request->query('equipement_id');
 
+        $equipements = Equipement::orderBy('nom_equipement')->get();
+
+        $categories = Categorie::orderBy('libelle', 'asc')->get();
+
+
+        return view('interventions.create', compact('equipements', 'equipement_preselectionne', 'categories'));
+    }
+    public function store(Request $request)
+    {
+        // 1. Validation stricte basée sur ton schéma SQL (NOT NULL)
+        $validated = $request->validate([
+            'date_ouverture' => 'required|date',
+            'type_intervention' => 'required|string|max:150',
+            'statut_global' => 'required|string|max:50',
+            'description' => 'required|string',
+            'id_cat' => 'required|exists:categorie,id_cat',
+            'equipement_id' => 'nullable|exists:equipement,id_equipement',
+            'code_budget' => 'nullable|string|max:2',
+        ]);
+
+        // 2. On isole les données de la table intervention
+        $interventionData = $validated;
+        unset($interventionData['equipement_id']); // On retire ce champ car il n'existe pas dans la table
+
+        // 3. Création de l'intervention
+        $intervention = Intervention::create($interventionData);
+
+        // 4. On la relie à l'équipement via la table pivot
+        if ($request->filled('equipement_id')) {
+            $intervention->equipements()->attach($request->equipement_id);
+        }
+
+        // Redirection vers la fiche de l'équipement si on venait de là
+        if ($request->filled('equipement_id')) {
+            return redirect()->route('equipements.show', $request->equipement_id)
+                ->with('success', 'Intervention créée et liée à l\'équipement !');
+        }
+
+        return redirect()->route('interventions.index')->with('success', 'Intervention enregistrée.');
+    }
+
+    // AFFICHER LE FORMULAIRE DE MODIFICATION
+    public function edit($id)
+    {
+        $intervention = Intervention::with('equipements')->findOrFail($id);
+        $equipements = Equipement::orderBy('nom_equipement')->get();
+        $categories = Categorie::orderBy('libelle', 'asc')->get();
+
+        // On récupère l'ID de l'équipement lié (s'il y en a un) pour pré-sélectionner la liste
+        $equipement_preselectionne = $intervention->equipements->first()->id_equipement ?? null;
+
+        return view('interventions.edit', compact('intervention', 'equipements', 'categories', 'equipement_preselectionne'));
+    }
+
+    // TRAITER LA MODIFICATION
+    public function update(Request $request, $id)
+    {
+        $intervention = Intervention::findOrFail($id);
+
+        $validated = $request->validate([
+            'date_ouverture' => 'required|date',
+            'type_intervention' => 'required|string|max:150',
+            'statut_global' => 'required|string|max:50',
+            'description' => 'required|string',
+            'id_cat' => 'required|exists:categorie,id_cat',
+            'equipement_id' => 'nullable|exists:equipement,id_equipement',
+            'code_budget' => 'nullable|string|max:2',
+        ]);
+
+        $interventionData = $validated;
+        unset($interventionData['equipement_id']);
+
+        // Mise à jour des données
+        $intervention->update($interventionData);
+
+        // Mise à jour de la liaison avec l'équipement (Table pivot)
+        if ($request->filled('equipement_id')) {
+            // sync() remplace les anciens liens par le nouveau
+            $intervention->equipements()->sync([$request->equipement_id]);
+        } else {
+            // S'il n'y a pas d'équipement sélectionné, on détache tout
+            $intervention->equipements()->detach();
+        }
+
+        return redirect()->route('interventions.show', $intervention->id_int)
+            ->with('success', 'Intervention mise à jour avec succès.');
+    }
+
+    // SUPPRIMER L'INTERVENTION
+    public function destroy($id)
+    {
+        $intervention = Intervention::findOrFail($id);
+
+        // On détache la table pivot avant de supprimer !
+        $intervention->equipements()->detach();
+
+        $intervention->delete();
+
+        return redirect()->route('interventions.index')
+            ->with('success', 'Intervention supprimée définitivement.');
+    }
     // 1. Affiche le formulaire
     public function formulaireCloture($id)
     {
@@ -128,6 +236,5 @@ class InterventionController extends Controller
         return view('interventions.cloture_form', compact('intervention'));
     }
 
-    // 2. Sauvegarde les données et ferme l'intervention
 
 }

@@ -44,4 +44,9 @@ class Intervention extends Model
     {
         return $this->belongsTo(Categorie::class, 'id_cat', 'id_cat');
     }
+
+    public function equipements()
+    {
+        return $this->belongsToMany(Equipement::class, 'intervention_equipement', 'id_int', 'id_equipement');
+    }
 }

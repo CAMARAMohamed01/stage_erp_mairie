@@ -20,7 +20,27 @@
                             <span class="text-blue-600 font-bold text-sm uppercase tracking-wider">Bon de travaux</span>
                             <h1 class="text-3xl font-extrabold text-slate-900">{{ $intervention->type_intervention }}</h1>
                         </div>
-                        <x-badge type="statut" :value="$intervention->statut_global" class="text-sm px-4 py-1" />
+
+                        <div class="flex flex-col items-end gap-3">
+                            <x-badge type="statut" :value="$intervention->statut_global" class="text-sm px-4 py-1" />
+
+                            <div class="flex items-center gap-2">
+                                <a href="{{ route('interventions.edit', $intervention->id_int) }}"
+                                    class="text-xs bg-amber-100 text-amber-700 hover:bg-amber-200 px-3 py-1.5 rounded-lg font-bold transition">
+                                    ✏️ Modifier
+                                </a>
+
+                                <form action="{{ route('interventions.destroy', $intervention->id_int) }}" method="POST"
+                                    onsubmit="return confirm('⚠️ Êtes-vous sûr de vouloir supprimer cette intervention ?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit"
+                                        class="text-xs bg-red-100 text-red-700 hover:bg-red-200 px-3 py-1.5 rounded-lg font-bold transition">
+                                        🗑️ Supprimer
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="prose max-w-none text-slate-600 mb-8">
@@ -28,16 +48,43 @@
                         <p>{{ $intervention->description }}</p>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-6 pt-6 border-t border-slate-100">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-6 pt-6 border-t border-slate-100">
                         <div>
-                            <p class="text-xs text-slate-400 uppercase font-bold">Date d'ouverture</p>
-                            <p class="text-slate-800 font-medium">
+                            <p class="text-xs text-slate-400 uppercase font-bold tracking-wider">Ouverture</p>
+                            <p class="text-slate-800 font-medium mt-1">
                                 {{ \Carbon\Carbon::parse($intervention->date_ouverture)->format('d/m/Y') }}
                             </p>
                         </div>
+
                         <div>
-                            <p class="text-xs text-slate-400 uppercase font-bold">Catégorie technique</p>
-                            <p class="text-slate-800 font-medium">{{ $intervention->categorie->libelle ?? 'N/A' }}</p>
+                            <p class="text-xs text-slate-400 uppercase font-bold tracking-wider">Catégorie</p>
+                            <p class="text-slate-800 font-medium mt-1">{{ $intervention->categorie->libelle ?? 'N/A' }}</p>
+                        </div>
+
+                        <div>
+                            <p class="text-xs text-slate-400 uppercase font-bold tracking-wider">Code budget</p>
+                            @if($intervention->code_budget)
+                                <span
+                                    class="inline-block bg-slate-100 text-slate-800 font-bold px-2 py-0.5 rounded border border-slate-200 mt-1">
+                                    {{ strtoupper($intervention->code_budget) }}
+                                </span>
+                            @else
+                                <p class="text-slate-400 italic text-sm mt-1">N/A</p>
+                            @endif
+                        </div>
+
+                        <div>
+                            <p class="text-xs text-slate-400 uppercase font-bold tracking-wider">Clôture</p>
+                            @if($intervention->date_cloture)
+                                <p class="text-slate-800 font-bold mt-1">
+                                    {{ \Carbon\Carbon::parse($intervention->date_cloture)->format('d/m/Y') }}
+                                </p>
+                            @else
+                                <p class="text-slate-400 italic text-sm mt-1 flex items-center">
+                                    <span class="w-2 h-2 bg-blue-400 rounded-full animate-pulse mr-2"></span>
+                                    En cours
+                                </p>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -117,6 +164,27 @@
                         class="w-full bg-white border border-slate-300 text-slate-700 py-2 rounded-lg hover:bg-slate-50 transition text-sm text-center block">
                         🖨️ Imprimer le bon (PDF)
                     </a>
+                </div>
+
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 mb-6">
+                    <h3 class="font-bold text-slate-900 mb-4">Équipement(s) lié(s)</h3>
+
+                    @if($intervention->equipements && $intervention->equipements->count() > 0)
+                        <ul class="space-y-3">
+                            @foreach($intervention->equipements as $equip)
+                                <li class="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                    <a href="{{ route('equipements.show', $equip->id_equipement) }}"
+                                        class="text-blue-600 font-bold hover:underline block text-sm">
+                                        {{ $equip->nom_equipement }}
+                                    </a>
+                                    <span class="text-xs text-slate-500">Réf:
+                                        {{ $equip->reference_serie ?? 'Non renseignée' }}</span>
+                                </li>
+                            @endforeach
+                        </ul>
+                    @else
+                        <p class="text-xs text-slate-400 italic">Aucun équipement spécifique lié.</p>
+                    @endif
                 </div>
 
                 <div class="bg-slate-100 rounded-xl p-6 border border-slate-200">

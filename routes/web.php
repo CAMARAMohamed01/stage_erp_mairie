@@ -39,6 +39,11 @@ Route::get('/signalement/{id}/pdf', [SignalementController::class, 'imprimer'])-
 
 
 // Routes pour les interventions
+Route::get('/interventions/create', [InterventionController::class, 'create'])->name('interventions.create');
+// Enregistrer la nouvelle intervention
+Route::post('/interventions', [InterventionController::class, 'store'])->name('interventions.store');
+
+
 Route::get('/interventions', [InterventionController::class, 'index'])->name('interventions.index');
 Route::get('/interventions/{id}', [InterventionController::class, 'show'])->name('interventions.show');
 Route::patch('/interventions/{id}/cloturer', [InterventionController::class, 'cloturer'])->name('interventions.cloturer');
@@ -50,6 +55,14 @@ Route::get('/interventions/export/excel', [InterventionController::class, 'expor
 Route::get('/interventions/{id}/cloturer', [InterventionController::class, 'formulaireCloture'])->name('interventions.cloturer.form');
 // Traiter la clôture (On utilise PATCH ou POST)
 Route::patch('/interventions/{id}/cloturer/save', [InterventionController::class, 'sauvegarderCloture'])->name('interventions.cloturer.save');
+// Modifier une intervention (formulaire)
+Route::get('/interventions/{id}/edit', [InterventionController::class, 'edit'])->name('interventions.edit');
+// Enregistrer les modifications
+Route::put('/interventions/{id}', [InterventionController::class, 'update'])->name('interventions.update');
+// Supprimer une intervention
+Route::delete('/interventions/{id}', [InterventionController::class, 'destroy'])->name('interventions.destroy');
+
+
 
 // Route pour les équipements
 Route::get('/equipements', [EquipementController::class, 'index'])->name('equipements.index');
@@ -61,3 +74,10 @@ Route::get('/equipements/create', [EquipementController::class, 'create'])->name
 Route::post('/equipements', [EquipementController::class, 'store'])->name('equipements.store');
 // Afficher la fiche détaillée d'un équipement
 Route::get('/equipements/{id}', [EquipementController::class, 'show'])->name('equipements.show');
+
+// Afficher le formulaire de modification
+Route::get('/equipements/{id}/edit', [EquipementController::class, 'edit'])->name('equipements.edit');
+// Mettre à jour les données
+Route::put('/equipements/{id}', [EquipementController::class, 'update'])->name('equipements.update');
+// Supprimer un équipement
+Route::delete('/equipements/{id}', [EquipementController::class, 'destroy'])->name('equipements.destroy');
