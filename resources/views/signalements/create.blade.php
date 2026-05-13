@@ -76,11 +76,17 @@
                                     class="bg-blue-50 px-3 text-slate-400 font-bold">Ou nouveau contact</span></div>
                         </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div>
                                 <label for="emetteur_nom" class="block text-xs font-bold text-slate-500 uppercase mb-1">Nom
-                                    complet / Organisme</label>
-                                <input type="text" name="emetteur_nom" id="emetteur_nom" placeholder="Ex: Jean Martin"
+                                    / Organisme</label>
+                                <input type="text" name="emetteur_nom" id="emetteur_nom" placeholder="Ex: Martin"
+                                    class="w-full border-slate-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                            <div>
+                                <label for="emetteur_prenom"
+                                    class="block text-xs font-bold text-slate-500 uppercase mb-1">Prénom</label>
+                                <input type="text" name="emetteur_prenom" id="emetteur_prenom" placeholder="Ex: Jean"
                                     class="w-full border-slate-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
                             </div>
                             <div>
@@ -91,6 +97,17 @@
                                     placeholder="06 00 00 00 00"
                                     class="w-full border-slate-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
                             </div>
+                        </div>
+
+                        <div class="mt-4 bg-white p-3 rounded-lg border border-blue-100 shadow-sm">
+                            <label class="flex items-center cursor-pointer">
+                                <input type="checkbox" name="creer_nouveau_tiers" id="creer_nouveau_tiers" value="1"
+                                    class="w-5 h-5 text-blue-600 rounded border-slate-300 focus:ring-blue-500">
+                                <span class="ml-3 text-sm text-slate-700 font-bold">💾 Enregistrer ce contact comme citoyen
+                                    (Base Tiers)</span>
+                            </label>
+                            <p class="text-xs text-slate-500 ml-8 mt-1">Cochez cette case si cette personne habite la
+                                commune. Elle sera ajoutée au répertoire pour ses futurs signalements.</p>
                         </div>
                     </div>
                 </div>
@@ -171,20 +188,34 @@
     </div>
 
     <script>
-        // Petite logique UI : Si on choisit un tiers, on grise la saisie manuelle
         const selectTiers = document.getElementById('id_tiers');
         const inputNom = document.getElementById('emetteur_nom');
+        const inputPrenom = document.getElementById('emetteur_prenom');
         const inputContact = document.getElementById('emetteur_contact');
+        const checkCreerTiers = document.getElementById('creer_nouveau_tiers');
 
         selectTiers.addEventListener('change', function () {
             if (this.value !== "") {
+                // Un citoyen de la BDD est sélectionné : on grise la saisie manuelle
                 inputNom.disabled = true;
+                inputPrenom.disabled = true;
+                checkCreerTiers.disabled = true;
+                checkCreerTiers.checked = false; // On décoche par sécurité
+
                 inputNom.classList.add('bg-slate-100');
+                inputPrenom.classList.add('bg-slate-100');
+
                 inputNom.value = "";
-                inputContact.placeholder = "Utilise le contact du tiers sélectionné";
+                inputPrenom.value = "";
+                inputContact.placeholder = "Sera récupéré automatiquement";
             } else {
+                // Aucun citoyen sélectionné : on réactive la saisie manuelle
                 inputNom.disabled = false;
+                inputPrenom.disabled = false;
+                checkCreerTiers.disabled = false;
+
                 inputNom.classList.remove('bg-slate-100');
+                inputPrenom.classList.remove('bg-slate-100');
                 inputContact.placeholder = "06 00 00 00 00";
             }
         });

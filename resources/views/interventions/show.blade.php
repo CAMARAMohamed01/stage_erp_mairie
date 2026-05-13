@@ -191,7 +191,7 @@
                     <h3 class="text-sm font-bold text-slate-500 uppercase mb-3">Lien Signalement</h3>
                     @if($intervention->id_sig)
                         <p class="text-sm text-slate-600 mb-2">Origine : Signalement #{{ $intervention->id_sig }}</p>
-                        <a href="{{ route('signalement.show', $intervention->id_sig) }}"
+                        <a href="{{ route('signalements.show', $intervention->id_sig) }}"
                             class="text-blue-600 text-xs font-bold hover:underline">Voir le signalement source →</a>
                     @else
                         <p class="text-xs text-slate-400 italic">Créé sans signalement préalable</p>

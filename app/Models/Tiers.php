@@ -12,6 +12,8 @@ class Tiers extends Model
     protected $table = 'tiers';
     protected $primaryKey = 'id_tiers';
     protected $guarded = [];
+    public $timestamps = false;
+    protected $fillable = ['type_tiers', 'tel_tiers', 'email_tiers', 'id_adresse'];
 
     // Le Tiers possède une adresse
     public function adresse()

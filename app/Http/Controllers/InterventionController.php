@@ -221,13 +221,17 @@ class InterventionController extends Controller
     {
         $intervention = Intervention::findOrFail($id);
 
-        // On détache la table pivot avant de supprimer !
+        // 1. On détache les équipements (Table pivot)
         $intervention->equipements()->detach();
 
+        // 2. NOUVEAU : On supprime les comptes-rendus / l'historique liés
+        $intervention->suiviActions()->delete();
+
+        // 3. On peut enfin supprimer l'intervention en toute sécurité
         $intervention->delete();
 
         return redirect()->route('interventions.index')
-            ->with('success', 'Intervention supprimée définitivement.');
+            ->with('success', 'Intervention et son historique supprimés définitivement.');
     }
     // 1. Affiche le formulaire
     public function formulaireCloture($id)

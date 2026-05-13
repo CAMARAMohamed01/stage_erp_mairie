@@ -25,7 +25,7 @@ Route::get('/signalement/nouveau', [SignalementController::class, 'create'])->na
 Route::post('/signalement/nouveau', [SignalementController::class, 'store'])->name('signalements.store');
 
 // Route pour voir le détail d'un signalement
-Route::get('/signalement/{id}', [SignalementController::class, 'show'])->name('signalement.show');
+Route::get('/signalements/{id}', [SignalementController::class, 'show'])->name('signalements.show');
 
 // Route pour la liste globale des signalements
 Route::get('/signalements', [SignalementController::class, 'index'])->name('signalements.index');
@@ -37,6 +37,9 @@ Route::post('/signalement/{id}/creer-intervention', [SignalementController::clas
 Route::get('/signalements/export/excel', [SignalementController::class, 'exportExcel'])->name('signalements.excel');
 Route::get('/signalement/{id}/pdf', [SignalementController::class, 'imprimer'])->name('signalement.pdf');
 
+Route::get('/signalements/{id}/edit', [SignalementController::class, 'edit'])->name('signalements.edit');
+Route::put('/signalements/{id}', [SignalementController::class, 'update'])->name('signalements.update');
+Route::delete('/signalements/{id}', [SignalementController::class, 'destroy'])->name('signalements.destroy');
 
 // Routes pour les interventions
 Route::get('/interventions/create', [InterventionController::class, 'create'])->name('interventions.create');

@@ -14,6 +14,7 @@ return new class extends Migration {
             $table->id('id_sig');
             $table->timestamp('date_creation'); // Format TIMESTAMP
             $table->string('emetteur_nom', 50)->nullable();
+            $table->string('emetteur_prenom', 50)->nullable();
             $table->string('emetteur_contact', 12)->nullable();
             $table->string('description', 500);
             $table->string('mode_reception', 100);

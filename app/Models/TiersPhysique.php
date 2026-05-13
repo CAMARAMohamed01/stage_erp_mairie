@@ -16,7 +16,7 @@ class TiersPhysique extends Model
     // (car elle est générée par la table mère 'tiers')
     public $incrementing = false;
 
-    protected $guarded = [];
+    protected $fillable = ['id_tiers', 'civilite', 'nom_tiers', 'prenom_tiers', 'date_naissance'];
 
     // Lien pour remonter vers la table mère
     public function tiersParent()
