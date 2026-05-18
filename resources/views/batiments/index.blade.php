@@ -28,7 +28,7 @@
                         class="bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider">
                         <th class="p-4">Nom du bâtiment / Lieu</th>
                         <th class="p-4">Adresse</th>
-                        <th class="p-4 text-center">Type ERP</th>
+                        <!-- <th class="p-4 text-center">Type ERP</th> -->
                         <th class="p-4 text-center">Catégorie ERP</th>
                         <th class="p-4 text-right">Actions</th>
                     </tr>
