@@ -8,6 +8,8 @@ use App\Http\Controllers\EquipementController;
 use App\Http\Controllers\TiersController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\HabilitationController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\BatimentController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -75,6 +77,23 @@ Route::middleware('auth')->group(function () {
     // Suppression
     Route::delete('/interventions/{id}', [InterventionController::class, 'destroy'])->middleware('can:check-permission,"Interventions","suppression"')->name('interventions.destroy');
 
+    // ========================================================
+    // 🔏 SECURISE : MODULE BATIMENTS & LIEUX PUBLICS (MATRICE)
+    // ========================================================
+// Routes de création rapide (AJAX) pour le formulaire bâtiment
+    Route::post('/api/quick-adresse', [BatimentController::class, 'quickStoreAdresse'])->name('api.adresse.store');
+    Route::post('/api/quick-parcelle', [BatimentController::class, 'quickStoreParcelle'])->name('api.parcelle.store');
+    Route::post('/api/quick-tiers', [BatimentController::class, 'quickStoreTiers'])->name('api.tiers.store');
+    // 1. ROUTES FIXES
+    Route::get('/batiments', [BatimentController::class, 'index'])->middleware('can:check-permission,"Patrimoine & Equipements","lecture"')->name('batiments.index');
+    Route::get('/batiments/create', [BatimentController::class, 'create'])->middleware('can:check-permission,"Patrimoine & Equipements","ecriture"')->name('batiments.create');
+    Route::post('/batiments', [BatimentController::class, 'store'])->middleware('can:check-permission,"Patrimoine & Equipements","ecriture"')->name('batiments.store');
+
+    // 2. ROUTES DYNAMIQUES
+    Route::get('/batiments/{id}', [BatimentController::class, 'show'])->middleware('can:check-permission,"Patrimoine & Equipements","lecture"')->name('batiments.show');
+    Route::get('/batiments/{id}/edit', [BatimentController::class, 'edit'])->middleware('can:check-permission,"Patrimoine & Equipements","ecriture"')->name('batiments.edit');
+    Route::put('/batiments/{id}', [BatimentController::class, 'update'])->middleware('can:check-permission,"Patrimoine & Equipements","ecriture"')->name('batiments.update');
+    Route::delete('/batiments/{id}', [BatimentController::class, 'destroy'])->middleware('can:check-permission,"Patrimoine & Equipements","suppression"')->name('batiments.destroy');
     // ========================================================
     // 🔏 SECURISE : MODULE EQUIPEMENTS VIA LA MATRICE DE DROITS
     // ========================================================
