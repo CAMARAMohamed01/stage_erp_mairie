@@ -13,7 +13,28 @@ class Intervention extends Model
     protected $table = 'intervention';
     protected $primaryKey = 'id_int';
     public $timestamps = false;
-    protected $guarded = [];
+    protected $fillable = [
+        'code_budget',
+        'date_cloture',
+        'date_ouverture',
+        'type_intervention',
+        'statut_global',
+        'description',
+        'Autre',
+        'id_adresse',
+        'id_compteur',
+        'id_troncon',
+        'id_axe',
+        'id_controle',
+        'id_tiers',
+        'id_contrat',
+        'id_cat',
+        'id_local',
+        'id_user_demandeur',
+        'id_service',
+        'id_sig',
+        'id_operation'
+    ];
 
     // Une intervention peut faire suite à un signalement
     public function signalement()
@@ -48,5 +69,21 @@ class Intervention extends Model
     public function equipements()
     {
         return $this->belongsToMany(Equipement::class, 'intervention_equipement', 'id_int', 'id_equipement');
+    }
+
+    // vers local
+    public function local()
+    {
+        return $this->belongsTo(Local::class, 'id_local', 'id_local');
+    }
+    // lieupublique
+    public function lieupublic()
+    {
+        return $this->belongsTo(LieuPublic::class, 'id_lieu_public', 'id_lieu_public');
+    }
+    // contrat
+    public function contrat()
+    {
+        return $this->belongsTo(Contrat::class, 'id_contrat', 'id_contrat');
     }
 }

@@ -8,10 +8,15 @@ use Illuminate\Http\Request;
 use App\Models\SuiviAction;
 use App\Models\Equipement;
 use App\Models\Categorie;
+use App\Models\Local;
+use App\Models\LieuPublic;
+use App\Models\Batiment;
+use Illuminate\Support\Facades\DB;
 class InterventionController extends Controller
 {
     public function index(Request $request)
     {
+        // dd(auth()->user()->can('check-permission', ['Interventions', 'lecture'])); // Debug pour vérifier les permissions
         // 1. On commence la requête
         $query = Intervention::with('categorie');
 
@@ -126,48 +131,85 @@ class InterventionController extends Controller
     }
     public function create(Request $request)
     {
-        // On récupère l'ID passé dans l'URL par le bouton de la fiche équipement
         $equipement_preselectionne = $request->query('equipement_id');
 
-        $equipements = Equipement::orderBy('nom_equipement')->get();
-
+        // Chargement de toutes les dimensions de ciblage de ton DDL
+        $equipements = Equipement::orderBy('nom_equipement', 'asc')->get();
         $categories = Categorie::orderBy('libelle', 'asc')->get();
+        $locaux = Local::orderBy('nom_local', 'asc')->get();
+        $batiments = Batiment::orderBy('nom_bat', 'asc')->get();
+        $lieux_publics = LieuPublic::orderBy('nom_lieu', 'asc')->get();
 
-
-        return view('interventions.create', compact('equipements', 'equipement_preselectionne', 'categories'));
+        return view('interventions.create', compact(
+            'equipements',
+            'equipement_preselectionne',
+            'categories',
+            'locaux',
+            'batiments',
+            'lieux_publics'
+        ));
     }
+
     public function store(Request $request)
     {
-        // 1. Validation stricte basée sur ton schéma SQL (NOT NULL)
+        // 1. Validation stricte basée sur ton schéma SQL
         $validated = $request->validate([
             'date_ouverture' => 'required|date',
             'type_intervention' => 'required|string|max:150',
             'statut_global' => 'required|string|max:50',
             'description' => 'required|string',
             'id_cat' => 'required|exists:categorie,id_cat',
-            'equipement_id' => 'nullable|exists:equipement,id_equipement',
             'code_budget' => 'nullable|string|max:2',
+
+            // Les différentes cibles possibles de ton schéma
+            'equipement_id' => 'nullable|exists:equipement,id_equipement',
+            'id_local' => 'nullable|exists:local_,id_local',
+            'id_batiment' => 'nullable|exists:batiment,id_batiment',
+            'id_lieu' => 'nullable|exists:lieux_publics,id_lieu',
         ]);
 
-        // 2. On isole les données de la table intervention
-        $interventionData = $validated;
-        unset($interventionData['equipement_id']); // On retire ce champ car il n'existe pas dans la table
+        // 2. Préparation des données pour la table 'intervention'
+        $interventionData = [
+            'date_ouverture' => $validated['date_ouverture'],
+            'type_intervention' => $validated['type_intervention'],
+            'statut_global' => $validated['statut_global'],
+            'description' => $validated['description'],
+            'id_cat' => $validated['id_cat'],
+            'code_budget' => $validated['code_budget'],
+            'id_local' => $validated['id_local'] ?? null,
+            'id_batiment' => $validated['id_batiment'] ?? null, // Si tu as ajouté la colonne, sinon géré par projet_batiment ou description
+        ];
 
-        // 3. Création de l'intervention
-        $intervention = Intervention::create($interventionData);
+        // 3. Transaction pour garantir la cohérence des tables pivots
+        DB::transaction(function () use ($interventionData, $validated, $request) {
 
-        // 4. On la relie à l'équipement via la table pivot
-        if ($request->filled('equipement_id')) {
-            $intervention->equipements()->attach($request->equipement_id);
+            // Création de l'intervention principale
+            $intervention = Intervention::create($interventionData);
+
+            // A. Si c'est un ÉQUIPEMENT -> Table de liaison 'intervention_equipement'
+            if ($request->filled('equipement_id')) {
+                DB::table('intervention_equipement')->insert([
+                    'id_int' => $intervention->id_int,
+                    'id_equipement' => $validated['equipement_id']
+                ]);
+            }
+
+            // B. Si c'est un LIEU PUBLIC -> Table de liaison 'intervention_espace' (Présente dans ton DDL !)
+            if ($request->filled('id_lieu')) {
+                DB::table('intervention_espace')->insert([
+                    'id_int' => $intervention->id_int,
+                    'id_lieu' => $validated['id_lieu']
+                ]);
+            }
+        });
+
+        // Redirection avec flag d'origine
+        if ($request->has('from_equipement') && $request->filled('equipement_id')) {
+            return redirect()->route('equipements.show', $validated['equipement_id'])
+                ->with('success', 'Intervention créée et associée à l’équipement !');
         }
 
-        // Redirection vers la fiche de l'équipement si on venait de là
-        if ($request->filled('equipement_id')) {
-            return redirect()->route('equipements.show', $request->equipement_id)
-                ->with('success', 'Intervention créée et liée à l\'équipement !');
-        }
-
-        return redirect()->route('interventions.index')->with('success', 'Intervention enregistrée.');
+        return redirect()->route('interventions.index')->with('success', 'L’intervention a bien été enregistrée.');
     }
 
     // AFFICHER LE FORMULAIRE DE MODIFICATION

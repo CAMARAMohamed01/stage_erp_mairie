@@ -32,6 +32,19 @@
                 Tableau de bord
             </a>
 
+            @if(Auth::user()->role_appli === 'Administrateur')
+                <a href="{{ route('admin.habilitations.index') }}"
+                    class="flex items-center px-4 py-3 rounded-lg transition-colors font-medium {{ request()->routeIs('admin.habilitations.*') ? 'bg-blue-600 text-white shadow-md' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
+                    <svg class="w-5 h-5 mr-3 {{ request()->routeIs('admin.habilitations.*') ? 'text-white' : 'text-slate-400' }}"
+                        fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9.33-5M15 21v2m0 0h6m-6 0h-6">
+                        </path>
+                    </svg>
+                    Gestion des accès
+                </a>
+            @endif
+
             <a href="{{ route('signalements.index') }}"
                 class="flex items-center px-4 py-3 rounded-lg transition-colors font-medium {{ request()->routeIs('signalements.*') ? 'bg-blue-600 text-white shadow-md' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
                 <svg class="w-5 h-5 mr-3 {{ request()->routeIs('signalements.*') ? 'text-white' : 'text-slate-400' }}"
