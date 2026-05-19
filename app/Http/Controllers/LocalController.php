@@ -1,0 +1,214 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+
+class LocalController extends Controller
+{
+    // Afficher la liste de tous les locaux
+    public function index()
+    {
+        // On récupère les locaux avec leur bâtiment et leur usage
+        $locaux = DB::table('local_')
+            ->leftJoin('batiment', 'local_.id_batiment', '=', 'batiment.id_batiment')
+            ->leftJoin('type_usage', 'local_.id_usage', '=', 'type_usage.id_usage')
+            ->select('local_.*', 'batiment.nom_bat', 'type_usage.libelle_usage')
+            ->orderBy('batiment.nom_bat')
+            ->orderBy('local_.niveau')
+            ->orderBy('local_.nom_local')
+            ->get();
+
+        return view('locaux.index', compact('locaux'));
+    }
+
+    // Préparer le formulaire d'ajout
+    public function create()
+    {
+        // On a besoin de la liste des bâtiments, des usages et des contrats d'assurance
+        $batiments = DB::table('batiment')->orderBy('nom_bat')->get();
+        $usages = DB::table('type_usage')->orderBy('libelle_usage')->get();
+
+        // Optionnel: on récupère les lieux publics si un local dépend d'un lieu (ex: Cabanon dans un parc)
+        $lieux = DB::table('lieux_publics')->orderBy('nom_lieu')->get();
+
+
+        return view('locaux.create', compact('batiments', 'usages', 'lieux'));
+    }
+
+    // --- SAUVEGARDER LE LOCAL EN BASE ---
+    public function store(Request $request)
+    {
+        // 1. Validation stricte selon le schéma DDL
+        $request->validate([
+            'nom_local' => 'required|string|max:80',
+            'largeur' => 'nullable|numeric',
+            'longueur' => 'nullable|numeric',
+            'surface_m2' => 'nullable|numeric',
+            'niveau' => 'nullable|string|max:50',
+            'statut_occupation' => 'nullable|string|max:50',
+            'ref_article_assurance' => 'nullable|string|max:50',
+            'prime_assurance_ttc' => 'nullable|numeric',
+            'remarque' => 'nullable|string|max:255',
+            'id_batiment' => 'nullable|integer|exists:batiment,id_batiment',
+            'id_lieu' => 'nullable|integer|exists:lieux_publics,id_lieu',
+            'id_usage' => 'nullable|integer|exists:type_usage,id_usage',
+        ]);
+
+        // 2. Règle métier : Un local doit appartenir SOIT à un bâtiment, SOIT à un lieu public (pas aucun des deux)
+        if (empty($request->id_batiment) && empty($request->id_lieu)) {
+            return back()->withInput()->with('error', 'Le local doit obligatoirement être rattaché à un Bâtiment ou à un Lieu public.');
+        }
+
+        // 3. Insertion dans la base
+        DB::table('local_')->insert([
+            'nom_local' => $request->nom_local,
+            'largeur' => $request->largeur,
+            'longueur' => $request->longueur,
+            'surface_m2' => $request->surface_m2,
+            'niveau' => $request->niveau,
+            'statut_occupation' => $request->statut_occupation,
+            'ref_article_assurance' => $request->ref_article_assurance,
+            'prime_assurance_ttc' => $request->prime_assurance_ttc,
+            'remarque' => $request->remarque,
+            'id_batiment' => $request->id_batiment,
+            'id_lieu' => $request->id_lieu,
+            'id_usage' => $request->id_usage,
+        ]);
+
+        return redirect()->route('locaux.index')
+            ->with('success', 'Le nouveau local a été ajouté au référentiel.');
+    }
+    // --- FICHE DÉTAILLÉE D'UN LOCAL ---
+    public function show($id)
+    {
+        // 1. Infos du local, son usage, et son parent (Bâtiment ou Lieu)
+        $local = DB::table('local_')
+            ->leftJoin('batiment', 'local_.id_batiment', '=', 'batiment.id_batiment')
+            ->leftJoin('lieux_publics', 'local_.id_lieu', '=', 'lieux_publics.id_lieu')
+            ->leftJoin('type_usage', 'local_.id_usage', '=', 'type_usage.id_usage')
+            ->select(
+                'local_.*',
+                'batiment.nom_bat',
+                'lieux_publics.nom_lieu',
+                'type_usage.libelle_usage'
+            )
+            ->where('id_local', $id)
+            ->first();
+
+        if (!$local) {
+            abort(404, 'Local introuvable');
+        }
+
+        // 2. Équipements installés dans cette pièce précise
+        $equipements = DB::table('equipement')
+            ->where('id_local', $id)
+            ->orderBy('nom_equipement')
+            ->get();
+
+        // 3. Compteurs (eau, gaz, électricité) liés à ce local
+        $compteurs = DB::table('compteur')
+            ->where('id_local', $id)
+            ->orderBy('type_reseau')
+            ->get();
+
+        // 4. Signalements ouverts pour cette pièce
+        $signalements = DB::table('signalement')
+            ->where('id_local', $id)
+            ->where('statut_signalement', '!=', 'Clôturé')
+            ->orderByDesc('date_creation')
+            ->get();
+
+        return view('locaux.show', compact('local', 'equipements', 'compteurs', 'signalements'));
+    }
+
+    // --- FORMULAIRE DE MODIFICATION ---
+    public function edit($id)
+    {
+        $local = DB::table('local_')->where('id_local', $id)->first();
+
+        if (!$local) {
+            abort(404, 'Local introuvable');
+        }
+
+        // Récupération des référentiels pour les listes déroulantes
+        $batiments = DB::table('batiment')->orderBy('nom_bat')->get();
+        $usages = DB::table('type_usage')->orderBy('libelle_usage')->get();
+        $lieux = DB::table('lieux_publics')->orderBy('nom_lieu')->get();
+
+        return view('locaux.edit', compact('local', 'batiments', 'usages', 'lieux'));
+    }
+
+    // --- MISE À JOUR EN BASE ---
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'nom_local' => 'required|string|max:80',
+            'largeur' => 'nullable|numeric',
+            'longueur' => 'nullable|numeric',
+            'surface_m2' => 'nullable|numeric',
+            'niveau' => 'nullable|string|max:50',
+            'statut_occupation' => 'nullable|string|max:50',
+            'ref_article_assurance' => 'nullable|string|max:50',
+            'prime_assurance_ttc' => 'nullable|numeric',
+            'remarque' => 'nullable|string|max:255',
+            'id_batiment' => 'nullable|integer|exists:batiment,id_batiment',
+            'id_lieu' => 'nullable|integer|exists:lieux_publics,id_lieu',
+            'id_usage' => 'nullable|integer|exists:type_usage,id_usage',
+        ]);
+
+        if (empty($request->id_batiment) && empty($request->id_lieu)) {
+            return back()->withInput()->with('error', 'Le local doit obligatoirement être rattaché à un Bâtiment ou à un Lieu public.');
+        }
+
+        DB::table('local_')
+            ->where('id_local', $id)
+            ->update([
+                'nom_local' => $request->nom_local,
+                'largeur' => $request->largeur,
+                'longueur' => $request->longueur,
+                'surface_m2' => $request->surface_m2,
+                'niveau' => $request->niveau,
+                'statut_occupation' => $request->statut_occupation,
+                'ref_article_assurance' => $request->ref_article_assurance,
+                'prime_assurance_ttc' => $request->prime_assurance_ttc,
+                'remarque' => $request->remarque,
+                'id_batiment' => $request->id_batiment ?: null,
+                'id_lieu' => $request->id_lieu ?: null,
+                'id_usage' => $request->id_usage ?: null,
+            ]);
+
+        return redirect()->route('locaux.show', $id)
+            ->with('success', 'Les informations du local ont été mises à jour.');
+    }
+
+    // --- SUPPRESSION SÉCURISÉE (DATA INTEGRITY) ---
+    public function destroy($id)
+    {
+        // 1. Vérifier la présence d'équipements dans ce local
+        $equipements = DB::table('equipement')->where('id_local', $id)->count();
+        if ($equipements > 0) {
+            return redirect()->back()->with('error', "🛑 Suppression impossible : $equipements équipement(s) sont localisés dans cette pièce.");
+        }
+
+        // 2. Vérifier si des compteurs y sont installés
+        $compteurs = DB::table('compteur')->where('id_local', $id)->count();
+        if ($compteurs > 0) {
+            return redirect()->back()->with('error', "🛑 Suppression impossible : Ce local abrite $compteurs compteur(s) de réseaux.");
+        }
+
+        // 3. Vérifier s'il y a des signalements ou interventions liés à cette pièce
+        $signalements = DB::table('signalement')->where('id_local', $id)->count();
+        $interventions = DB::table('intervention')->where('id_local', $id)->count();
+        if ($signalements > 0 || $interventions > 0) {
+            return redirect()->back()->with('error', "🛑 Suppression impossible : Ce local est référencé dans $signalements signalement(s) ou $interventions intervention(s).");
+        }
+
+        // 4. Si aucun blocage, exécution de la suppression
+        DB::table('local_')->where('id_local', $id)->delete();
+
+        return redirect()->route('locaux.index')
+            ->with('success', '✅ Le local a été retiré de l\'inventaire communal.');
+    }
+}

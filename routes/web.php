@@ -8,7 +8,7 @@ use App\Http\Controllers\EquipementController;
 use App\Http\Controllers\TiersController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\HabilitationController;
-use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\LocalController;
 use App\Http\Controllers\BatimentController;
 
 Route::get('/', function () {
@@ -94,6 +94,20 @@ Route::middleware('auth')->group(function () {
     Route::get('/batiments/{id}/edit', [BatimentController::class, 'edit'])->middleware('can:check-permission,"Patrimoine & Equipements","ecriture"')->name('batiments.edit');
     Route::put('/batiments/{id}', [BatimentController::class, 'update'])->middleware('can:check-permission,"Patrimoine & Equipements","ecriture"')->name('batiments.update');
     Route::delete('/batiments/{id}', [BatimentController::class, 'destroy'])->middleware('can:check-permission,"Patrimoine & Equipements","suppression"')->name('batiments.destroy');
+
+    // ========================================================
+    // 🔏 SECURISE : MODULE LOCAUX (PIÈCES & SALLES)
+    // ========================================================
+
+    Route::get('/locaux', [LocalController::class, 'index'])->middleware('can:check-permission,"Patrimoine & Equipements","lecture"')->name('locaux.index');
+    Route::get('/locaux/create', [LocalController::class, 'create'])->middleware('can:check-permission,"Patrimoine & Equipements","ecriture"')->name('locaux.create');
+    Route::post('/locaux', [LocalController::class, 'store'])->middleware('can:check-permission,"Patrimoine & Equipements","ecriture"')->name('locaux.store');
+
+    Route::get('/locaux/{id}', [LocalController::class, 'show'])->middleware('can:check-permission,"Patrimoine & Equipements","lecture"')->name('locaux.show');
+    Route::get('/locaux/{id}/edit', [LocalController::class, 'edit'])->middleware('can:check-permission,"Patrimoine & Equipements","ecriture"')->name('locaux.edit');
+    Route::put('/locaux/{id}', [LocalController::class, 'update'])->middleware('can:check-permission,"Patrimoine & Equipements","ecriture"')->name('locaux.update');
+    Route::delete('/locaux/{id}', [LocalController::class, 'destroy'])->middleware('can:check-permission,"Patrimoine & Equipements","suppression"')->name('locaux.destroy');
+
     // ========================================================
     // 🔏 SECURISE : MODULE EQUIPEMENTS VIA LA MATRICE DE DROITS
     // ========================================================
@@ -114,7 +128,7 @@ Route::middleware('auth')->group(function () {
     Route::middleware(['role:Administrateur,Responsable technique'])->group(function () {
         Route::get('/admin/habilitations', [HabilitationController::class, 'index'])->name('admin.habilitations.index');
         Route::post('/admin/habilitations/update', [HabilitationController::class, 'update'])->name('admin.habilitations.update');
-        Route::post('/admin/preventif/generer', function () {
+        Route::get('/admin/preventif/generer', function () {
             // Déclenche l'exécution de la commande de maintenance directement depuis le code PHP
             Illuminate\Support\Facades\Artisan::call('app:generer-preventif');
 
