@@ -12,16 +12,34 @@ use Illuminate\Support\Facades\DB;
 class EquipementController extends Controller
 {
     //
-    public function index()
+    public function index(Request $request)
     {
-        // On récupère tous les équipements
-        $equipements = Equipement::all();
+        // 1. Initialisation de la requête 
+        $query = Equipement::query()->with('famille');
 
-        // On retourne la vue avec les données
-        return view('equipements.index', compact('equipements'));
+        // 2. Application des filtres
+        if ($request->filled('search')) {
+            $query->where('nom_equipement', 'like', '%' . $request->search . '%');
+        }
+
+        if ($request->filled('famille')) {
+            $query->where('id_famille', $request->famille);
+        }
+
+        if ($request->filled('etat')) {
+            $query->where('etat_fonctionnement', $request->etat);
+        }
+
+        // 3. Pagination
+        $equipements = $query->latest()->paginate(15);
+
+        // 4. RÉCUPÉRATION DES FAMILLES 
+        $familles = FamilleEquipement::orderBy('libelle_famille', 'asc')->get();
+
+        // 5. Retour de la vue avec les DEUX variables
+        return view('equipements.index', compact('equipements', 'familles'));
     }
 
-    // N'oublie pas d'importer tes modèles en haut si ce n'est pas fait !
 
     public function create()
     {
