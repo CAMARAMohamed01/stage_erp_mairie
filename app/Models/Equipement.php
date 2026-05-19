@@ -52,6 +52,20 @@ class Equipement extends Model
         return $this->belongsTo(Local::class, 'id_local', 'id_local');
     }
 
+    //Immobilisation
+    public function immobilisation()
+    {
+        return $this->belongsTo(ImmobilisationInventaire::class, 'id_immo', 'id_immo');
+    }
+    // Relation avec le service
+    public function service()
+    {
+        return $this->belongsTo(ServiceMairie::class, 'id_service', 'id_service');
+    }
+    public function lieu()
+    {
+        return $this->belongsTo(LieuPublic::class, 'id_lieu', 'id_lieu');
+    }
     // Relation avec le Lieu Public
     public function lieuPublic()
     {

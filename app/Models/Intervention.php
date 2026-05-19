@@ -86,4 +86,19 @@ class Intervention extends Model
     {
         return $this->belongsTo(Contrat::class, 'id_contrat', 'id_contrat');
     }
+    // Relation avec les agents (table utilisateur via equipe_intervention)
+    public function agents()
+    {
+        return $this->belongsToMany(
+            Utilisateur::class,
+            'equipe_intervention',
+            'id_int',
+            'id_user'
+        )->withPivot('role_agent', 'nb_heures_passees');
+    }
+    // tiers
+    public function tiers()
+    {
+        return $this->belongsTo(Tiers::class, 'id_tiers', 'id_tiers');
+    }
 }

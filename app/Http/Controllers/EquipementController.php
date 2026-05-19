@@ -102,8 +102,17 @@ class EquipementController extends Controller
 
     public function show($id)
     {
-        // On récupère l'équipement par sa clé primaire en "chargeant" ses relations (Eager Loading)
-        $equipement = Equipement::with(['famille', 'local', 'lieuPublic', 'controles', 'interventions'])->findOrFail($id);
+        $equipement = Equipement::with([
+            'famille',
+            'local',
+            'lieuPublic',
+            'controles',
+            'interventions' => function ($query) {
+                $query->orderBy('date_ouverture', 'desc'); // Historique trié
+            },
+            'service',         // Ajout relation service
+            'immobilisation'   // Ajout relation immo (si définie dans ton modèle)
+        ])->findOrFail($id);
 
         return view('equipements.show', compact('equipement'));
     }

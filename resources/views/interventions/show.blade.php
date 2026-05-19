@@ -79,7 +79,7 @@
                             <p class="text-xs text-slate-400 uppercase font-bold tracking-wider">Statut global</p>
                             <span
                                 class="inline-block mt-1 px-2.5 py-1 text-xs font-bold rounded-full 
-                                    {{ $intervention->statut_global === 'Terminée' ? 'bg-green-100 text-green-800' : ($intervention->statut_global === 'En cours' ? 'bg-blue-100 text-blue-800' : 'bg-amber-100 text-amber-800') }}">
+                                            {{ $intervention->statut_global === 'Terminée' ? 'bg-green-100 text-green-800' : ($intervention->statut_global === 'En cours' ? 'bg-blue-100 text-blue-800' : 'bg-amber-100 text-amber-800') }}">
                                 {{ $intervention->statut_global }}
                             </span>
                         </div>
@@ -243,6 +243,57 @@
                     @endif
                 </div>
 
+                <div class="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
+                    <h3 class="text-sm font-bold text-slate-800 uppercase mb-4 flex items-center">
+                        <span class="mr-2">👷</span> Équipe assignée
+                    </h3>
+                    @if($intervention->agents && $intervention->agents->count() > 0)
+                        <ul class="space-y-3">
+                            @foreach($intervention->agents as $agent)
+                                <li class="flex items-center gap-3 p-2 bg-slate-50 rounded-lg border border-slate-100">
+                                    <div
+                                        class="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs">
+                                        {{ substr($agent->prenom_user, 0, 1) }}{{ substr($agent->nom_user, 0, 1) }}
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-bold text-slate-800">{{ $agent->prenom_user }} {{ $agent->nom_user }}
+                                        </p>
+                                        <p class="text-xs text-slate-500">{{ $agent->role_appli ?? 'Agent technique' }}</p>
+                                    </div>
+                                </li>
+                            @endforeach
+                        </ul>
+                    @else
+                        <div class="text-center p-4 bg-slate-50 rounded-lg border border-dashed border-slate-300">
+                            <p class="text-sm text-slate-500 italic">Aucun agent assigné pour le moment.</p>
+                        </div>
+                    @endif
+                </div>
+                <div class="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
+                    <h3 class="text-sm font-bold text-slate-800 uppercase mb-3 flex items-center">
+                        <span class="mr-2">🏢</span> Prestataire Externe
+                    </h3>
+                    @if($intervention->tiers)
+                        <div class="p-3 bg-indigo-50 border border-indigo-100 rounded-lg">
+                            <p class="text-sm font-bold text-indigo-900">
+                                {{ $intervention->tiers->nom_tiers }}
+                            </p>
+                            @if($intervention->tiers->telephone || $intervention->tiers->email)
+                                <div class="mt-2 text-xs text-indigo-700 space-y-1 border-t border-indigo-200/60 pt-2">
+                                    @if($intervention->tiers->telephone)
+                                    <p>📞 {{ $intervention->tiers->telephone }}</p> @endif
+                                    @if($intervention->tiers->email)
+                                    <p>✉️ {{ $intervention->tiers->email }}</p> @endif
+                                </div>
+                            @endif
+                        </div>
+                    @else
+                        <div class="p-3 bg-emerald-50 border border-emerald-100 rounded-lg flex items-center gap-2">
+                            <span class="text-emerald-600 text-xs">✔️</span>
+                            <p class="text-xs font-semibold text-emerald-800">Intervention prise en charge en Régie Interne</p>
+                        </div>
+                    @endif
+                </div>
                 <div class="bg-slate-100 rounded-xl p-6 border border-slate-200">
                     <h3 class="text-sm font-bold text-slate-500 uppercase mb-3">Traçabilité & Origine</h3>
                     @if($intervention->id_sig)

@@ -11,7 +11,10 @@ use App\Models\Categorie;
 use App\Models\Local;
 use App\Models\LieuPublic;
 use App\Models\Batiment;
+use App\Models\Utilisateur;
+use App\Models\Tiers;
 use Illuminate\Support\Facades\DB;
+
 class InterventionController extends Controller
 {
     public function index(Request $request)
@@ -35,7 +38,7 @@ class InterventionController extends Controller
     {
 
         // On récupère l'intervention avec ses relations
-        $intervention = Intervention::with(['equipements', 'categorie', 'signalement', 'suiviActions'])->findOrFail($id);
+        $intervention = Intervention::with(['equipements', 'categorie', 'signalement', 'suiviActions', 'agents', 'tiers'])->findOrFail($id);
         return view('interventions.show', compact('intervention'));
     }
 
@@ -89,7 +92,7 @@ class InterventionController extends Controller
 
     public function imprimer($id)
     {
-        $intervention = Intervention::with(['categorie', 'signalement', 'suiviActions'])->findOrFail($id);
+        $intervention = Intervention::with(['categorie', 'signalement', 'suiviActions', 'agents', 'tiers'])->findOrFail($id);
         // On renvoie simplement une vue propre, et on déclenchera l'impression en JS
         return view('interventions.print', compact('intervention'));
     }
@@ -140,13 +143,32 @@ class InterventionController extends Controller
         $batiments = Batiment::orderBy('nom_bat', 'asc')->get();
         $lieux_publics = LieuPublic::orderBy('nom_lieu', 'asc')->get();
 
+        $agents = Utilisateur::orderBy('nom_user')->get();
+        $tiers = DB::table('tiers')
+            ->leftJoin('tiers_physique', 'tiers.id_tiers', '=', 'tiers_physique.id_tiers')
+            ->leftJoin('tiers_morale', 'tiers.id_tiers', '=', 'tiers_morale.id_tiers')
+            ->select(
+                'tiers.id_tiers',
+                'tiers.type_tiers',
+                'tiers.tel_tiers',
+                'tiers.email_tiers',
+                'tiers_physique.nom_tiers',
+                'tiers_physique.prenom_tiers',
+                'tiers_morale.raison_sociale'
+            )
+            // On trie par ordre alphabétique en prenant soit la raison sociale, soit le nom
+            ->orderByRaw('COALESCE(tiers_morale.raison_sociale, tiers_physique.nom_tiers) ASC')
+            ->get();
+
         return view('interventions.create', compact(
             'equipements',
             'equipement_preselectionne',
             'categories',
             'locaux',
             'batiments',
-            'lieux_publics'
+            'lieux_publics',
+            'agents',
+            'tiers'
         ));
     }
 
@@ -166,6 +188,7 @@ class InterventionController extends Controller
             'id_local' => 'nullable|exists:local_,id_local',
             'id_batiment' => 'nullable|exists:batiment,id_batiment',
             'id_lieu' => 'nullable|exists:lieux_publics,id_lieu',
+            'id_tiers' => 'nullable|exists:tiers,id_tiers',
         ]);
 
         // 2. Préparation des données pour la table 'intervention'
@@ -185,6 +208,9 @@ class InterventionController extends Controller
 
             // Création de l'intervention principale
             $intervention = Intervention::create($interventionData);
+            if ($request->has('agents')) {
+                $intervention->agents()->attach($request->agents);
+            }
 
             // A. Si c'est un ÉQUIPEMENT -> Table de liaison 'intervention_equipement'
             if ($request->filled('equipement_id')) {
@@ -218,11 +244,26 @@ class InterventionController extends Controller
         $intervention = Intervention::with('equipements')->findOrFail($id);
         $equipements = Equipement::orderBy('nom_equipement')->get();
         $categories = Categorie::orderBy('libelle', 'asc')->get();
-
+        $agents = Utilisateur::orderBy('nom_user')->get();
+        $tiers = DB::table('tiers')
+            ->leftJoin('tiers_physique', 'tiers.id_tiers', '=', 'tiers_physique.id_tiers')
+            ->leftJoin('tiers_morale', 'tiers.id_tiers', '=', 'tiers_morale.id_tiers')
+            ->select(
+                'tiers.id_tiers',
+                'tiers.type_tiers',
+                'tiers.tel_tiers',
+                'tiers.email_tiers',
+                'tiers_physique.nom_tiers',
+                'tiers_physique.prenom_tiers',
+                'tiers_morale.raison_sociale'
+            )
+            // On trie par ordre alphabétique en prenant soit la raison sociale, soit le nom
+            ->orderByRaw('COALESCE(tiers_morale.raison_sociale, tiers_physique.nom_tiers) ASC')
+            ->get();
         // On récupère l'ID de l'équipement lié (s'il y en a un) pour pré-sélectionner la liste
         $equipement_preselectionne = $intervention->equipements->first()->id_equipement ?? null;
 
-        return view('interventions.edit', compact('intervention', 'equipements', 'categories', 'equipement_preselectionne'));
+        return view('interventions.edit', compact('intervention', 'equipements', 'categories', 'agents', 'tiers', 'equipement_preselectionne'));
     }
 
     // TRAITER LA MODIFICATION
@@ -238,6 +279,7 @@ class InterventionController extends Controller
             'id_cat' => 'required|exists:categorie,id_cat',
             'equipement_id' => 'nullable|exists:equipement,id_equipement',
             'code_budget' => 'nullable|string|max:2',
+            'id_tiers' => 'nullable|exists:tiers,id_tiers',
         ]);
 
         $interventionData = $validated;
@@ -246,6 +288,11 @@ class InterventionController extends Controller
         // Mise à jour des données
         $intervention->update($interventionData);
 
+        if ($request->has('agents')) {
+            $intervention->agents()->sync($request->agents);
+        } else {
+            $intervention->agents()->detach();
+        }
         // Mise à jour de la liaison avec l'équipement (Table pivot)
         if ($request->filled('equipement_id')) {
             // sync() remplace les anciens liens par le nouveau
