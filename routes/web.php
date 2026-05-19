@@ -10,6 +10,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\HabilitationController;
 use App\Http\Controllers\LocalController;
 use App\Http\Controllers\BatimentController;
+use App\Http\Controllers\LieuController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -95,6 +96,18 @@ Route::middleware('auth')->group(function () {
     Route::put('/batiments/{id}', [BatimentController::class, 'update'])->middleware('can:check-permission,"Patrimoine & Equipements","ecriture"')->name('batiments.update');
     Route::delete('/batiments/{id}', [BatimentController::class, 'destroy'])->middleware('can:check-permission,"Patrimoine & Equipements","suppression"')->name('batiments.destroy');
 
+    // ========================================================
+    // 🌳 SECURISE : MODULE LIEUX PUBLICS (Espaces extérieurs)
+    // ========================================================
+
+    Route::get('/lieux', [LieuController::class, 'index'])->middleware('can:check-permission,"Patrimoine & Equipements","lecture"')->name('lieux.index');
+    Route::get('/lieux/create', [LieuController::class, 'create'])->middleware('can:check-permission,"Patrimoine & Equipements","ecriture"')->name('lieux.create');
+    Route::post('/lieux', [LieuController::class, 'store'])->middleware('can:check-permission,"Patrimoine & Equipements","ecriture"')->name('lieux.store');
+
+    Route::get('/lieux/{id}', [LieuController::class, 'show'])->middleware('can:check-permission,"Patrimoine & Equipements","lecture"')->name('lieux.show');
+    Route::get('/lieux/{id}/edit', [LieuController::class, 'edit'])->middleware('can:check-permission,"Patrimoine & Equipements","ecriture"')->name('lieux.edit');
+    Route::put('/lieux/{id}', [LieuController::class, 'update'])->middleware('can:check-permission,"Patrimoine & Equipements","ecriture"')->name('lieux.update');
+    Route::delete('/lieux/{id}', [LieuController::class, 'destroy'])->middleware('can:check-permission,"Patrimoine & Equipements","suppression"')->name('lieux.destroy');
     // ========================================================
     // 🔏 SECURISE : MODULE LOCAUX (PIÈCES & SALLES)
     // ========================================================
