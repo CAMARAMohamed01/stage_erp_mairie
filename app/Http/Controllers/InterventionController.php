@@ -14,6 +14,8 @@ use App\Models\Batiment;
 use App\Models\Utilisateur;
 use App\Models\Tiers;
 use Illuminate\Support\Facades\DB;
+use App\Models\Contrat;
+use App\Models\OperationComptable;
 
 class InterventionController extends Controller
 {
@@ -38,7 +40,7 @@ class InterventionController extends Controller
     {
 
         // On récupère l'intervention avec ses relations
-        $intervention = Intervention::with(['equipements', 'categorie', 'signalement', 'suiviActions', 'agents', 'tiers'])->findOrFail($id);
+        $intervention = Intervention::with(['equipements', 'categorie', 'signalement', 'suiviActions', 'agents', 'tiers', 'contrat', 'achatsMateriels'])->findOrFail($id);
         return view('interventions.show', compact('intervention'));
     }
 
@@ -92,7 +94,7 @@ class InterventionController extends Controller
 
     public function imprimer($id)
     {
-        $intervention = Intervention::with(['categorie', 'signalement', 'suiviActions', 'agents', 'tiers'])->findOrFail($id);
+        $intervention = Intervention::with(['categorie', 'signalement', 'suiviActions', 'agents', 'tiers', 'contrat', 'achatsMateriels'])->findOrFail($id);
         // On renvoie simplement une vue propre, et on déclenchera l'impression en JS
         return view('interventions.print', compact('intervention'));
     }
@@ -142,6 +144,8 @@ class InterventionController extends Controller
         $locaux = Local::orderBy('nom_local', 'asc')->get();
         $batiments = Batiment::orderBy('nom_bat', 'asc')->get();
         $lieux_publics = LieuPublic::orderBy('nom_lieu', 'asc')->get();
+        $contrats = Contrat::orderBy('numero_contrat', 'asc')->get();
+        $operations = OperationComptable::orderBy('numero_operation', 'asc')->get();
 
         $agents = Utilisateur::orderBy('nom_user')->get();
         $tiers = DB::table('tiers')
@@ -168,7 +172,9 @@ class InterventionController extends Controller
             'batiments',
             'lieux_publics',
             'agents',
-            'tiers'
+            'tiers',
+            'contrats',
+            'operations',
         ));
     }
 
@@ -189,6 +195,8 @@ class InterventionController extends Controller
             'id_batiment' => 'nullable|exists:batiment,id_batiment',
             'id_lieu' => 'nullable|exists:lieux_publics,id_lieu',
             'id_tiers' => 'nullable|exists:tiers,id_tiers',
+            'id_contrat' => 'nullable|exists:contrat,id_contrat',
+            'id_operation' => 'nullable|exists:operation_comptable,id_operation',
         ]);
 
         // 2. Préparation des données pour la table 'intervention'
@@ -201,6 +209,8 @@ class InterventionController extends Controller
             'code_budget' => $validated['code_budget'],
             'id_local' => $validated['id_local'] ?? null,
             'id_batiment' => $validated['id_batiment'] ?? null, // Si tu as ajouté la colonne, sinon géré par projet_batiment ou description
+            'id_contrat' => $validated['id_contrat'] ?? null,
+            'id_operation' => $validated['id_operation'] ?? null,
         ];
 
         // 3. Transaction pour garantir la cohérence des tables pivots
@@ -245,6 +255,8 @@ class InterventionController extends Controller
         $equipements = Equipement::orderBy('nom_equipement')->get();
         $categories = Categorie::orderBy('libelle', 'asc')->get();
         $agents = Utilisateur::orderBy('nom_user')->get();
+        $contrats = Contrat::orderBy('numero_contrat', 'asc')->get();
+        $operations = OperationComptable::orderBy('numero_operation', 'asc')->get();
         $tiers = DB::table('tiers')
             ->leftJoin('tiers_physique', 'tiers.id_tiers', '=', 'tiers_physique.id_tiers')
             ->leftJoin('tiers_morale', 'tiers.id_tiers', '=', 'tiers_morale.id_tiers')
@@ -263,7 +275,7 @@ class InterventionController extends Controller
         // On récupère l'ID de l'équipement lié (s'il y en a un) pour pré-sélectionner la liste
         $equipement_preselectionne = $intervention->equipements->first()->id_equipement ?? null;
 
-        return view('interventions.edit', compact('intervention', 'equipements', 'categories', 'agents', 'tiers', 'equipement_preselectionne'));
+        return view('interventions.edit', compact('intervention', 'equipements', 'categories', 'agents', 'tiers', 'equipement_preselectionne', 'contrats', 'operations'));
     }
 
     // TRAITER LA MODIFICATION
@@ -280,6 +292,8 @@ class InterventionController extends Controller
             'equipement_id' => 'nullable|exists:equipement,id_equipement',
             'code_budget' => 'nullable|string|max:2',
             'id_tiers' => 'nullable|exists:tiers,id_tiers',
+            'id_contrat' => 'nullable|exists:contrat,id_contrat',
+            'id_operation' => 'nullable|exists:operation_comptable,id_operation',
         ]);
 
         $interventionData = $validated;
@@ -328,6 +342,35 @@ class InterventionController extends Controller
     {
         $intervention = Intervention::findOrFail($id);
         return view('interventions.cloture_form', compact('intervention'));
+    }
+    // ENREGISTRER UN ACHAT DE MATÉRIEL / CONSOMMABLE
+    public function ajouterMateriel(Request $request, $id)
+    {
+        $intervention = Intervention::findOrFail($id);
+
+        $validated = $request->validate([
+            'nom_materiel' => 'required|string|max:150',
+            'quantite' => 'required|numeric|min:0.01',
+            'unite_mesure' => 'nullable|string|max:50',
+            'prix_unitaire_ht' => 'required|numeric|min:0',
+            'date_achat' => 'required|date',
+        ]);
+
+        // On y injecte l'id de l'intervention et des statuts par défaut conformes à ton DDL
+        DB::table('achat_materiel_consommable')->insert([
+            'nom_materiel' => $validated['nom_materiel'],
+            'quantite' => $validated['quantite'],
+            'unite_mesure' => $validated['unite_mesure'] ?? 'Unité',
+            'prix_unitaire_ht' => $validated['prix_unitaire_ht'],
+            'date_achat' => $validated['date_achat'],
+            'statut_achat' => 'Utilisé',
+            'id_int' => $intervention->id_int,
+            'id_operation' => $intervention->id_operation, // Héritage auto du budget de l'intervention
+            'id_contrat' => $intervention->id_contrat,   // Héritage auto du contrat de l'intervention
+        ]);
+
+        return redirect()->route('interventions.show', $id)
+            ->with('success', 'Matériel ajouté avec succès au bon de travaux.');
     }
 
 

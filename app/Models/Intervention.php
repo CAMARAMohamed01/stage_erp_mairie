@@ -101,4 +101,10 @@ class Intervention extends Model
     {
         return $this->belongsTo(Tiers::class, 'id_tiers', 'id_tiers');
     }
+
+    // Relation avec les achats de matériels et consommables
+    public function achatsMateriels()
+    {
+        return $this->hasMany(AchatMaterielConsommable::class, 'id_int');
+    }
 }

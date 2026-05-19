@@ -79,7 +79,7 @@
                             <p class="text-xs text-slate-400 uppercase font-bold tracking-wider">Statut global</p>
                             <span
                                 class="inline-block mt-1 px-2.5 py-1 text-xs font-bold rounded-full 
-                                            {{ $intervention->statut_global === 'Terminée' ? 'bg-green-100 text-green-800' : ($intervention->statut_global === 'En cours' ? 'bg-blue-100 text-blue-800' : 'bg-amber-100 text-amber-800') }}">
+                                                {{ $intervention->statut_global === 'Terminée' ? 'bg-green-100 text-green-800' : ($intervention->statut_global === 'En cours' ? 'bg-blue-100 text-blue-800' : 'bg-amber-100 text-amber-800') }}">
                                 {{ $intervention->statut_global }}
                             </span>
                         </div>
@@ -117,7 +117,89 @@
                         <p class="text-sm text-slate-400 italic">Aucun compte-rendu de terrain pour le moment.</p>
                     @endif
                 </div>
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mt-6">
+                    <div class="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
+                        <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider">📦 Fournitures & Matériels
+                            consommés</h3>
+                        @php
+                            $coutMaterielTotal = $intervention->achatsMateriels->sum(function ($m) {
+                                return $m->quantite * $m->prix_unitaire_ht;
+                            });
+                        @endphp
+                        <span class="text-xs font-bold bg-blue-100 text-blue-800 px-2.5 py-1 rounded-full">
+                            Total matériel : {{ number_format($coutMaterielTotal, 2, ',', ' ') }} € HT
+                        </span>
+                    </div>
 
+                    <div class="divide-y divide-slate-100 bg-white">
+                        @forelse($intervention->achatsMateriels ?? [] as $mat)
+                            <div class="p-4 flex justify-between items-center text-sm">
+                                <div>
+                                    <p class="font-semibold text-slate-800">{{ $mat->nom_materiel }}</p>
+                                    <p class="text-xs text-slate-400">
+                                        Quantité : <span class="font-medium text-slate-600">{{ $mat->quantite }}
+                                            {{ $mat->unite_mesure }}</span>
+                                        | PU : <span
+                                            class="font-medium text-slate-600">{{ number_format($mat->prix_unitaire_ht, 2, ',', ' ') }}
+                                            €</span>
+                                    </p>
+                                </div>
+                                <div class="text-right">
+                                    <span class="font-bold text-slate-900">
+                                        {{ number_format($mat->quantite * $mat->prix_unitaire_ht, 2, ',', ' ') }} € HT
+                                    </span>
+                                    <p class="text-[10px] text-slate-400">Le
+                                        {{ \Carbon\Carbon::parse($mat->date_achat)->format('d/m/Y') }}
+                                    </p>
+                                </div>
+                            </div>
+                        @empty
+                            <p class="p-6 text-center text-sm text-slate-400 italic">Aucune fourniture enregistrée sur cette
+                                intervention.</p>
+                        @endforelse
+                    </div>
+
+                    @if(auth()->user()->can('check-permission', ['Interventions', 'ecriture']))
+                        <div class="p-4 bg-slate-50/60 border-t border-slate-100">
+                            <span class="text-xs font-bold uppercase text-slate-400 tracking-wider block mb-3">➕ Ajouter une
+                                fourniture / un achat</span>
+                            <form action="{{ route('interventions.materiel.store', $intervention->id_int) }}" method="POST"
+                                class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                                @csrf
+                                <div class="sm:col-span-2">
+                                    <input type="text" name="nom_materiel" required
+                                        placeholder="Désignation (Ex: Vanne PVC, Câble 3G2.5...)"
+                                        class="w-full text-xs border border-slate-300 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500">
+                                </div>
+                                <div>
+                                    <div class="flex gap-1">
+                                        <input type="number" step="0.01" name="quantite" required placeholder="Qté"
+                                            class="w-2/3 text-xs border border-slate-300 rounded-lg px-2 py-2 outline-none focus:ring-2 focus:ring-blue-500">
+                                        <input type="text" name="unite_mesure" placeholder="Unité" value="U"
+                                            class="w-1/3 text-xs border border-slate-300 rounded-lg px-1 py-2 text-center bg-white outline-none focus:ring-2 focus:ring-blue-500">
+                                    </div>
+                                </div>
+                                <div>
+                                    <input type="number" step="0.01" name="prix_unitaire_ht" required
+                                        placeholder="Prix U. HT (€)"
+                                        class="w-full text-xs border border-slate-300 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500">
+                                </div>
+                                <input type="hidden" name="date_add" value="{{ now()->format('Y-m-d') }}">
+                                <div class="sm:col-span-4 flex justify-between items-center mt-1">
+                                    <div class="flex items-center gap-2">
+                                        <label class="text-[11px] text-slate-500 font-medium">Date d'utilisation/achat :</label>
+                                        <input type="date" name="date_achat" value="{{ now()->format('Y-m-d') }}" required
+                                            class="text-xs border border-slate-300 rounded px-2 py-0.5 bg-white text-slate-600">
+                                    </div>
+                                    <button type="submit"
+                                        class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-4 py-2 rounded-lg shadow transition">
+                                        Ajouter la ligne
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    @endif
+                </div>
                 <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
                     <h2 class="text-lg font-bold text-slate-800 mb-4 border-b pb-2">Suivi des étapes</h2>
                     <div class="space-y-4">

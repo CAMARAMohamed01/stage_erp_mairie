@@ -124,6 +124,39 @@
             <span class="text-xs text-gray-500 mt-1 block">À renseigner uniquement si l'intervention est
                 externalisée.</span>
         </div>
+        <h3 class="text-lg font-bold text-slate-800 border-b pb-2 mb-4 mt-8">Cadre Administratif & Budgétaire</h3>
+        <div class="bg-blue-50 p-4 rounded-xl border border-blue-100 space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-blue-900 mb-1">Contrat associé (Optionnel)</label>
+                    <select name="id_contrat"
+                        class="w-full border border-blue-200 rounded-lg px-4 py-2 bg-white focus:ring-blue-500">
+                        <option value="">-- Aucun contrat spécifique --</option>
+                        @foreach($contrats as $contrat)
+                        <option value="{{ $contrat->id_contrat }}"
+                            {{ (isset($intervention) && $intervention->id_contrat == $contrat->id_contrat) ? 'selected' : '' }}>
+                            {{ $contrat->numero_contrat ?? 'Sans N°' }} - {{ $contrat->type_contrat }}
+                        </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-blue-900 mb-1">Imputation (Projet / Opération)</label>
+                    <select name="id_operation"
+                        class="w-full border border-blue-200 rounded-lg px-4 py-2 bg-white focus:ring-blue-500">
+                        <option value="">-- Hors projet spécifique --</option>
+                        @foreach($operations as $op)
+                        <option value="{{ $op->id_operation }}"
+                            {{ (isset($intervention) && $intervention->id_operation == $op->id_operation) ? 'selected' : '' }}>
+                            {{ $op->numero_operation }} - {{ $op->libelle_operation }}
+                        </option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+        </div>
+
         <div class="mt-4">
             <label class="block text-sm font-medium text-gray-700 mb-1">Description du problème / de l'intervention
                 *</label>

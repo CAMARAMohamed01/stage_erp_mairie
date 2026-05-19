@@ -35,4 +35,18 @@ class Tiers extends Model
     {
         return $this->hasMany(Signalement::class, 'id_tiers', 'id_tiers');
     }
+
+    // Création d'un attribut virtuel "nom_affiche"
+    public function getNomAfficheAttribute()
+    {
+        // On importe la façade DB en haut du fichier si besoin : use Illuminate\Support\Facades\DB;
+
+        if (str_contains(strtolower($this->type_tiers), 'morale') || str_contains(strtolower($this->type_tiers), 'entreprise')) {
+            $morale = \Illuminate\Support\Facades\DB::table('tiers_morale')->where('id_tiers', $this->id_tiers)->first();
+            return $morale ? $morale->raison_sociale : 'Entreprise introuvable';
+        } else {
+            $physique = \Illuminate\Support\Facades\DB::table('tiers_physique')->where('id_tiers', $this->id_tiers)->first();
+            return $physique ? $physique->nom_tiers . ' ' . $physique->prenom_tiers : 'Personne introuvable';
+        }
+    }
 }

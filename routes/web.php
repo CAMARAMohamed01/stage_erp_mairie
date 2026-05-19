@@ -11,6 +11,7 @@ use App\Http\Controllers\HabilitationController;
 use App\Http\Controllers\LocalController;
 use App\Http\Controllers\BatimentController;
 use App\Http\Controllers\LieuController;
+use App\Http\Controllers\ContratController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -78,6 +79,7 @@ Route::middleware('auth')->group(function () {
     // Suppression
     Route::delete('/interventions/{id}', [InterventionController::class, 'destroy'])->middleware('can:check-permission,"Interventions","suppression"')->name('interventions.destroy');
 
+    Route::post('/interventions/{id}/materiel', [InterventionController::class, 'ajouterMateriel'])->middleware('can:check-permission,"Interventions","ecriture"')->name('interventions.materiel.store');
     // ========================================================
     // 🔏 SECURISE : MODULE BATIMENTS & LIEUX PUBLICS (MATRICE)
     // ========================================================
@@ -134,6 +136,26 @@ Route::middleware('auth')->group(function () {
     Route::get('/equipements/{id}/edit', [EquipementController::class, 'edit'])->middleware('can:check-permission,"Patrimoine & Equipements","ecriture"')->name('equipements.edit');
     Route::put('/equipements/{id}', [EquipementController::class, 'update'])->middleware('can:check-permission,"Patrimoine & Equipements","ecriture"')->name('equipements.update');
     Route::delete('/equipements/{id}', [EquipementController::class, 'destroy'])->middleware('can:check-permission,"Patrimoine & Equipements","suppression"')->name('equipements.destroy');
+
+    // ========================================================
+    // 💼 SECURISE : MODULE CONTRATS & ENGAGEMENTS FINANCIERS
+    // ========================================================
+
+    // Lecture (Index, Fiche Détails, Exports potentiels)
+    Route::get('/contrats', [ContratController::class, 'index'])->middleware('can:check-permission,"Finances & Achats","lecture"')->name('contrats.index');
+
+    // Écriture / Création
+    Route::get('/contrats/create', [ContratController::class, 'create'])->middleware('can:check-permission,"Finances & Achats","ecriture"')->name('contrats.create');
+    Route::post('/contrats', [ContratController::class, 'store'])->middleware('can:check-permission,"Finances & Achats","ecriture"')->name('contrats.store');
+
+    // ROUTES DYNAMIQUES AVEC VARIABLES (Toujours après les routes statiques !)
+    // Écriture / Modification
+    Route::get('/contrats/{id}', [ContratController::class, 'show'])->middleware('can:check-permission,"Finances & Achats","lecture"')->name('contrats.show');
+    Route::get('/contrats/{id}/edit', [ContratController::class, 'edit'])->middleware('can:check-permission,"Finances & Achats","ecriture"')->name('contrats.edit');
+    Route::put('/contrats/{id}', [ContratController::class, 'update'])->middleware('can:check-permission,"Finances & Achats","ecriture"')->name('contrats.update');
+
+    // Suppression
+    Route::delete('/contrats/{id}', [ContratController::class, 'destroy'])->middleware('can:check-permission,"Finances & Achats","suppression"')->name('contrats.destroy');
 
     // ========================================================
     // RESTRICTION CRITIQUE : GESTION DES HABILITATIONS (ADMIN SYSTEME ONLY)
