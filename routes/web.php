@@ -15,6 +15,8 @@ use App\Http\Controllers\ContratController;
 use App\Http\Controllers\DossierFinancierController;
 use App\Http\Controllers\EmplacementFuneraireController;
 use App\Http\Controllers\ConcessionCimetiereController;
+use App\Http\Controllers\CompteurController;
+
 
 Route::get('/', function () {
     return view('welcome');
@@ -196,6 +198,37 @@ Route::middleware('auth')->group(function () {
 
         Route::delete('/{id}', [ConcessionCimetiereController::class, 'destroy'])
             ->middleware('can:check-permission,"État Civil & Cimetières","suppression"')->name('destroy');
+    });
+
+
+    // ==========================================
+// MODULE : GESTION DES FLUIDES & COMPTEURS
+// ==========================================
+    Route::prefix('compteurs')->name('compteurs.')->group(function () {
+
+        Route::get('/', [CompteurController::class, 'index'])
+            ->middleware('can:check-permission,"Patrimoine & Equipements","lecture"')->name('index');
+
+        Route::get('/create', [CompteurController::class, 'create'])
+            ->middleware('can:check-permission,"Patrimoine & Equipements","ecriture"')->name('create');
+        Route::get('/{id}', [CompteurController::class, 'show'])->middleware('can:check-permission,"Patrimoine & Equipements","lecture"')->name('show');
+
+        Route::post('/', [CompteurController::class, 'store'])
+            ->middleware('can:check-permission,"Patrimoine & Equipements","ecriture"')->name('store');
+
+        Route::get('/{id}/edit', [CompteurController::class, 'edit'])
+            ->middleware('can:check-permission,"Patrimoine & Equipements","ecriture"')->name('edit');
+
+        Route::put('/{id}', [CompteurController::class, 'update'])
+            ->middleware('can:check-permission,"Patrimoine & Equipements","ecriture"')->name('update');
+
+        Route::delete('/{id}', [CompteurController::class, 'destroy'])
+            ->middleware('can:check-permission,"Patrimoine & Equipements","suppression"')->name('destroy');
+    });
+    // Relevés des compteurs
+    Route::prefix('compteurs/{idCompteur}/releves')->name('compteurs.releves.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\ReleveCompteurController::class, 'index'])->name('index');
+        Route::post('/', [\App\Http\Controllers\ReleveCompteurController::class, 'store'])->name('store');
     });
     // ========================================================
     // 💼 SECURISE : MODULE CONTRATS & ENGAGEMENTS FINANCIERS
