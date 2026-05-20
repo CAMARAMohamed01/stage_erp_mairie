@@ -13,6 +13,8 @@ use App\Http\Controllers\BatimentController;
 use App\Http\Controllers\LieuController;
 use App\Http\Controllers\ContratController;
 use App\Http\Controllers\DossierFinancierController;
+use App\Http\Controllers\EmplacementFuneraireController;
+use App\Http\Controllers\ConcessionCimetiereController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -138,6 +140,63 @@ Route::middleware('auth')->group(function () {
     Route::put('/equipements/{id}', [EquipementController::class, 'update'])->middleware('can:check-permission,"Patrimoine & Equipements","ecriture"')->name('equipements.update');
     Route::delete('/equipements/{id}', [EquipementController::class, 'destroy'])->middleware('can:check-permission,"Patrimoine & Equipements","suppression"')->name('equipements.destroy');
 
+    // ==========================================
+// MODULE : GESTION DES CIMETIÈRES
+// ==========================================
+    Route::prefix('emplacements')->name('emplacements.')->group(function () {
+
+        // LECTURE (Accès à la liste et aux détails)
+        Route::get('/', [EmplacementFuneraireController::class, 'index'])
+            ->middleware('can:check-permission,"État Civil & Cimetières","lecture"')
+            ->name('index');
+
+        // ÉCRITURE (Création)
+        Route::get('/create', [EmplacementFuneraireController::class, 'create'])
+            ->middleware('can:check-permission,"État Civil & Cimetières","ecriture"')
+            ->name('create');
+
+        Route::post('/', [EmplacementFuneraireController::class, 'store'])
+            ->middleware('can:check-permission,"État Civil & Cimetières","ecriture"')
+            ->name('store');
+
+        // ÉCRITURE (Modification)
+        Route::get('/{id}/edit', [EmplacementFuneraireController::class, 'edit'])
+            ->middleware('can:check-permission,"État Civil & Cimetières","ecriture"')
+            ->name('edit');
+
+        Route::put('/{id}', [EmplacementFuneraireController::class, 'update'])
+            ->middleware('can:check-permission,"État Civil & Cimetières","ecriture"')
+            ->name('update');
+
+        // SUPPRESSION
+        Route::delete('/{id}', [EmplacementFuneraireController::class, 'destroy'])
+            ->middleware('can:check-permission,"État Civil & Cimetières","suppression"')
+            ->name('destroy');
+    });
+    Route::prefix('concessions')->name('concessions.')->group(function () {
+        Route::get('/', [ConcessionCimetiereController::class, 'index'])
+            ->middleware('can:check-permission,"État Civil & Cimetières","lecture"')->name('index');
+
+        Route::get('/create', [ConcessionCimetiereController::class, 'create'])
+            ->middleware('can:check-permission,"État Civil & Cimetières","ecriture"')->name('create');
+
+        // --- NOUVELLE ROUTE POUR LA FICHE DÉTAILLÉE ---
+        Route::get('/{id}', [ConcessionCimetiereController::class, 'show'])
+            ->middleware('can:check-permission,"État Civil & Cimetières","lecture"')->name('show');
+
+        Route::post('/', [ConcessionCimetiereController::class, 'store'])
+            ->middleware('can:check-permission,"État Civil & Cimetières","ecriture"')->name('store');
+
+        // --- LES NOUVELLES ROUTES ---
+        Route::get('/{id}/edit', [ConcessionCimetiereController::class, 'edit'])
+            ->middleware('can:check-permission,"État Civil & Cimetières","ecriture"')->name('edit');
+
+        Route::put('/{id}', [ConcessionCimetiereController::class, 'update'])
+            ->middleware('can:check-permission,"État Civil & Cimetières","ecriture"')->name('update');
+
+        Route::delete('/{id}', [ConcessionCimetiereController::class, 'destroy'])
+            ->middleware('can:check-permission,"État Civil & Cimetières","suppression"')->name('destroy');
+    });
     // ========================================================
     // 💼 SECURISE : MODULE CONTRATS & ENGAGEMENTS FINANCIERS
     // ========================================================

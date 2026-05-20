@@ -124,6 +124,29 @@
                 Annuaire Citoyens
             </a>
 
+            <a href="{{ route('emplacements.index') }}"
+                class="flex items-center px-4 py-3 rounded-lg transition-colors font-medium {{ request()->routeIs('emplacements.*') ? 'bg-blue-600 text-white shadow-md' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
+                <svg class="w-5 h-5 mr-3 {{ request()->routeIs('emplacements.*') ? 'text-white' : 'text-slate-400' }}"
+                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.863a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z">
+                    </path>
+                </svg>
+                Cimetières
+            </a>
+
+            <a href="{{ route('concessions.index') }}"
+                class="flex items-center px-4 py-3 rounded-lg transition-colors font-medium {{ request()->routeIs('concessions.*') ? 'bg-blue-600 text-white shadow-md' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
+                <svg class="w-5 h-5 mr-3 {{ request()->routeIs('concessions.*') ? 'text-white' : 'text-slate-400' }}"
+                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z">
+                    </path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 14l6.16-3.422a12.083 12.083 0 01.665-.33m0 0L12 14m0 0l-6.16-3.422a12.083 12.083 0 00-.665-.33m12.665 0a12.083 12.083 0 010 .658m0 .658L12 14m0 0l6.16 3.422a12.083 12.083 0 01.665.33m0 0L12 14m0 0l-6.16 3.422a12.083 12.083 0 00-.665.33m12.665 0a12.083 12.083 0 010 .658m0 .658L12 14">
+                    </path>
+                </svg>
+                Concessions cimetières
+            </a>
             <a href="{{ route('contrats.index') }}"
                 class="flex items-center px-4 py-3 rounded-lg transition-colors font-medium {{ request()->routeIs('contrats.*') ? 'bg-blue-600 text-white shadow-md' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
                 <svg class="w-5 h-5 mr-3 {{ request()->routeIs('contrats.*') ? 'text-white' : 'text-slate-400' }}"
