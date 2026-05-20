@@ -140,7 +140,30 @@
                     </div>
                 </div>
             </div>
+            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm mb-6">
+                <h2 class="text-sm font-bold text-slate-800 mb-4 border-b border-slate-100 pb-2">🌿 Contrats & Prestations
+                    associés</h2>
 
+                <div>
+                    <label for="id_contrats" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                        Contrats rattachés (Entretien espaces verts, Gardiennage, Assurance...)
+                    </label>
+                    <select name="id_contrats[]" id="id_contrats" multiple size="4"
+                        class="w-full border border-slate-300 rounded-lg px-4 py-2 bg-slate-50 focus:ring-slate-900 text-sm">
+                        @foreach($contrats as $c)
+                            @php
+                                $isSelected = isset($lieu) && $lieu->contratsAdministratifs->contains('id_contrat', $c->id_contrat);
+                                $isOldSelected = is_array(old('id_contrats')) && in_array($c->id_contrat, old('id_contrats'));
+                            @endphp
+                            <option value="{{ $c->id_contrat }}" {{ ($isSelected || $isOldSelected) ? 'selected' : '' }}>
+                                {{ $c->numero_contrat ?? 'Sans N°' }} - {{ $c->type_contrat }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <span class="text-[10px] text-slate-500 mt-1 block">Maintenez la touche CTRL (ou CMD sur Mac) pour
+                        sélectionner plusieurs lignes.</span>
+                </div>
+            </div>
             <div class="flex justify-end pt-4">
                 <button type="submit"
                     class="px-6 py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-lg shadow-md transition">

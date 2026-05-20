@@ -81,23 +81,117 @@ class ContratController extends Controller
 
     public function show($id)
     {
-        // On charge le contrat avec son prestataire (tiers) et les éléments liés
-        $contrat = Contrat::with([
-            'tiers',
-            // Si tu as défini ces relations dans ton modèle Contrat (sinon on fera autrement)
-            // 'equipements', 
-            // 'locaux'
-        ])->findOrFail($id);
+        // 1. Infos de base du contrat
+        $contrat = Contrat::with(['tiers'])->findOrFail($id);
 
-        // Pour l'instant, on récupère manuellement les éléments liés au contrat
+        // 2. Périmètre d'application (Les liaisons classiques N:M)
         $equipementsLies = DB::table('equipement')
-            ->where('id_contrat', $id)
+            ->join('contrat_equipement', 'equipement.id_equipement', '=', 'contrat_equipement.id_equipement')
+            ->where('contrat_equipement.id_contrat', $id)
+            ->select('equipement.*')
             ->get();
 
         $locauxLies = DB::table('local_')
             ->where('id_contrat_assurance', $id)
             ->get();
 
-        return view('contrats.show', compact('contrat', 'equipementsLies', 'locauxLies'));
+        // 3. Spécifique aux contrats de LOCATION (Les nouvelles requêtes)
+        $equipementsDisponibles = DB::table('equipement')->orderBy('nom_equipement')->get();
+
+        $decisions = DB::table('decision_administratif')->orderBy('numero_decision', 'desc')->get();
+
+        $locations = DB::table('location_equipement')
+            ->join('equipement', 'location_equipement.id_equipement', '=', 'equipement.id_equipement')
+            ->join('decision_administratif', 'location_equipement.id_decision', '=', 'decision_administratif.id_decision')
+            ->where('location_equipement.id_contrat', $id)
+            ->get();
+
+        // 4. On envoie TOUT à la vue
+        return view('contrats.show', compact(
+            'contrat',
+            'equipementsLies',
+            'locauxLies',
+            'equipementsDisponibles',
+            'decisions',
+            'locations'
+        ));
+    }
+    // ENREGISTRER UNE LIGNE DE LOCATION DE MATÉRIEL
+    public function ajouterLocation(Request $request, $id_contrat)
+    {
+        $request->validate([
+            'id_equipement' => 'required|exists:equipement,id_equipement',
+            'id_decision' => 'required|exists:decision_administratif,id_decision',
+            'quantite_louee' => 'required|integer|min:1',
+            'etat_depart' => 'nullable|string|max:100',
+            'date_debut_utilisation' => 'nullable|date',
+            'date_fin_utilisation' => 'nullable|date|after_or_equal:date_debut_utilisation',
+        ]);
+
+        // Insertion via DB pour éviter les blocages de clés primaires composites de l'ORM
+        DB::table('location_equipement')->insert([
+            'id_contrat' => $id_contrat,
+            'id_equipement' => $request->id_equipement,
+            'id_decision' => $request->id_decision,
+            'quantite_louee' => $request->quantite_louee,
+            'etat_depart' => $request->etat_depart,
+            'date_debut_utilisation' => $request->date_debut_utilisation,
+            'date_fin_utilisation' => $request->date_fin_utilisation,
+            'statut_ligne' => 'En cours',
+            'date_modification' => now()->format('Y-m-d')
+        ]);
+
+        return redirect()->back()->with('success', 'Équipement ajouté à la feuille de location.');
+    }
+
+    // AFFICHER LE FORMULAIRE DE MODIFICATION
+    public function edit($id)
+    {
+        $contrat = Contrat::findOrFail($id);
+
+        // Récupération des tiers pour la liste déroulante (identique au create)
+        $tiers = DB::table('tiers')
+            ->leftJoin('tiers_physique', 'tiers.id_tiers', '=', 'tiers_physique.id_tiers')
+            ->leftJoin('tiers_morale', 'tiers.id_tiers', '=', 'tiers_morale.id_tiers')
+            ->select('tiers.id_tiers', 'tiers_physique.nom_tiers', 'tiers_physique.prenom_tiers', 'tiers_morale.raison_sociale')
+            ->orderByRaw('COALESCE(tiers_morale.raison_sociale, tiers_physique.nom_tiers) ASC')
+            ->get();
+
+        return view('contrats.edit', compact('contrat', 'tiers'));
+    }
+
+    // ENREGISTRER LES MODIFICATIONS
+    public function update(Request $request, $id)
+    {
+        $contrat = Contrat::findOrFail($id);
+
+        $validated = $request->validate([
+            'numero_contrat' => 'required|string|max:50',
+            'type_contrat' => 'required|string|max:100',
+            'date_signature' => 'nullable|date',
+            'date_effet' => 'nullable|date',
+            'date_echeance' => 'nullable|date',
+            'montant_ht' => 'nullable|numeric|min:0',
+            'statut_contrat' => 'required|string|max:50',
+            'id_tiers' => 'required|exists:tiers,id_tiers',
+        ]);
+
+        $contrat->update($validated);
+
+        return redirect()->route('contrats.show', $contrat->id_contrat)
+            ->with('success', 'Le contrat a été mis à jour avec succès.');
+    }
+
+    // SUPPRIMER LE CONTRAT
+    public function destroy($id)
+    {
+        $contrat = Contrat::findOrFail($id);
+
+        // Grâce au "ON DELETE CASCADE" dans ta base de données, 
+        // les lignes dans contrat_equipement seront supprimées automatiquement.
+        $contrat->delete();
+
+        return redirect()->route('contrats.index')
+            ->with('success', 'Le contrat a été définitivement supprimé.');
     }
 }

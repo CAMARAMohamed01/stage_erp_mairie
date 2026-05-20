@@ -18,4 +18,8 @@ class Local extends Model
     {
         return $this->belongsToMany(Projet::class, 'projet_local', 'id_local', 'id_projet');
     }
+    public function contratsAdministratifs()
+    {
+        return $this->belongsToMany(\App\Models\Contrat::class, 'contrat_local', 'id_local', 'id_contrat');
+    }
 }

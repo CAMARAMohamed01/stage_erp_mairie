@@ -3,8 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Local;
+use App\Models\Contrat;
 use Illuminate\Support\Facades\DB;
-
 class LocalController extends Controller
 {
     // Afficher la liste de tous les locaux
@@ -32,16 +33,17 @@ class LocalController extends Controller
 
         // Optionnel: on récupère les lieux publics si un local dépend d'un lieu (ex: Cabanon dans un parc)
         $lieux = DB::table('lieux_publics')->orderBy('nom_lieu')->get();
+        $contrats = Contrat::orderBy('numero_contrat')->get();
 
 
-        return view('locaux.create', compact('batiments', 'usages', 'lieux'));
+        return view('locaux.create', compact('batiments', 'usages', 'lieux', 'contrats'));
     }
 
     // --- SAUVEGARDER LE LOCAL EN BASE ---
     public function store(Request $request)
     {
         // 1. Validation stricte selon le schéma DDL
-        $request->validate([
+        $validated = $request->validate([
             'nom_local' => 'required|string|max:80',
             'largeur' => 'nullable|numeric',
             'longueur' => 'nullable|numeric',
@@ -54,28 +56,37 @@ class LocalController extends Controller
             'id_batiment' => 'nullable|integer|exists:batiment,id_batiment',
             'id_lieu' => 'nullable|integer|exists:lieux_publics,id_lieu',
             'id_usage' => 'nullable|integer|exists:type_usage,id_usage',
+            'id_contrats' => 'nullable|array',
+            'id_contrats.*' => 'exists:contrat,id_contrat',
         ]);
+        $data = $validated;
+        unset($data['id_contrats']);
+
+        $local = Local::create($data);
 
         // 2. Règle métier : Un local doit appartenir SOIT à un bâtiment, SOIT à un lieu public (pas aucun des deux)
         if (empty($request->id_batiment) && empty($request->id_lieu)) {
             return back()->withInput()->with('error', 'Le local doit obligatoirement être rattaché à un Bâtiment ou à un Lieu public.');
         }
+        if ($request->has('id_contrats')) {
+            $local->contratsAdministratifs()->attach($request->id_contrats);
+        }
 
-        // 3. Insertion dans la base
-        DB::table('local_')->insert([
-            'nom_local' => $request->nom_local,
-            'largeur' => $request->largeur,
-            'longueur' => $request->longueur,
-            'surface_m2' => $request->surface_m2,
-            'niveau' => $request->niveau,
-            'statut_occupation' => $request->statut_occupation,
-            'ref_article_assurance' => $request->ref_article_assurance,
-            'prime_assurance_ttc' => $request->prime_assurance_ttc,
-            'remarque' => $request->remarque,
-            'id_batiment' => $request->id_batiment,
-            'id_lieu' => $request->id_lieu,
-            'id_usage' => $request->id_usage,
-        ]);
+        // // 3. Insertion dans la base
+        // DB::table('local_')->insert([
+        //     'nom_local' => $request->nom_local,
+        //     'largeur' => $request->largeur,
+        //     'longueur' => $request->longueur,
+        //     'surface_m2' => $request->surface_m2,
+        //     'niveau' => $request->niveau,
+        //     'statut_occupation' => $request->statut_occupation,
+        //     'ref_article_assurance' => $request->ref_article_assurance,
+        //     'prime_assurance_ttc' => $request->prime_assurance_ttc,
+        //     'remarque' => $request->remarque,
+        //     'id_batiment' => $request->id_batiment,
+        //     'id_lieu' => $request->id_lieu,
+        //     'id_usage' => $request->id_usage,
+        // ]);
 
         return redirect()->route('locaux.index')
             ->with('success', 'Le nouveau local a été ajouté au référentiel.');
@@ -126,7 +137,7 @@ class LocalController extends Controller
     // --- FORMULAIRE DE MODIFICATION ---
     public function edit($id)
     {
-        $local = DB::table('local_')->where('id_local', $id)->first();
+        $local = Local::with('contratsAdministratifs')->findOrFail($id);
 
         if (!$local) {
             abort(404, 'Local introuvable');
@@ -136,14 +147,15 @@ class LocalController extends Controller
         $batiments = DB::table('batiment')->orderBy('nom_bat')->get();
         $usages = DB::table('type_usage')->orderBy('libelle_usage')->get();
         $lieux = DB::table('lieux_publics')->orderBy('nom_lieu')->get();
+        $contrats = Contrat::orderBy('numero_contrat')->get();
 
-        return view('locaux.edit', compact('local', 'batiments', 'usages', 'lieux'));
+        return view('locaux.edit', compact('local', 'batiments', 'usages', 'lieux', 'contrats'));
     }
 
     // --- MISE À JOUR EN BASE ---
     public function update(Request $request, $id)
     {
-        $request->validate([
+        $validated = $request->validate([
             'nom_local' => 'required|string|max:80',
             'largeur' => 'nullable|numeric',
             'longueur' => 'nullable|numeric',
@@ -156,29 +168,34 @@ class LocalController extends Controller
             'id_batiment' => 'nullable|integer|exists:batiment,id_batiment',
             'id_lieu' => 'nullable|integer|exists:lieux_publics,id_lieu',
             'id_usage' => 'nullable|integer|exists:type_usage,id_usage',
+            'id_contrats' => 'nullable|array',
+            'id_contrats.*' => 'exists:contrat,id_contrat',
         ]);
-
+        $local = Local::findOrFail($id);
+        $data = $validated;
+        unset($data['id_contrats']);
         if (empty($request->id_batiment) && empty($request->id_lieu)) {
             return back()->withInput()->with('error', 'Le local doit obligatoirement être rattaché à un Bâtiment ou à un Lieu public.');
         }
+        $local->update($data);
 
-        DB::table('local_')
-            ->where('id_local', $id)
-            ->update([
-                'nom_local' => $request->nom_local,
-                'largeur' => $request->largeur,
-                'longueur' => $request->longueur,
-                'surface_m2' => $request->surface_m2,
-                'niveau' => $request->niveau,
-                'statut_occupation' => $request->statut_occupation,
-                'ref_article_assurance' => $request->ref_article_assurance,
-                'prime_assurance_ttc' => $request->prime_assurance_ttc,
-                'remarque' => $request->remarque,
-                'id_batiment' => $request->id_batiment ?: null,
-                'id_lieu' => $request->id_lieu ?: null,
-                'id_usage' => $request->id_usage ?: null,
-            ]);
-
+        // DB::table('local_')
+        //     ->where('id_local', $id)
+        //     ->update([
+        //         'nom_local' => $request->nom_local,
+        //         'largeur' => $request->largeur,
+        //         'longueur' => $request->longueur,
+        //         'surface_m2' => $request->surface_m2,
+        //         'niveau' => $request->niveau,
+        //         'statut_occupation' => $request->statut_occupation,
+        //         'ref_article_assurance' => $request->ref_article_assurance,
+        //         'prime_assurance_ttc' => $request->prime_assurance_ttc,
+        //         'remarque' => $request->remarque,
+        //         'id_batiment' => $request->id_batiment ?: null,
+        //         'id_lieu' => $request->id_lieu ?: null,
+        //         'id_usage' => $request->id_usage ?: null,
+        //     ]);
+        $local->contratsAdministratifs()->sync($request->id_contrats ?? []);
         return redirect()->route('locaux.show', $id)
             ->with('success', 'Les informations du local ont été mises à jour.');
     }

@@ -156,6 +156,28 @@
                     💾 Mettre à jour le bâtiment
                 </button>
             </div>
+            <div class="col-span-1 md:col-span-2 mt-4">
+                <label for="id_contrats" class="block text-sm font-medium text-slate-700 mb-1">
+                    Contrats associés (Assurance, Maintenance, Nettoyage...)
+                </label>
+                <select name="id_contrats[]" id="id_contrats" multiple size="4"
+                    class="w-full border border-slate-300 rounded-lg px-4 py-2 bg-white focus:ring-blue-500 text-sm">
+                    @foreach($contrats as $c)
+                        @php
+                            $isSelected = isset($batiment) && $batiment->contratsAdministratifs->contains(
+                                'id_contrat',
+                                $c->id_contrat
+                            );
+                            $isOldSelected = is_array(old('id_contrats')) && in_array($c->id_contrat, old('id_contrats'));
+                        @endphp
+                        <option value="{{ $c->id_contrat }}" {{ ($isSelected || $isOldSelected) ? 'selected' : '' }}>
+                            {{ $c->numero_contrat ?? 'Sans N°' }} - {{ $c->type_contrat }}
+                        </option>
+                    @endforeach
+                </select>
+                <span class="text-[10px] text-slate-500 mt-1 block">Maintenez CTRL (ou CMD sur Mac) pour sélectionner
+                    plusieurs contrats.</span>
+            </div>
         </form>
 
         <form id="delete-form" action="{{ route('batiments.destroy', $batiment->id_batiment) }}" method="POST"
@@ -248,6 +270,29 @@
                             @endforeach
                         </select>
                     </div>
+                    <div class="col-span-1 md:col-span-3 pt-2 border-t border-slate-100 mt-2">
+                        <label for="id_contrats"
+                            class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                            Contrats associés (Assurance, Maintenance, Nettoyage...)
+                        </label>
+                        <select name="id_contrats[]" id="id_contrats" multiple size="4"
+                            class="w-full border border-slate-300 rounded-lg px-4 py-2 bg-slate-50 focus:ring-slate-900 text-sm">
+                            @foreach($contrats as $c)
+                                @php
+                                    $isSelected = isset($batiment) && $batiment->contratsAdministratifs->contains(
+                                        'id_contrat',
+                                        $c->id_contrat
+                                    );
+                                    $isOldSelected = is_array(old('id_contrats')) && in_array($c->id_contrat, old('id_contrats'));
+                                @endphp
+                                <option value="{{ $c->id_contrat }}" {{ ($isSelected || $isOldSelected) ? 'selected' : '' }}>
+                                    {{ $c->numero_contrat ?? 'Sans N°' }} - {{ $c->type_contrat }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <span class="text-[10px] text-slate-500 mt-1 block">Maintenez CTRL (ou CMD sur Mac) pour
+                            sélectionner plusieurs contrats.</span>
+                    </div>
                 </div>
                 <div class="flex justify-end gap-2 pt-2">
                     <button type="button" onclick="closeModal('modalParcelle')"
@@ -327,7 +372,9 @@
                         class="px-3 py-2 bg-blue-600 text-white rounded-md text-xs font-semibold">Créer</button>
                 </div>
             </form>
+
         </div>
+
     </div>
 
     <script>

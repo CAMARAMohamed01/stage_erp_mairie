@@ -71,4 +71,15 @@ class Equipement extends Model
     {
         return $this->belongsTo(LieuPublic::class, 'id_lieu', 'id_lieu');
     }
+
+    // Relation Many-to-Many avec les contrats administratifs (Maintenance, Assurance, etc.)
+    public function contratsAdministratifs()
+    {
+        return $this->belongsToMany(
+            Contrat::class,
+            'contrat_equipement',
+            'id_equipement',
+            'id_contrat'
+        );
+    }
 }

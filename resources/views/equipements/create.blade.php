@@ -53,6 +53,32 @@
                             <option value="À réformer">À réformer</option>
                         </select>
                     </div>
+                    <div>
+                        <label for="id_contrats" class="block text-sm font-medium text-slate-700 mb-1">
+                            Contrats rattachés (Maintenance, Assurance...)
+                        </label>
+                        <select name="id_contrats[]" id="id_contrats" multiple size="4"
+                            class="w-full border border-slate-300 rounded-lg px-4 py-2 bg-white focus:ring-blue-500 text-sm">
+                            @if(isset($contrats))
+                                @foreach($contrats as $c)
+                                    @php
+                                        // Vérifie si l'équipement possède déjà ce contrat (pour le mode édition)
+                                        $isSelected = isset($equipement) && $equipement->contratsAdministratifs->contains(
+                                            'id_contrat',
+                                            $c->id_contrat
+                                        );
+                                        // Ou s'il vient d'être sélectionné avant une erreur de validation
+                                        $isOldSelected = in_array($c->id_contrat, old('id_contrats', []));
+                                    @endphp
+                                    <option value="{{ $c->id_contrat }}" {{ ($isSelected || $isOldSelected) ? 'selected' : '' }}>
+                                        {{ $c->numero_contrat ?? 'Nouveau' }} - {{ $c->type_contrat }}
+                                    </option>
+                                @endforeach
+                            @endif
+                        </select>
+                        <span class="text-[10px] text-slate-500 mt-1 block">Maintenez CTRL (ou CMD sur Mac) pour
+                            sélectionner plusieurs contrats.</span>
+                    </div>
                 </div>
             </div>
 

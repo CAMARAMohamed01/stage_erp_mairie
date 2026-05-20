@@ -134,6 +134,16 @@
                 </svg>
                 Contrats & Engagements
             </a>
+            <a href="{{ route('dossiers-financiers.index') }}"
+                class="flex items-center px-4 py-3 rounded-lg transition-colors font-medium {{ request()->routeIs('dossiers-financiers.*') ? 'bg-blue-600 text-white shadow-md' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
+                <svg class="w-5 h-5 mr-3 {{ request()->routeIs('dossiers-financiers.*') ? 'text-white' : 'text-slate-400' }}"
+                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 14l6 0m2 0a2 2 0 002-2V6a2 2 0 00-2-2H7a2 2 0 00-2 2v6a2 2 0 002 2m10 0h2a2 2 0 002-2V6a2 2 0 00-2-2H7a2 2 0 00-2 2v6a2 2 0 002 2h10zM9 14V9a3 3 0 116.001-.001M9 14v.01M15 14v.01">
+                    </path>
+                </svg>
+                Dossiers financiers
+            </a>
         </nav>
 
         <div class="p-4 border-t border-slate-800 text-sm text-slate-400 flex justify-between items-center">

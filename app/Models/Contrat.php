@@ -52,4 +52,30 @@ class Contrat extends Model
             'id_operation'
         );
     }
+
+    // Relation Many-to-Many avec les équipements couverts
+    public function equipementsCouverts()
+    {
+        return $this->belongsToMany(
+            Equipement::class,
+            'contrat_equipement',
+            'id_contrat',
+            'id_equipement'
+        );
+    }
+
+    public function batimentsCouverts()
+    {
+        return $this->belongsToMany(\App\Models\Batiment::class, 'contrat_batiment', 'id_contrat', 'id_batiment');
+    }
+
+    public function locauxCouverts()
+    {
+        return $this->belongsToMany(\App\Models\Local::class, 'contrat_local', 'id_contrat', 'id_local');
+    }
+
+    public function lieuxCouverts()
+    {
+        return $this->belongsToMany(\App\Models\LieuPublic::class, 'contrat_lieu', 'id_contrat', 'id_lieu');
+    }
 }

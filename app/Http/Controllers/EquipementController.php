@@ -9,6 +9,7 @@ use App\Models\Local;
 use App\Models\LieuPublic;
 use App\Models\ControleReglementaire;
 use Illuminate\Support\Facades\DB;
+use App\Models\Contrat;
 class EquipementController extends Controller
 {
     //
@@ -49,11 +50,11 @@ class EquipementController extends Controller
         // (Assure-toi d'avoir créé ces modèles avec leurs noms de table respectifs)
         $locaux = Local::orderBy('nom_local', 'asc')->get();
         $lieux = LieuPublic::orderBy('nom_lieu', 'asc')->get();
-
+        $contrats = Contrat::orderBy('numero_contrat')->get();
         // On charge les contrôles réglementaires existants
         $controles = ControleReglementaire::orderBy('designation', 'asc')->get();
 
-        return view('equipements.create', compact('familles', 'locaux', 'lieux', 'controles'));
+        return view('equipements.create', compact('familles', 'locaux', 'lieux', 'controles', 'contrats'));
     }
 
     public function store(Request $request)
@@ -72,15 +73,20 @@ class EquipementController extends Controller
             'id_local' => 'nullable|exists:local_,id_local',
             'id_lieu' => 'nullable|exists:lieux_publics,id_lieu',
             'dates_controles' => 'nullable|array',
+            'id_contrats' => 'nullable|array',
+            'id_contrats.*' => 'exists:contrat,id_contrat',
         ]);
 
         // 2. Création de l'équipement avec les champs directs
         $equipementData = $validated;
         unset($equipementData['dates_controles']);
-
+        unset($equipementData['id_contrats']);
+        unset($equipementData['controles']);
         // 2. Création de l'équipement UNIQUEMENT avec ses propres colonnes
         $equipement = Equipement::create($equipementData);
-
+        if ($request->has('id_contrats')) {
+            $equipement->contratsAdministratifs()->attach($request->id_contrats);
+        }
         // 3. Liaison avec la table pivot (soumis_a_controle)
         if ($request->has('controles')) {
             $pivotData = [];
@@ -120,15 +126,16 @@ class EquipementController extends Controller
     public function edit($id)
     {
         // On récupère l'équipement avec ses relations pivot
-        $equipement = Equipement::with('controles')->findOrFail($id);
+        $equipement = Equipement::with('controles', 'contratsAdministratifs')->findOrFail($id);
 
         // On récupère toutes les listes pour les menus déroulants
         $familles = FamilleEquipement::orderBy('libelle_famille')->get();
         $locaux = Local::orderBy('nom_local')->get();
         $lieux = LieuPublic::orderBy('nom_lieu')->get();
         $controles = ControleReglementaire::orderBy('designation')->get();
+        $contrats = Contrat::orderBy('numero_contrat')->get();
 
-        return view('equipements.edit', compact('equipement', 'familles', 'locaux', 'lieux', 'controles'));
+        return view('equipements.edit', compact('equipement', 'familles', 'locaux', 'lieux', 'controles', 'contrats'));
     }
 
     public function update(Request $request, $id)
@@ -148,11 +155,15 @@ class EquipementController extends Controller
             'id_local' => 'nullable|exists:local_,id_local',
             'id_lieu' => 'nullable|exists:lieux_publics,id_lieu',
             'dates_controles' => 'nullable|array',
+            'id_contrats' => 'nullable|array',
+            'id_contrats.*' => 'exists:contrat,id_contrat',
         ]);
 
         // 2. Mise à jour de l'équipement (sans les dates_controles)
         $equipementData = $validated;
         unset($equipementData['dates_controles']);
+        unset($equipementData['id_contrats']);
+        unset($equipementData['controles']);
         $equipement->update($equipementData);
 
         // 3. Synchronisation des contrôles (Table Pivot)
@@ -166,6 +177,8 @@ class EquipementController extends Controller
 
         // sync() va supprimer les anciens liens et créer les nouveaux/mis à jour
         $equipement->controles()->sync($pivotData);
+
+        $equipement->contratsAdministratifs()->sync($request->id_contrats ?? []);
 
         return redirect()->route('equipements.show', $equipement->id_equipement)
             ->with('success', 'Équipement mis à jour avec succès !');

@@ -12,6 +12,10 @@ class Batiment extends Model
     protected $table = 'batiment';
     protected $primaryKey = 'id_batiment';
     protected $guarded = [];
+    public function contratsAdministratifs()
+    {
+        return $this->belongsToMany(\App\Models\Contrat::class, 'contrat_batiment', 'id_batiment', 'id_contrat');
+    }
 
     // Un bâtiment est posé sur une parcelle et situé à une adresse
     public function parcelle()

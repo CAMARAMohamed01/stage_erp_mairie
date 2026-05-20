@@ -12,6 +12,7 @@ use App\Http\Controllers\LocalController;
 use App\Http\Controllers\BatimentController;
 use App\Http\Controllers\LieuController;
 use App\Http\Controllers\ContratController;
+use App\Http\Controllers\DossierFinancierController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -148,7 +149,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/contrats/create', [ContratController::class, 'create'])->middleware('can:check-permission,"Finances & Achats","ecriture"')->name('contrats.create');
     Route::post('/contrats', [ContratController::class, 'store'])->middleware('can:check-permission,"Finances & Achats","ecriture"')->name('contrats.store');
 
-    // ROUTES DYNAMIQUES AVEC VARIABLES (Toujours après les routes statiques !)
+    // ROUTES DYNAMIQUES AVEC VARIABLES 
     // Écriture / Modification
     Route::get('/contrats/{id}', [ContratController::class, 'show'])->middleware('can:check-permission,"Finances & Achats","lecture"')->name('contrats.show');
     Route::get('/contrats/{id}/edit', [ContratController::class, 'edit'])->middleware('can:check-permission,"Finances & Achats","ecriture"')->name('contrats.edit');
@@ -156,7 +157,16 @@ Route::middleware('auth')->group(function () {
 
     // Suppression
     Route::delete('/contrats/{id}', [ContratController::class, 'destroy'])->middleware('can:check-permission,"Finances & Achats","suppression"')->name('contrats.destroy');
+    Route::post('/contrats/{id}/ajouter-location', [ContratController::class, 'ajouterLocation'])->middleware('can:check-permission,"Finances & Achats","ecriture"')->name('contrats.location.store');
+    // ========================================================
+    // 💳 SECURISE : MODULE DOSSIERS FINANCIERS (COMPTABILITE)
+    // ========================================================
 
+    Route::get('/finances/dossiers', [DossierFinancierController::class, 'index'])->middleware('can:check-permission,"Finances & Achats","lecture"')->name('dossiers-financiers.index');
+    Route::get('/finances/dossiers/create', [DossierFinancierController::class, 'create'])->middleware('can:check-permission,"Finances & Achats","ecriture"')->name('dossiers-financiers.create');
+    Route::post('/finances/dossiers', [DossierFinancierController::class, 'store'])->middleware('can:check-permission,"Finances & Achats","ecriture"')->name('dossiers-financiers.store');
+    Route::get('/finances/dossiers/{id}', [DossierFinancierController::class, 'show'])->middleware('can:check-permission,"Finances & Achats","lecture"')->name('dossiers-financiers.show');
+    Route::post('/finances/dossiers/{id}/ligne', [DossierFinancierController::class, 'ajouterLigne'])->middleware('can:check-permission,"Finances & Achats","ecriture"')->name('dossiers-financiers.ligne.store');
     // ========================================================
     // RESTRICTION CRITIQUE : GESTION DES HABILITATIONS (ADMIN SYSTEME ONLY)
     // ========================================================

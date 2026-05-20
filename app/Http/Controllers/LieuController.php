@@ -4,7 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-
+use App\Models\Contrat;
+use App\Models\LieuPublic;
 class LieuController extends Controller
 {
     // --- LISTE DES LIEUX PUBLICS ---
@@ -38,9 +39,11 @@ class LieuController extends Controller
         // Référentiels pour les listes déroulantes
         $immos = DB::table('immobilisation_inventaire_')->orderBy('num_inventaire')->get();
         $decisions = DB::table('decision_administratif')->orderByDesc('date_decision')->get();
-        $tiers = DB::table('tiers')->get(); // Pour simplifier, tu pourrais faire un leftJoin comme dans BatimentController
+        $tiers = DB::table('tiers')->get();
         $batiments = DB::table('batiment')->orderBy('nom_bat')->get();
         $types_erp = DB::table('type_erp')->get();
+
+        $contrats = \App\Models\Contrat::orderBy('numero_contrat')->get();
 
         // Pour les lieux publics, on veut afficher les parcelles avec leur adresse pour que ce soit lisible
         $parcelles = DB::table('parcelle')
@@ -49,7 +52,7 @@ class LieuController extends Controller
             ->orderBy('parcelle.section_cadastrale')
             ->get();
 
-        return view('lieux.create', compact('immos', 'decisions', 'tiers', 'batiments', 'types_erp', 'parcelles'));
+        return view('lieux.create', compact('immos', 'decisions', 'tiers', 'batiments', 'types_erp', 'parcelles', 'contrats'));
     }
 
     // --- SAUVEGARDE EN BASE ---
@@ -68,17 +71,21 @@ class LieuController extends Controller
             'id_tiers' => 'nullable|integer|exists:tiers,id_tiers',
             'id_batiment' => 'nullable|integer|exists:batiment,id_batiment',
             'id_type_erp' => 'nullable|integer|exists:type_erp,id_type_erp',
-            'id_parcelle' => 'required|integer|exists:parcelle,id_parcelle', // Le DDL dit NOT NULL !
+            'id_parcelle' => 'required|integer|exists:parcelle,id_parcelle',
+
+            // Validation du tableau des contrats
+            'id_contrats' => 'nullable|array',
+            'id_contrats.*' => 'exists:contrat,id_contrat',
         ]);
 
-        DB::table('lieux_publics')->insert([
+        // 1. On utilise le modèle Eloquent pour créer l'enregistrement principal
+        $lieu = \App\Models\LieuPublic::create([
             'nom_lieu' => $request->nom_lieu,
             'typologie_lieu' => $request->typologie_lieu,
             'surface_m2' => $request->surface_m2,
             // Formatage des heures pour PostgreSQL (on rajoute les secondes :00)
             'horaire_ouverture' => $request->horaire_ouverture ? $request->horaire_ouverture . ':00' : null,
             'horaire_fermeture' => $request->horaire_fermeture ? $request->horaire_fermeture . ':00' : null,
-
             'id_immo' => $request->id_immo,
             'id_decision_reglement' => $request->id_decision_reglement,
             'id_tiers' => $request->id_tiers,
@@ -87,8 +94,79 @@ class LieuController extends Controller
             'id_parcelle' => $request->id_parcelle,
         ]);
 
+        // 2. On attache les contrats via la relation Many-to-Many
+        if ($request->has('id_contrats')) {
+            $lieu->contratsAdministratifs()->attach($request->id_contrats);
+        }
+
         return redirect()->route('lieux.index')
             ->with('success', 'Le nouvel espace public a été enregistré dans le patrimoine.');
+    }
+
+    // --- FORMULAIRE DE MODIFICATION ---
+    public function edit($id)
+    {
+        // On charge l'objet avec ses contrats pour pré-cocher les cases
+        $lieu = \App\Models\LieuPublic::with('contratsAdministratifs')->findOrFail($id);
+
+        $immos = DB::table('immobilisation_inventaire_')->orderBy('num_inventaire')->get();
+        $decisions = DB::table('decision_administratif')->orderByDesc('date_decision')->get();
+        $batiments = DB::table('batiment')->orderBy('nom_bat')->get();
+        $types_erp = DB::table('type_erp')->get();
+
+        $contrats = \App\Models\Contrat::orderBy('numero_contrat')->get();
+
+        $parcelles = DB::table('parcelle')
+            ->join('lieu_dit', 'parcelle.id_lieu_dit', '=', 'lieu_dit.id_lieu_dit')
+            ->select('parcelle.*', 'lieu_dit.nom_lieu_dit')
+            ->orderBy('parcelle.section_cadastrale')
+            ->get();
+
+        return view('lieux.edit', compact('lieu', 'immos', 'decisions', 'batiments', 'types_erp', 'parcelles', 'contrats'));
+    }
+
+    // --- MISE À JOUR ---
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'nom_lieu' => 'required|string|max:80',
+            'typologie_lieu' => 'nullable|string|max:80',
+            'surface_m2' => 'nullable|numeric',
+            'horaire_ouverture' => 'nullable',
+            'horaire_fermeture' => 'nullable',
+            'id_immo' => 'nullable|integer|exists:immobilisation_inventaire_,id_immo',
+            'id_decision_reglement' => 'nullable|integer|exists:decision_administratif,id_decision',
+            'id_batiment' => 'nullable|integer|exists:batiment,id_batiment',
+            'id_type_erp' => 'nullable|integer|exists:type_erp,id_type_erp',
+            'id_parcelle' => 'required|integer|exists:parcelle,id_parcelle',
+
+            // Validation du tableau des contrats
+            'id_contrats' => 'nullable|array',
+            'id_contrats.*' => 'exists:contrat,id_contrat',
+        ]);
+
+        $lieu = \App\Models\LieuPublic::findOrFail($id);
+
+        // 1. Mise à jour des colonnes de la table lieux_publics
+        $lieu->update([
+            'nom_lieu' => $request->nom_lieu,
+            'typologie_lieu' => $request->typologie_lieu,
+            'surface_m2' => $request->surface_m2,
+            // Nettoyage de la date si seulement HH:MM est envoyé
+            'horaire_ouverture' => $request->horaire_ouverture ? (strlen($request->horaire_ouverture) == 5 ? $request->horaire_ouverture . ':00' : $request->horaire_ouverture) : null,
+            'horaire_fermeture' => $request->horaire_fermeture ? (strlen($request->horaire_fermeture) == 5 ? $request->horaire_fermeture . ':00' : $request->horaire_fermeture) : null,
+            'id_immo' => $request->id_immo,
+            'id_decision_reglement' => $request->id_decision_reglement,
+            'id_batiment' => $request->id_batiment,
+            'id_type_erp' => $request->id_type_erp,
+            'id_parcelle' => $request->id_parcelle,
+        ]);
+
+        // 2. Synchronisation des contrats dans la table pivot
+        $lieu->contratsAdministratifs()->sync($request->id_contrats ?? []);
+
+        return redirect()->route('lieux.show', $id)
+            ->with('success', 'Les informations du lieu ont été mises à jour.');
     }
 
     // --- FICHE DÉTAILLÉE DU LIEU ---
@@ -151,58 +229,7 @@ class LieuController extends Controller
         return view('lieux.show', compact('lieu', 'locaux', 'equipements', 'vegetaux', 'plans_entretien', 'emplacements', 'controles'));
     }
 
-    // --- FORMULAIRE DE MODIFICATION ---
-    public function edit($id)
-    {
-        $lieu = DB::table('lieux_publics')->where('id_lieu', $id)->first();
-        if (!$lieu)
-            abort(404);
 
-        $immos = DB::table('immobilisation_inventaire_')->orderBy('num_inventaire')->get();
-        $decisions = DB::table('decision_administratif')->orderByDesc('date_decision')->get();
-        $batiments = DB::table('batiment')->orderBy('nom_bat')->get();
-        $types_erp = DB::table('type_erp')->get();
-        $parcelles = DB::table('parcelle')
-            ->join('lieu_dit', 'parcelle.id_lieu_dit', '=', 'lieu_dit.id_lieu_dit')
-            ->select('parcelle.*', 'lieu_dit.nom_lieu_dit')
-            ->orderBy('parcelle.section_cadastrale')
-            ->get();
-
-        return view('lieux.edit', compact('lieu', 'immos', 'decisions', 'batiments', 'types_erp', 'parcelles'));
-    }
-
-    // --- MISE À JOUR ---
-    public function update(Request $request, $id)
-    {
-        $request->validate([
-            'nom_lieu' => 'required|string|max:80',
-            'typologie_lieu' => 'nullable|string|max:80',
-            'surface_m2' => 'nullable|numeric',
-            'horaire_ouverture' => 'nullable',
-            'horaire_fermeture' => 'nullable',
-            'id_immo' => 'nullable|integer|exists:immobilisation_inventaire_,id_immo',
-            'id_decision_reglement' => 'nullable|integer|exists:decision_administratif,id_decision',
-            'id_batiment' => 'nullable|integer|exists:batiment,id_batiment',
-            'id_type_erp' => 'nullable|integer|exists:type_erp,id_type_erp',
-            'id_parcelle' => 'required|integer|exists:parcelle,id_parcelle',
-        ]);
-
-        DB::table('lieux_publics')->where('id_lieu', $id)->update([
-            'nom_lieu' => $request->nom_lieu,
-            'typologie_lieu' => $request->typologie_lieu,
-            'surface_m2' => $request->surface_m2,
-            // Nettoyage de la date si seulement HH:MM est envoyé
-            'horaire_ouverture' => $request->horaire_ouverture ? (strlen($request->horaire_ouverture) == 5 ? $request->horaire_ouverture . ':00' : $request->horaire_ouverture) : null,
-            'horaire_fermeture' => $request->horaire_fermeture ? (strlen($request->horaire_fermeture) == 5 ? $request->horaire_fermeture . ':00' : $request->horaire_fermeture) : null,
-            'id_immo' => $request->id_immo,
-            'id_decision_reglement' => $request->id_decision_reglement,
-            'id_batiment' => $request->id_batiment,
-            'id_type_erp' => $request->id_type_erp,
-            'id_parcelle' => $request->id_parcelle,
-        ]);
-
-        return redirect()->route('lieux.show', $id)->with('success', 'Les informations du lieu ont été mises à jour.');
-    }
 
     // --- SUPPRESSION SÉCURISÉE ---
     public function destroy($id)

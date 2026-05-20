@@ -18,4 +18,8 @@ class LieuPublic extends Model
     {
         return $this->belongsToMany(Projet::class, 'projet_lieu', 'id_lieu', 'id_projet');
     }
+    public function contratsAdministratifs()
+    {
+        return $this->belongsToMany(\App\Models\Contrat::class, 'contrat_lieu', 'id_lieu', 'id_contrat');
+    }
 }

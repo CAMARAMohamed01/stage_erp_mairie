@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Models\Contrat;
+use App\Models\Batiment;
 
 class BatimentController extends Controller
 {
@@ -105,7 +107,10 @@ class BatimentController extends Controller
                 $query->select('id_immo')->from('batiment');
             })->get();
 
-        return view('batiments.create', compact('tiers', 'adresses', 'parcelles', 'types_erp', 'immos_disponibles', 'lieu_dits'));
+        // NOUVEAU : Récupération des contrats
+        $contrats = Contrat::orderBy('numero_contrat')->get();
+
+        return view('batiments.create', compact('tiers', 'adresses', 'parcelles', 'types_erp', 'immos_disponibles', 'lieu_dits', 'contrats'));
     }
 
     public function store(Request $request)
@@ -119,9 +124,14 @@ class BatimentController extends Controller
             'id_type_erp' => 'required|integer|exists:type_erp,id_type_erp',
             'id_adresse' => 'required|integer|exists:Adresse,id_adresse',
             'id_immo' => 'required|integer|exists:immobilisation_inventaire_,id_immo|unique:batiment,id_immo',
+
+            // NOUVEAU : Validation des contrats
+            'id_contrats' => 'nullable|array',
+            'id_contrats.*' => 'exists:contrat,id_contrat',
         ]);
 
-        DB::table('batiment')->insert([
+        // On utilise Eloquent (Batiment::create) au lieu de DB::table pour pouvoir chaîner la relation
+        $batiment = Batiment::create([
             'nom_bat' => $request->nom_bat,
             'surface_totale_m2' => $request->surface_totale_m2,
             'date_construction' => $request->date_construction,
@@ -132,9 +142,77 @@ class BatimentController extends Controller
             'id_immo' => $request->id_immo,
         ]);
 
+        // NOUVEAU : On attache les contrats dans la table pivot
+        if ($request->has('id_contrats')) {
+            $batiment->contratsAdministratifs()->attach($request->id_contrats);
+        }
+
         return redirect()->route('batiments.index')->with('success', 'Le bâtiment a été intégré avec succès.');
     }
 
+    public function edit($id)
+    {
+        // On remplace DB::table par Eloquent pour charger les contrats liés
+        $batiment = Batiment::with('contratsAdministratifs')->findOrFail($id);
+
+        $tiers = DB::table('tiers')
+            ->leftJoin('tiers_morale', 'tiers.id_tiers', '=', 'tiers_morale.id_tiers')
+            ->leftJoin('tiers_physique', 'tiers.id_tiers', '=', 'tiers_physique.id_tiers')
+            ->select('tiers.id_tiers', 'tiers.type_tiers', 'tiers_morale.raison_sociale', 'tiers_physique.nom_tiers', 'tiers_physique.prenom_tiers')
+            ->get();
+
+        $adresses = DB::table('Adresse')->get();
+        $parcelles = DB::table('parcelle')->get();
+        $types_erp = DB::table('type_erp')->orderBy('categorie_erp')->get();
+        $lieu_dits = DB::table('lieu_dit')->orderBy('nom_lieu_dit')->get();
+
+        $immos = DB::table('immobilisation_inventaire_')
+            ->whereNotIn('id_immo', function ($query) use ($id) {
+                $query->select('id_immo')->from('batiment')->where('id_batiment', '!=', $id);
+            })->get();
+
+        // NOUVEAU : Récupération des contrats
+        $contrats = Contrat::orderBy('numero_contrat')->get();
+
+        return view('batiments.edit', compact('batiment', 'tiers', 'adresses', 'parcelles', 'types_erp', 'immos', 'lieu_dits', 'contrats'));
+    }
+
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'nom_bat' => 'required|string|max:100',
+            'surface_totale_m2' => 'nullable|numeric',
+            'date_construction' => 'nullable|date',
+            'id_tiers' => 'required|integer|exists:tiers,id_tiers',
+            'id_parcelle' => 'required|integer|exists:parcelle,id_parcelle',
+            'id_type_erp' => 'required|integer|exists:type_erp,id_type_erp',
+            'id_adresse' => 'required|integer|exists:Adresse,id_adresse',
+            'id_immo' => 'required|integer|exists:immobilisation_inventaire_,id_immo|unique:batiment,id_immo,' . $id . ',id_batiment',
+
+            // Validation des contrats
+            'id_contrats' => 'nullable|array',
+            'id_contrats.*' => 'exists:contrat,id_contrat',
+        ]);
+
+        $batiment = Batiment::findOrFail($id);
+
+        $batiment->update([
+            'nom_bat' => $request->nom_bat,
+            'surface_totale_m2' => $request->surface_totale_m2,
+            'date_construction' => $request->date_construction,
+            'id_tiers' => $request->id_tiers,
+            'id_parcelle' => $request->id_parcelle,
+            'id_type_erp' => $request->id_type_erp,
+            'id_adresse' => $request->id_adresse,
+            'id_immo' => $request->id_immo,
+        ]);
+
+
+        $batiment->contratsAdministratifs()->sync($request->id_contrats ?? []);
+
+        return redirect()->route('batiments.show', $id)
+            ->with('success', 'Les informations du bâtiment ont été mises à jour avec succès.');
+    }
     // --- ENREGISTREMENTS RAPIDES AJAX ---
 
     public function quickStoreAdresse(Request $request)
@@ -191,72 +269,7 @@ class BatimentController extends Controller
         return response()->json(['id' => $id_tiers, 'label' => $label]);
     }
 
-    // --- MODIFICATION D'UN BÂTIMENT ---
 
-    public function edit($id)
-    {
-        $batiment = DB::table('batiment')->where('id_batiment', $id)->first();
-
-        if (!$batiment) {
-            abort(404, 'Bâtiment introuvable');
-        }
-
-        // Récupération des référentiels pour les listes déroulantes
-        $tiers = DB::table('tiers')
-            ->leftJoin('tiers_morale', 'tiers.id_tiers', '=', 'tiers_morale.id_tiers')
-            ->leftJoin('tiers_physique', 'tiers.id_tiers', '=', 'tiers_physique.id_tiers')
-            ->select('tiers.id_tiers', 'tiers.type_tiers', 'tiers_morale.raison_sociale', 'tiers_physique.nom_tiers', 'tiers_physique.prenom_tiers')
-            ->get();
-
-        $adresses = DB::table('Adresse')->get();
-        $parcelles = DB::table('parcelle')->get();
-        $types_erp = DB::table('type_erp')->orderBy('categorie_erp')->get();
-        $lieu_dits = DB::table('lieu_dit')->orderBy('nom_lieu_dit')->get();
-
-        // 💡 ASTUCE DATA : On récupère les immos libres + celle actuellement liée à ce bâtiment
-        $immos = DB::table('immobilisation_inventaire_')
-            ->whereNotIn('id_immo', function ($query) use ($id) {
-                // On exclut les immos utilisées par TOUS les autres bâtiments SAUF celui-ci
-                $query->select('id_immo')->from('batiment')->where('id_batiment', '!=', $id);
-            })->get();
-
-        return view('batiments.edit', compact('batiment', 'tiers', 'adresses', 'parcelles', 'types_erp', 'immos', 'lieu_dits'));
-    }
-
-    public function update(Request $request, $id)
-    {
-        $request->validate([
-            'nom_bat' => 'required|string|max:100',
-            'surface_totale_m2' => 'nullable|numeric',
-            'date_construction' => 'nullable|date',
-            'id_tiers' => 'required|integer|exists:tiers,id_tiers',
-            'id_parcelle' => 'required|integer|exists:parcelle,id_parcelle',
-            'id_type_erp' => 'required|integer|exists:type_erp,id_type_erp',
-            'id_adresse' => 'required|integer|exists:Adresse,id_adresse',
-            // On vérifie l'unicité de l'immo, en ignorant l'ID du bâtiment en cours de modification
-            'id_immo' => 'required|integer|exists:immobilisation_inventaire_,id_immo|unique:batiment,id_immo,' . $id . ',id_batiment',
-        ]);
-
-        DB::table('batiment')
-            ->where('id_batiment', $id)
-            ->update([
-                'nom_bat' => $request->nom_bat,
-                'surface_totale_m2' => $request->surface_totale_m2,
-                'date_construction' => $request->date_construction,
-                'id_tiers' => $request->id_tiers,
-                'id_parcelle' => $request->id_parcelle,
-                'id_type_erp' => $request->id_type_erp,
-                'id_adresse' => $request->id_adresse,
-                'id_immo' => $request->id_immo,
-            ]);
-
-        return redirect()->route('batiments.show', $id)
-            ->with('success', 'Les informations du bâtiment ont été mises à jour avec succès.');
-    }
-
-    // --- SUPPRESSION D'UN BÂTIMENT ---
-
-    // --- SUPPRESSION D'UN BÂTIMENT ---
 
     public function destroy($id)
     {
