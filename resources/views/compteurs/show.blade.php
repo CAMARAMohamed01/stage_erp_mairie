@@ -33,6 +33,10 @@
                     class="px-4 py-2 bg-indigo-600 text-white text-sm font-semibold rounded-lg hover:bg-indigo-700 transition">
                     📊 Historique
                 </a>
+                <a href="{{ route('compteurs.releves.export.pdf', $compteur->id_compteur) }}"
+                    class="px-4 py-2 bg-red-600 text-white text-sm font-semibold rounded-lg hover:bg-red-700 transition flex items-center gap-2 shadow-sm">
+                    📄 Exporter en PDF
+                </a>
 
                 @if(auth()->user()->can('check-permission', ['Patrimoine', 'ecriture']))
                     <a href="{{ route('compteurs.edit', $compteur->id_compteur) }}"
@@ -113,11 +117,11 @@
                 </div>
             </div>
 
-            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm md:col-span-2">
                 <h2 class="text-sm font-bold text-slate-800 mb-4 border-b border-slate-100 pb-2">📜 Administration</h2>
-                <div class="space-y-3 text-sm">
-                    <div class="flex justify-between flex-col">
-                        <span class="text-slate-500 font-medium mb-1">Contrat lié :</span>
+                <div class="space-y-3 text-sm grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <span class="text-slate-500 font-medium mb-1 block">Contrat lié :</span>
                         @if($compteur->contrat)
                             <div class="bg-slate-50 p-2 rounded border border-slate-100">
                                 <p class="font-bold text-blue-700">N° {{ $compteur->contrat->numero_contrat }}</p>
@@ -126,36 +130,131 @@
                                 </p>
                             </div>
                         @else
-                            <span class="italic text-amber-600">Aucun contrat de fourniture rattaché</span>
+                            <span class="italic text-amber-600">Aucun contrat rattaché</span>
                         @endif
                     </div>
 
-                    @if($compteur->id_compteur_principal)
-                        <div class="mt-4">
-                            <span class="text-slate-500 font-medium">Sous-compteur de :</span>
+                    <div>
+                        @if($compteur->id_compteur_principal)
+                            <span class="text-slate-500 font-medium block">Sous-compteur de :</span>
                             <p class="font-semibold text-slate-800 mt-1">➡️
                                 {{ $compteur->compteurPrincipal->point_comptage ?? 'Inconnu' }}
                             </p>
-                        </div>
-                    @elseif($compteur->sousCompteurs->count() > 0)
-                        <div class="mt-4">
-                            <span class="text-slate-500 font-medium">Ce compteur alimente les sous-compteurs suivants :</span>
+                        @elseif($compteur->sousCompteurs->count() > 0)
+                            <span class="text-slate-500 font-medium block">Alimente les sous-compteurs :</span>
                             <ul class="list-disc list-inside text-slate-700 mt-1">
                                 @foreach($compteur->sousCompteurs as $sousCompteur)
                                     <li>{{ $sousCompteur->point_comptage }}</li>
                                 @endforeach
                             </ul>
-                        </div>
-                    @endif
+                        @else
+                            <span class="text-slate-500 italic block">Aucune hiérarchie (Compteur unique)</span>
+                        @endif
+                    </div>
                 </div>
             </div>
 
-            @if($compteur->observations)
-                <div class="bg-amber-50 p-6 rounded-xl border border-amber-100 shadow-sm">
-                    <h2 class="text-sm font-bold text-amber-800 mb-2">Observations</h2>
-                    <p class="text-sm text-amber-900">{{ $compteur->observations }}</p>
+        </div> @if($compteur->observations)
+            <div class="bg-amber-50 p-6 rounded-xl border border-amber-100 shadow-sm w-full">
+                <h2 class="text-sm font-bold text-amber-800 mb-2">Observations</h2>
+                <p class="text-sm text-amber-900">{{ $compteur->observations }}</p>
+            </div>
+        @endif
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+
+            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                <div>
+                    <h2 class="text-sm font-bold text-slate-800 mb-4 border-b border-slate-100 pb-2">📂 Documents Techniques
+                    </h2>
+
+                    <ul class="space-y-3 mb-6">
+                        @forelse($compteur->documents as $doc)
+                            <li class="flex items-center justify-between p-3 bg-slate-50 border border-slate-100 rounded-lg">
+                                <div class="flex items-center gap-3">
+                                    <span class="text-2xl">
+                                        {{ in_array(strtolower($doc->type_doc), ['pdf']) ? '📄' : (in_array(strtolower($doc->type_doc), ['jpg', 'png', 'jpeg']) ? '🖼️' : '📁') }}
+                                    </span>
+                                    <div>
+                                        <p class="text-sm font-semibold text-slate-800">{{ $doc->nom_fichier }}</p>
+                                        <p class="text-xs text-slate-500">
+                                            {{ \Carbon\Carbon::parse($doc->date_upload)->format('d/m/Y') }} •
+                                            {{ number_format($doc->taille_ko, 0, ',', ' ') }} Ko
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center gap-2">
+                                    <a href="{{ asset('storage/' . $doc->chemin_stockage) }}" target="_blank"
+                                        class="text-blue-600 hover:text-blue-800 text-xs font-bold bg-blue-50 px-3 py-1 rounded border border-blue-100 transition">
+                                        Ouvrir
+                                    </a>
+
+                                    @if(auth()->user()->can('check-permission', ['Patrimoine & Equipements', 'suppression']))
+                                        <form action="{{ route('compteurs.documents.destroy', $doc->id_document) }}" method="POST"
+                                            class="inline"
+                                            onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer définitivement ce document ?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit"
+                                                class="text-red-600 hover:text-red-800 text-xs font-bold bg-red-50 px-3 py-1 rounded border border-red-100 transition">
+                                                ❌
+                                            </button>
+                                        </form>
+                                    @endif
+                                </div>
+                            </li>
+                        @empty
+                            <li class="text-sm text-slate-400 italic text-center py-4">Aucun document rattaché à ce compteur.
+                            </li>
+                        @endforelse
+                    </ul>
                 </div>
-            @endif
+
+                @if(auth()->user()->can('check-permission', ['Patrimoine & Equipements', 'ecriture']))
+                    <form action="{{ route('compteurs.documents.store', $compteur->id_compteur) }}" method="POST"
+                        enctype="multipart/form-data"
+                        class="bg-slate-50 p-4 rounded-lg border border-slate-200 border-dashed mt-auto">
+                        @csrf
+                        <label class="block text-xs font-bold text-slate-700 uppercase mb-2">Ajouter un fichier (PDF, JPG,
+                            PNG)</label>
+                        <div class="flex items-center gap-2">
+                            <input type="file" name="fichier" required
+                                class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-slate-900 file:text-white hover:file:bg-slate-800 cursor-pointer">
+                            <button type="submit"
+                                class="px-4 py-2 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 transition text-sm whitespace-nowrap">
+                                📤 Envoyer
+                            </button>
+                        </div>
+                    </form>
+                @endif
+            </div>
+
+            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                <h2 class="text-sm font-bold text-slate-800 mb-4 border-b border-slate-100 pb-2">🛠️ Interventions
+                    Techniques</h2>
+
+                <div class="divide-y divide-slate-100">
+                    @forelse($compteur->interventions as $intervention)
+                        <div class="py-3">
+                            <div class="flex justify-between items-start mb-1">
+                                <span class="font-bold text-sm text-slate-800">{{ $intervention->type_intervention }}</span>
+                                <span
+                                    class="text-[10px] font-bold uppercase px-2 py-0.5 rounded {{ $intervention->statut_global == 'Clôturée' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700' }}">
+                                    {{ $intervention->statut_global }}
+                                </span>
+                            </div>
+                            <p class="text-xs text-slate-600 line-clamp-2">{{ $intervention->description }}</p>
+                            <p class="text-[10px] text-slate-400 mt-2 font-mono">
+                                Ouverte le : {{ \Carbon\Carbon::parse($intervention->date_ouverture)->format('d/m/Y') }}
+                            </p>
+                        </div>
+                    @empty
+                        <p class="text-sm text-slate-400 italic text-center py-6">Aucune intervention technique enregistrée pour
+                            ce compteur.</p>
+                    @endforelse
+                </div>
+            </div>
 
         </div>
     </div>

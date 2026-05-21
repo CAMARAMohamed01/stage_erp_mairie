@@ -81,8 +81,12 @@ class ContratController extends Controller
 
     public function show($id)
     {
-        // 1. Infos de base du contrat
-        $contrat = Contrat::with(['tiers'])->findOrFail($id);
+        // 1. Infos de base + Jointures pour récupérer le VRAI nom du titulaire (entreprise ou particulier)
+        $contrat = Contrat::leftJoin('tiers', 'contrat.id_tiers', '=', 'tiers.id_tiers')
+            ->leftJoin('tiers_physique', 'tiers.id_tiers', '=', 'tiers_physique.id_tiers')
+            ->leftJoin('tiers_morale', 'tiers.id_tiers', '=', 'tiers_morale.id_tiers')
+            ->select('contrat.*', 'tiers_physique.nom_tiers', 'tiers_physique.prenom_tiers', 'tiers_morale.raison_sociale')
+            ->findOrFail($id);
 
         // 2. Périmètre d'application (Les liaisons classiques N:M)
         $equipementsLies = DB::table('equipement')
@@ -91,8 +95,11 @@ class ContratController extends Controller
             ->select('equipement.*')
             ->get();
 
+        // CORRECTION : On passe par la table pivot contrat_local
         $locauxLies = DB::table('local_')
-            ->where('id_contrat_assurance', $id)
+            ->join('contrat_local', 'local_.id_local', '=', 'contrat_local.id_local')
+            ->where('contrat_local.id_contrat', $id)
+            ->select('local_.*')
             ->get();
 
         // 3. Spécifique aux contrats de LOCATION (Les nouvelles requêtes)
@@ -100,10 +107,12 @@ class ContratController extends Controller
 
         $decisions = DB::table('decision_administratif')->orderBy('numero_decision', 'desc')->get();
 
+        // CORRECTION : On ajoute le select() pour forcer Laravel à récupérer le nom de l'équipement
         $locations = DB::table('location_equipement')
             ->join('equipement', 'location_equipement.id_equipement', '=', 'equipement.id_equipement')
             ->join('decision_administratif', 'location_equipement.id_decision', '=', 'decision_administratif.id_decision')
             ->where('location_equipement.id_contrat', $id)
+            ->select('location_equipement.*', 'equipement.nom_equipement', 'decision_administratif.numero_decision')
             ->get();
 
         // 4. On envoie TOUT à la vue

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ReleveCompteurController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardTechniqueController;
 use App\Http\Controllers\SignalementController;
@@ -16,6 +17,7 @@ use App\Http\Controllers\DossierFinancierController;
 use App\Http\Controllers\EmplacementFuneraireController;
 use App\Http\Controllers\ConcessionCimetiereController;
 use App\Http\Controllers\CompteurController;
+
 
 
 Route::get('/', function () {
@@ -224,11 +226,18 @@ Route::middleware('auth')->group(function () {
 
         Route::delete('/{id}', [CompteurController::class, 'destroy'])
             ->middleware('can:check-permission,"Patrimoine & Equipements","suppression"')->name('destroy');
+        Route::post('/{idCompteur}/documents', [CompteurController::class, 'uploadDocument'])
+            ->middleware('can:check-permission,"Patrimoine & Equipements","ecriture"')->name('documents.store');
+        Route::delete('/documents/{idDocument}', [CompteurController::class, 'deleteDocument'])
+            ->middleware('can:check-permission,"Patrimoine & Equipements","suppression"')->name('documents.destroy');
     });
     // Relevés des compteurs
     Route::prefix('compteurs/{idCompteur}/releves')->name('compteurs.releves.')->group(function () {
-        Route::get('/', [\App\Http\Controllers\ReleveCompteurController::class, 'index'])->name('index');
-        Route::post('/', [\App\Http\Controllers\ReleveCompteurController::class, 'store'])->name('store');
+        Route::get('/', [ReleveCompteurController::class, 'index'])->name('index');
+        Route::post('/', [ReleveCompteurController::class, 'store'])->name('store');
+        Route::get('/export-pdf', [ReleveCompteurController::class, 'exportPdf'])->name('export.pdf');
+        // Route pour l'upload de documents sur un compteur
+
     });
     // ========================================================
     // 💼 SECURISE : MODULE CONTRATS & ENGAGEMENTS FINANCIERS

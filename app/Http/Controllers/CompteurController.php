@@ -7,7 +7,7 @@ use App\Models\Compteur;
 use App\Models\Local;
 use App\Models\Contrat;
 use Illuminate\Support\Facades\DB;
-
+use Illuminate\Support\Facades\Storage;
 class CompteurController extends Controller
 {
     public function index()
@@ -130,9 +130,51 @@ class CompteurController extends Controller
             'local.batiment',
             'contrat.tiers',
             'compteurPrincipal',
-            'sousCompteurs'
+            'sousCompteurs',
+            'documents',
+            'interventions'
         ])->findOrFail($id);
 
         return view('compteurs.show', compact('compteur'));
+    }
+
+    public function uploadDocument(Request $request, $idCompteur)
+    {
+        $request->validate([
+            'fichier' => 'required|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:5120', // Max 5 Mo
+        ]);
+
+        $compteur = Compteur::findOrFail($idCompteur);
+        $file = $request->file('fichier');
+
+        // Stockage du fichier dans storage/app/public/documents/compteurs
+        $path = $file->store('documents/compteurs', 'public');
+
+        // Création de l'enregistrement dans la table 'document'
+        \App\Models\Document::create([
+            'nom_fichier' => $file->getClientOriginalName(),
+            'type_doc' => $file->getClientOriginalExtension(),
+            'chemin_stockage' => $path,
+            'taille_ko' => $file->getSize() / 1024,
+            'date_upload' => now(),
+            'id_compteur' => $compteur->id_compteur,
+        ]);
+
+        return back()->with('success', 'Le document a été téléversé avec succès.');
+    }
+
+    public function deleteDocument($idDocument)
+    {
+        $document = \App\Models\Document::findOrFail($idDocument);
+
+        // 1. Suppression du fichier physique du disque public
+        if (Storage::disk('public')->exists($document->chemin_stockage)) {
+            Storage::disk('public')->delete($document->chemin_stockage);
+        }
+
+        // 2. Suppression de la ligne en base de données
+        $document->delete();
+
+        return back()->with('success', 'Le document technique a été supprimé définitivement.');
     }
 }

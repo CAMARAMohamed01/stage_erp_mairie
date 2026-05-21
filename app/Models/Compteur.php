@@ -40,4 +40,15 @@ class Compteur extends Model
     {
         return $this->hasMany(ReleveCompteur::class, 'id_compteur', 'id_compteur');
     }
+    // Les documents (notices, photos, plans) liés au compteur
+    public function documents()
+    {
+        return $this->hasMany(Document::class, 'id_compteur', 'id_compteur');
+    }
+
+    // Les interventions techniques réalisées sur ce compteur
+    public function interventions()
+    {
+        return $this->hasMany(Intervention::class, 'id_compteur', 'id_compteur');
+    }
 }
