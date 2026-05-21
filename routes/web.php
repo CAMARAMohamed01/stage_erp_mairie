@@ -17,8 +17,9 @@ use App\Http\Controllers\DossierFinancierController;
 use App\Http\Controllers\EmplacementFuneraireController;
 use App\Http\Controllers\ConcessionCimetiereController;
 use App\Http\Controllers\CompteurController;
-
-
+use App\Http\Controllers\TronconController;
+use App\Http\Controllers\VoieController;
+use App\Http\Controllers\OuvrageController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -293,6 +294,27 @@ Route::middleware('auth')->group(function () {
     Route::post('/finances/dossiers', [DossierFinancierController::class, 'store'])->middleware('can:check-permission,"Finances & Achats","ecriture"')->name('dossiers-financiers.store');
     Route::get('/finances/dossiers/{id}', [DossierFinancierController::class, 'show'])->middleware('can:check-permission,"Finances & Achats","lecture"')->name('dossiers-financiers.show');
     Route::post('/finances/dossiers/{id}/ligne', [DossierFinancierController::class, 'ajouterLigne'])->middleware('can:check-permission,"Finances & Achats","ecriture"')->name('dossiers-financiers.ligne.store');
+
+    // ========================================================
+    // 🚧 MODULE VOIES & RÉSEAUX DIVERS (VRD) -
+    // ========================================================
+    Route::get('/voies', [VoieController::class, 'index'])->name('voies.index');
+
+    // ========================================================
+    // 🚧 MODULE TRONÇONS (PARTIE GESTION DES VOIES)
+
+    Route::get('/troncons/create', [TronconController::class, 'create'])->name('troncons.create');
+    Route::post('/troncons', [TronconController::class, 'store'])->name('troncons.store');
+    Route::post('/troncons/{idTroncon}/documents', [TronconController::class, 'uploadDocument'])
+        ->name('troncons.documents.store');
+
+    //Ouvrages d'art
+    Route::get('/ouvrages', [OuvrageController::class, 'index'])->name('ouvrages.index');
+    Route::get('/ouvrages/create', [OuvrageController::class, 'create'])->name('ouvrages.create');
+    Route::post('/ouvrages', [OuvrageController::class, 'store'])->name('ouvrages.store');
+    Route::get('/ouvrages/{id}', [OuvrageController::class, 'show'])->name('ouvrages.show');
+
+
     // ========================================================
     // RESTRICTION CRITIQUE : GESTION DES HABILITATIONS (ADMIN SYSTEME ONLY)
     // ========================================================

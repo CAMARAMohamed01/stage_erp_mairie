@@ -18,4 +18,23 @@ class Troncon extends Model
     {
         return $this->belongsTo(Reseau::class, 'id_reseau', 'id_reseau');
     }
+    public function voie()
+    {
+        return $this->belongsTo(Voie::class, 'id_voie', 'id_voie');
+    }
+
+    public function ouvrageLie()
+    {
+        return $this->belongsTo(Ouvrage::class, 'id_ouvrage_lie', 'id_ouvrage');
+    }
+
+    public function equipements()
+    {
+        return $this->hasMany(Equipement::class, 'id_troncon', 'id_troncon');
+    }
+    //interventions
+    public function interventions()
+    {
+        return $this->hasMany(Intervention::class, 'id_troncon', 'id_troncon');
+    }
 }
