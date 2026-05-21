@@ -78,6 +78,28 @@ class BatimentController extends Controller
             ->limit(5)
             ->get();
 
+        $compteurs_generaux = DB::table('compteur')
+            ->join('local_', 'compteur.id_local', '=', 'local_.id_local')
+            ->where('local_.id_batiment', $id)
+            ->where('compteur.dessert_tout_le_batiment', true)
+            ->select('compteur.*')
+            ->get();
+
+        //  Les contrats liés directement à ce bâtiment (via la table pivot contrat_batiment)
+        $contrats = DB::table('contrat')
+            ->join('contrat_batiment', 'contrat.id_contrat', '=', 'contrat_batiment.id_contrat')
+            ->leftJoin('tiers', 'contrat.id_tiers', '=', 'tiers.id_tiers')
+            ->leftJoin('tiers_morale', 'tiers.id_tiers', '=', 'tiers_morale.id_tiers')
+            ->leftJoin('tiers_physique', 'tiers.id_tiers', '=', 'tiers_physique.id_tiers')
+            ->where('contrat_batiment.id_batiment', $id)
+            ->select('contrat.*', 'tiers_morale.raison_sociale', 'tiers_physique.nom_tiers', 'tiers_physique.prenom_tiers')
+            ->get();
+        //documents liés à ce bâtiment
+        $documents = DB::table('document')
+            ->where('id_batiment', $id)
+            ->orderByDesc('date_upload')
+            ->get();
+
         // 6. Les signalements citoyens : liés à l'adresse du bâtiment
         $signalements = DB::table('signalement')
             ->where('id_adresse', $batiment->id_adresse)
@@ -85,7 +107,7 @@ class BatimentController extends Controller
             ->get();
 
         // On ajoute 'locaux' dans le compact
-        return view('batiments.show', compact('batiment', 'locaux', 'equipements', 'controles', 'interventions', 'signalements'));
+        return view('batiments.show', compact('batiment', 'locaux', 'equipements', 'controles', 'interventions', 'signalements', 'compteurs_generaux', 'contrats', 'documents'));
     }
 
     // Afficher le formulaire de création
@@ -213,6 +235,25 @@ class BatimentController extends Controller
         return redirect()->route('batiments.show', $id)
             ->with('success', 'Les informations du bâtiment ont été mises à jour avec succès.');
     }
+
+    public function uploadDocument(Request $request, $idBatiment)
+    {
+        $request->validate(['fichier' => 'required|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:5120']);
+
+        $file = $request->file('fichier');
+        $path = $file->store('documents/batiments', 'public'); // Adapte le nom du dossier
+
+        \App\Models\Document::create([
+            'nom_fichier' => $file->getClientOriginalName(),
+            'type_doc' => $file->getClientOriginalExtension(),
+            'chemin_stockage' => $path,
+            'taille_ko' => $file->getSize() / 1024,
+            'date_upload' => now(),
+            'id_batiment' => $idBatiment, // <-- C'est LA seule chose qui change selon le contrôleur
+        ]);
+
+        return back()->with('success', 'Document ajouté au bâtiment.');
+    }
     // --- ENREGISTREMENTS RAPIDES AJAX ---
 
     public function quickStoreAdresse(Request $request)
@@ -280,7 +321,7 @@ class BatimentController extends Controller
             return redirect()->route('batiments.index')->with('error', 'Bâtiment introuvable.');
         }
 
-        // 2. Vérification des équipements liés (via l'immobilisation ou via un local)
+        //  Vérification des équipements liés (via l'immobilisation ou via un local)
         $equipementsLies = DB::table('equipement')
             ->leftJoin('local_', 'equipement.id_local', '=', 'local_.id_local')
             ->where('equipement.id_immo', $batiment->id_immo)

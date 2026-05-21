@@ -51,6 +51,11 @@ class Equipement extends Model
     {
         return $this->belongsTo(Local::class, 'id_local', 'id_local');
     }
+    // documents
+    public function documents()
+    {
+        return $this->hasMany(Document::class, 'id_equipement', 'id_equipement');
+    }
 
     //Immobilisation
     public function immobilisation()
@@ -81,5 +86,16 @@ class Equipement extends Model
             'id_equipement',
             'id_contrat'
         );
+    }
+    // Récupérer l'équipement parent (celui qui le contient)
+    public function equipementParent()
+    {
+        return $this->belongsTo(Equipement::class, 'id_parent', 'id_equipement');
+    }
+
+    // Récupérer les sous-équipements (ceux qu'il contient)
+    public function sousEquipements()
+    {
+        return $this->hasMany(Equipement::class, 'id_parent', 'id_equipement');
     }
 }

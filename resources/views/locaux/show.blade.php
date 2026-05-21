@@ -120,7 +120,82 @@
             </div>
 
             <div class="space-y-6">
+                <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <h2 class="text-sm font-bold text-slate-800 mb-4 border-b border-slate-100 pb-2">📂 Documents
+                            Techniques & Photos</h2>
 
+                        <ul class="space-y-3 mb-6">
+                            @forelse($documents as $doc)
+                                <li
+                                    class="flex items-center justify-between p-3 bg-slate-50 border border-slate-100 rounded-lg transition hover:bg-slate-100">
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-2xl">
+                                            {{ in_array(strtolower($doc->type_doc), ['pdf']) ? '📄' : (in_array(strtolower($doc->type_doc), ['jpg', 'png', 'jpeg']) ? '🖼️' : '📁') }}
+                                        </span>
+                                        <div>
+                                            <p class="text-sm font-semibold text-slate-800 line-clamp-1">{{ $doc->nom_fichier }}
+                                            </p>
+                                            <p class="text-xs text-slate-500">
+                                                {{ \Carbon\Carbon::parse($doc->date_upload)->format('d/m/Y') }} •
+                                                {{ number_format($doc->taille_ko, 0, ',', ' ') }} Ko
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex items-center gap-2">
+                                        <a href="{{ asset('storage/' . $doc->chemin_stockage) }}" target="_blank"
+                                            class="text-blue-600 hover:text-blue-800 text-xs font-bold bg-blue-50 px-2 py-1 rounded border border-blue-100">
+                                            Voir
+                                        </a>
+                                        @can('check-permission', ['Patrimoine & Equipements', 'suppression'])
+                                            <form action="{{ route('documents.global.destroy', $doc->id_document) }}" method="POST"
+                                                class="inline" onsubmit="return confirm('Supprimer ce document ?');">
+                                                @csrf @method('DELETE')
+                                                <button type="submit"
+                                                    class="text-red-600 hover:text-red-800 text-xs font-bold bg-red-50 px-2 py-1 rounded border border-red-100">
+                                                    🗑️
+                                                </button>
+                                            </form>
+                                        @endcan
+                                    </div>
+                                </li>
+                            @empty
+                                <li class="text-sm text-slate-400 italic text-center py-4">Aucun plan ou document rattaché à ce
+                                    local.</li>
+                            @endforelse
+                        </ul>
+                    </div>
+
+                    @can('check-permission', ['Patrimoine & Equipements', 'ecriture'])
+                        <form action="{{ route('locaux.documents.store', $local->id_local) }}" method="POST"
+                            enctype="multipart/form-data"
+                            class="bg-slate-50 p-4 rounded-lg border border-slate-200 border-dashed mt-auto">
+                            @csrf
+
+                            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Ajouter une pièce
+                                jointe</label>
+                            <p class="text-[10px] text-slate-500 mb-3">Formats acceptés : PDF, JPG, PNG, DOC, DOCX. (Max : 5 Mo)
+                            </p>
+
+                            <div class="flex items-start gap-2">
+                                <div class="w-full">
+                                    <input type="file" name="fichier" required
+                                        class="block w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:font-semibold file:bg-slate-900 file:text-white hover:file:bg-slate-800 cursor-pointer focus:outline-none">
+
+                                    @error('fichier')
+                                        <p class="text-xs text-red-600 font-bold mt-2">⚠️ {{ $message }}</p>
+                                    @enderror
+                                </div>
+
+                                <button type="submit"
+                                    class="px-3 py-1.5 bg-indigo-600 text-white font-bold rounded-md hover:bg-indigo-700 transition text-xs whitespace-nowrap">
+                                    📤 Envoyer
+                                </button>
+                            </div>
+                        </form>
+                    @endcan
+                </div>
                 <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
                     <div class="p-4 bg-red-50/50 border-b border-red-100">
                         <h3 class="text-sm font-bold text-red-800 tracking-tight flex items-center gap-2">

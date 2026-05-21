@@ -27,4 +27,20 @@ class Local extends Model
     {
         return $this->belongsToMany(\App\Models\Contrat::class, 'contrat_local', 'id_local', 'id_contrat');
     }
+    public function documents()
+    {
+        return $this->hasMany(Document::class, 'id_local', 'id_local');
+    }
+
+    // Un local peut avoir plusieurs équipements
+    public function equipements()
+    {
+        return $this->hasMany(Equipement::class, 'id_local', 'id_local');
+    }
+
+    // Un local peut avoir plusieurs compteurs (eau, électricité...)
+    public function compteurs()
+    {
+        return $this->hasMany(Compteur::class, 'id_local', 'id_local');
+    }
 }

@@ -205,7 +205,17 @@ class LieuController extends Controller
             ->where('id_lieu', $id)
             ->get();
 
-        // 2. Les équipements en extérieur (bancs, jeux, poubelles...)
+        $compteurs = DB::table('compteur')
+            ->join('local_', 'compteur.id_local', '=', 'local_.id_local')
+            ->where('local_.id_lieu', $id)
+            ->select('compteur.*', 'local_.nom_local')
+            ->get();
+
+        $documents = DB::table('document')
+            ->where('id_lieu', $id)
+            ->orderByDesc('date_upload')
+            ->get();
+        //Les équipements en extérieur (bancs, jeux, poubelles...)
         $equipements = DB::table('equipement')->where('id_lieu', $id)->get();
 
         // 3. Le patrimoine végétal (arbres, massifs)
@@ -226,7 +236,7 @@ class LieuController extends Controller
             ->get();
 
         // Ajout de 'controles' dans le compact :
-        return view('lieux.show', compact('lieu', 'locaux', 'equipements', 'vegetaux', 'plans_entretien', 'emplacements', 'controles'));
+        return view('lieux.show', compact('lieu', 'locaux', 'equipements', 'vegetaux', 'plans_entretien', 'emplacements', 'controles', 'compteurs', 'documents'));
     }
 
 
@@ -248,5 +258,26 @@ class LieuController extends Controller
 
         DB::table('lieux_publics')->where('id_lieu', $id)->delete();
         return redirect()->route('lieux.index')->with('success', 'Le lieu a été retiré du référentiel.');
+    }
+
+    public function uploadDocument(Request $request, $idLieu)
+    {
+        $request->validate([
+            'fichier' => 'required|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:5120', // Max 5 Mo
+        ]);
+
+        $file = $request->file('fichier');
+        $path = $file->store('documents/lieux', 'public');
+
+        \App\Models\Document::create([
+            'nom_fichier' => $file->getClientOriginalName(),
+            'type_doc' => $file->getClientOriginalExtension(),
+            'chemin_stockage' => $path,
+            'taille_ko' => $file->getSize() / 1024,
+            'date_upload' => now(),
+            'id_lieu' => $idLieu, // La clé étrangère cible l'espace public
+        ]);
+
+        return back()->with('success', 'Le document a été ajouté à l\'espace public avec succès.');
     }
 }

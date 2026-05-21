@@ -118,6 +118,10 @@ class LocalController extends Controller
             ->orderBy('nom_equipement')
             ->get();
 
+        $documents = DB::table('document')
+            ->where('id_local', $id)
+            ->orderByDesc('date_upload')
+            ->get();
         // 3. Compteurs (eau, gaz, électricité) liés à ce local
         $compteurs = DB::table('compteur')
             ->where('id_local', $id)
@@ -131,7 +135,7 @@ class LocalController extends Controller
             ->orderByDesc('date_creation')
             ->get();
 
-        return view('locaux.show', compact('local', 'equipements', 'compteurs', 'signalements'));
+        return view('locaux.show', compact('local', 'equipements', 'compteurs', 'signalements', 'documents'));
     }
 
     // --- FORMULAIRE DE MODIFICATION ---
@@ -179,22 +183,7 @@ class LocalController extends Controller
         }
         $local->update($data);
 
-        // DB::table('local_')
-        //     ->where('id_local', $id)
-        //     ->update([
-        //         'nom_local' => $request->nom_local,
-        //         'largeur' => $request->largeur,
-        //         'longueur' => $request->longueur,
-        //         'surface_m2' => $request->surface_m2,
-        //         'niveau' => $request->niveau,
-        //         'statut_occupation' => $request->statut_occupation,
-        //         'ref_article_assurance' => $request->ref_article_assurance,
-        //         'prime_assurance_ttc' => $request->prime_assurance_ttc,
-        //         'remarque' => $request->remarque,
-        //         'id_batiment' => $request->id_batiment ?: null,
-        //         'id_lieu' => $request->id_lieu ?: null,
-        //         'id_usage' => $request->id_usage ?: null,
-        //     ]);
+
         $local->contratsAdministratifs()->sync($request->id_contrats ?? []);
         return redirect()->route('locaux.show', $id)
             ->with('success', 'Les informations du local ont été mises à jour.');
@@ -227,5 +216,25 @@ class LocalController extends Controller
 
         return redirect()->route('locaux.index')
             ->with('success', '✅ Le local a été retiré de l\'inventaire communal.');
+    }
+    public function uploadDocument(Request $request, $idLocal)
+    {
+        $request->validate([
+            'fichier' => 'required|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:5120', // Max 5 Mo
+        ]);
+
+        $file = $request->file('fichier');
+        $path = $file->store('documents/locaux', 'public');
+
+        \App\Models\Document::create([
+            'nom_fichier' => $file->getClientOriginalName(),
+            'type_doc' => $file->getClientOriginalExtension(),
+            'chemin_stockage' => $path,
+            'taille_ko' => $file->getSize() / 1024,
+            'date_upload' => now(),
+            'id_local' => $idLocal, // La clé étrangère cible le local
+        ]);
+
+        return back()->with('success', 'Le document a été ajouté au local avec succès.');
     }
 }

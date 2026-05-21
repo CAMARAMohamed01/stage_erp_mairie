@@ -40,7 +40,15 @@ Route::middleware('auth')->group(function () {
     Route::get('/citoyens', [TiersController::class, 'index'])->name('tiers.index');
     Route::get('/citoyens/{id}', [TiersController::class, 'show'])->name('tiers.show');
 
-
+    // ======================================================== suppression de la route globale de suppression de document (sécurisée via la matrice de droits)
+    Route::delete('/documents/global/{id}', function ($id) {
+        $document = \App\Models\Document::findOrFail($id);
+        if (\Illuminate\Support\Facades\Storage::disk('public')->exists($document->chemin_stockage)) {
+            \Illuminate\Support\Facades\Storage::disk('public')->delete($document->chemin_stockage);
+        }
+        $document->delete();
+        return back()->with('success', 'Document supprimé définitivement.');
+    })->middleware('can:check-permission,"Patrimoine & Equipements","suppression"')->name('documents.global.destroy');
     // ========================================================
     // 🔏 SECURISE : MODULE SIGNALEMENTS VIA LA MATRICE DE DROITS
     // ========================================================
@@ -87,6 +95,9 @@ Route::middleware('auth')->group(function () {
     Route::delete('/interventions/{id}', [InterventionController::class, 'destroy'])->middleware('can:check-permission,"Interventions","suppression"')->name('interventions.destroy');
 
     Route::post('/interventions/{id}/materiel', [InterventionController::class, 'ajouterMateriel'])->middleware('can:check-permission,"Interventions","ecriture"')->name('interventions.materiel.store');
+    Route::post('/interventions/{idInt}/documents', [InterventionController::class, 'uploadDocument'])
+        ->middleware('can:check-permission,"Patrimoine & Equipements","ecriture"')
+        ->name('interventions.documents.store');
     // ========================================================
     // 🔏 SECURISE : MODULE BATIMENTS & LIEUX PUBLICS (MATRICE)
     // ========================================================
@@ -104,7 +115,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/batiments/{id}/edit', [BatimentController::class, 'edit'])->middleware('can:check-permission,"Patrimoine & Equipements","ecriture"')->name('batiments.edit');
     Route::put('/batiments/{id}', [BatimentController::class, 'update'])->middleware('can:check-permission,"Patrimoine & Equipements","ecriture"')->name('batiments.update');
     Route::delete('/batiments/{id}', [BatimentController::class, 'destroy'])->middleware('can:check-permission,"Patrimoine & Equipements","suppression"')->name('batiments.destroy');
-
+    // documents des bâtiments
+    Route::get('/batiments/{id}/documents', [BatimentController::class, 'documents'])->middleware('can:check-permission,"Patrimoine & Equipements","lecture"')->name('batiments.documents');
+    Route::post('/batiments/{idBatiment}/documents', [BatimentController::class, 'uploadDocument'])
+        ->middleware('can:check-permission,"Patrimoine & Equipements","ecriture"')
+        ->name('batiments.documents.store');
     // ========================================================
     // 🌳 SECURISE : MODULE LIEUX PUBLICS (Espaces extérieurs)
     // ========================================================
@@ -117,6 +132,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/lieux/{id}/edit', [LieuController::class, 'edit'])->middleware('can:check-permission,"Patrimoine & Equipements","ecriture"')->name('lieux.edit');
     Route::put('/lieux/{id}', [LieuController::class, 'update'])->middleware('can:check-permission,"Patrimoine & Equipements","ecriture"')->name('lieux.update');
     Route::delete('/lieux/{id}', [LieuController::class, 'destroy'])->middleware('can:check-permission,"Patrimoine & Equipements","suppression"')->name('lieux.destroy');
+
+    Route::post('/lieux/{idLieu}/documents', [LieuController::class, 'uploadDocument'])
+        ->middleware('can:check-permission,"Patrimoine & Equipements","ecriture"')
+        ->name('lieux.documents.store');
     // ========================================================
     // 🔏 SECURISE : MODULE LOCAUX (PIÈCES & SALLES)
     // ========================================================
@@ -129,7 +148,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/locaux/{id}/edit', [LocalController::class, 'edit'])->middleware('can:check-permission,"Patrimoine & Equipements","ecriture"')->name('locaux.edit');
     Route::put('/locaux/{id}', [LocalController::class, 'update'])->middleware('can:check-permission,"Patrimoine & Equipements","ecriture"')->name('locaux.update');
     Route::delete('/locaux/{id}', [LocalController::class, 'destroy'])->middleware('can:check-permission,"Patrimoine & Equipements","suppression"')->name('locaux.destroy');
-
+    Route::post('/locaux/{idLocal}/documents', [LocalController::class, 'uploadDocument'])
+        ->middleware('can:check-permission,"Patrimoine & Equipements","ecriture"')
+        ->name('locaux.documents.store');
     // ========================================================
     // 🔏 SECURISE : MODULE EQUIPEMENTS VIA LA MATRICE DE DROITS
     // ========================================================
@@ -144,6 +165,10 @@ Route::middleware('auth')->group(function () {
     Route::put('/equipements/{id}', [EquipementController::class, 'update'])->middleware('can:check-permission,"Patrimoine & Equipements","ecriture"')->name('equipements.update');
     Route::delete('/equipements/{id}', [EquipementController::class, 'destroy'])->middleware('can:check-permission,"Patrimoine & Equipements","suppression"')->name('equipements.destroy');
 
+    // Remplace ton ancienne ligne par celle-ci :
+    Route::post('/equipements/{idEquipement}/documents', [EquipementController::class, 'uploadDocument'])
+        ->middleware('can:check-permission,"Patrimoine & Equipements","ecriture"')
+        ->name('equipements.documents.store');
     // ==========================================
 // MODULE : GESTION DES CIMETIÈRES
 // ==========================================

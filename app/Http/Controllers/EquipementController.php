@@ -113,6 +113,10 @@ class EquipementController extends Controller
             'local',
             'lieuPublic',
             'controles',
+            'equipementParent',
+            'sousEquipements',
+            'immobilisation',
+            'service',
             'interventions' => function ($query) {
                 $query->orderBy('date_ouverture', 'desc'); // Historique trié
             },
@@ -120,7 +124,12 @@ class EquipementController extends Controller
             'immobilisation'   // Ajout relation immo (si définie dans ton modèle)
         ])->findOrFail($id);
 
-        return view('equipements.show', compact('equipement'));
+        $documents = DB::table('document')
+            ->where('id_equipement', $id)
+            ->orderByDesc('date_upload')
+            ->get();
+
+        return view('equipements.show', compact('equipement', 'documents'));
     }
 
     public function edit($id)
@@ -198,5 +207,25 @@ class EquipementController extends Controller
         // 4. On redirige vers l'inventaire avec un message
         return redirect()->route('equipements.index')
             ->with('success', 'L\'équipement a été supprimé définitivement.');
+    }
+    public function uploadDocument(Request $request, $idEquipement)
+    {
+        $request->validate([
+            'fichier' => 'required|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:5120', // Max 5 Mo
+        ]);
+
+        $file = $request->file('fichier');
+        $path = $file->store('documents/equipements', 'public');
+
+        \App\Models\Document::create([
+            'nom_fichier' => $file->getClientOriginalName(),
+            'type_doc' => $file->getClientOriginalExtension(),
+            'chemin_stockage' => $path,
+            'taille_ko' => $file->getSize() / 1024,
+            'date_upload' => now(),
+            'id_equipement' => $idEquipement, // La clé étrangère cible l'équipement
+        ]);
+
+        return back()->with('success', 'Le document a été ajouté à l\'équipement avec succès.');
     }
 }

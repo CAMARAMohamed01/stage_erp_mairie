@@ -27,4 +27,20 @@ class Batiment extends Model
     {
         return $this->belongsTo(Adresse::class, 'id_adresse', 'id_adresse');
     }
+    public function documents()
+    {
+        return $this->hasMany(Document::class, 'id_batiment', 'id_batiment');
+    }
+
+    // Un bâtiment peut avoir plusieurs locaux
+    public function locaux()
+    {
+        return $this->hasMany(Local::class, 'id_batiment', 'id_batiment');
+    }
+
+    // Un bâtiment est souvent lié à une immobilisation comptable
+    public function immobilisation()
+    {
+        return $this->belongsTo(ImmobilisationInventaire::class, 'id_immo', 'id_immo');
+    }
 }

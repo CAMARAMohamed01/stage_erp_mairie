@@ -35,13 +35,37 @@ class InterventionController extends Controller
 
         return view('interventions.index', compact('interventions'));
     }
+    public function uploadDocument(Request $request, $idInt)
+    {
+        $request->validate([
+            'fichier' => 'required|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:5120', // Max 5 Mo
+        ]);
 
+        $file = $request->file('fichier');
+        // On range ça dans un dossier spécifique aux interventions
+        $path = $file->store('documents/interventions', 'public');
+
+        \App\Models\Document::create([
+            'nom_fichier' => $file->getClientOriginalName(),
+            'type_doc' => $file->getClientOriginalExtension(),
+            'chemin_stockage' => $path,
+            'taille_ko' => $file->getSize() / 1024,
+            'date_upload' => now(),
+            'id_int' => $idInt, // La clé étrangère pointe vers l'intervention
+        ]);
+
+        return back()->with('success', 'Le document a été joint à l\'intervention avec succès.');
+    }
     public function show($id)
     {
+        $documents = DB::table('document')
+            ->where('id_int', $id)
+            ->orderByDesc('date_upload')
+            ->get();
 
         // On récupère l'intervention avec ses relations
         $intervention = Intervention::with(['equipements', 'categorie', 'signalement', 'suiviActions', 'agents', 'tiers', 'contrat', 'achatsMateriels'])->findOrFail($id);
-        return view('interventions.show', compact('intervention'));
+        return view('interventions.show', compact('intervention', 'documents'));
     }
 
     public function cloturer($id)

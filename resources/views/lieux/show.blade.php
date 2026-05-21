@@ -121,6 +121,54 @@
                     </div>
                 </div>
 
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mt-6">
+                    <div class="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
+                        <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                            ⚡ Réseaux & Compteurs ({{ $compteurs->count() }})
+                        </h3>
+                        @can('check-permission', ['Patrimoine & Equipements', 'ecriture'])
+                            <a href="{{ route('compteurs.create') }}"
+                                class="text-xs text-blue-600 font-semibold hover:underline">
+                                ➕ Ajouter
+                            </a>
+                        @endcan
+                    </div>
+                    <div class="divide-y divide-slate-100 max-h-48 overflow-y-auto">
+                        @forelse($compteurs as $compteur)
+                            <div class="p-3 flex justify-between items-center hover:bg-slate-50">
+                                <div class="flex items-center gap-3">
+                                    <div class="text-xl">
+                                        @if($compteur->type_reseau == 'Électricité') ⚡
+                                        @elseif($compteur->type_reseau == 'Eau Potable') 💧
+                                        @elseif($compteur->type_reseau == 'Gaz') 🔥
+                                        @else ⚙️ @endif
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-semibold text-slate-800">{{ $compteur->point_comptage }}</p>
+                                        <p class="text-[10px] text-slate-500 uppercase">{{ $compteur->type_reseau }}</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    @if($compteur->date_arret && \Carbon\Carbon::parse($compteur->date_arret)->isPast())
+                                        <span
+                                            class="text-[10px] font-bold px-2 py-0.5 rounded bg-red-100 text-red-700">Déposé</span>
+                                    @else
+                                        <span
+                                            class="text-[10px] font-bold px-2 py-0.5 rounded bg-green-100 text-green-700">Actif</span>
+                                    @endif
+                                    <a href="{{ route('compteurs.show', $compteur->id_compteur) }}"
+                                        class="text-xs text-blue-600 font-bold hover:underline">
+                                        Voir →
+                                    </a>
+                                </div>
+                            </div>
+                        @empty
+                            <p class="p-4 text-xs text-slate-400 italic">Aucun compteur de fluide associé à ce lieu ou ses
+                                locaux.</p>
+                        @endforelse
+                    </div>
+                </div>
+
                 <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
                     <div class="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
                         <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">⚙️ Équipements Extérieurs
@@ -259,6 +307,82 @@
                             </tbody>
                         </table>
                     </div>
+                </div>
+                <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <h2 class="text-sm font-bold text-slate-800 mb-4 border-b border-slate-100 pb-2">📂 Plans &
+                            Documents</h2>
+
+                        <ul class="space-y-3 mb-6">
+                            @forelse($documents as $doc)
+                                <li
+                                    class="flex items-center justify-between p-3 bg-slate-50 border border-slate-100 rounded-lg transition hover:bg-slate-100">
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-2xl">
+                                            {{ in_array(strtolower($doc->type_doc), ['pdf']) ? '📄' : (in_array(strtolower($doc->type_doc), ['jpg', 'png', 'jpeg']) ? '🖼️' : '📁') }}
+                                        </span>
+                                        <div>
+                                            <p class="text-sm font-semibold text-slate-800 line-clamp-1">{{ $doc->nom_fichier }}
+                                            </p>
+                                            <p class="text-xs text-slate-500">
+                                                {{ \Carbon\Carbon::parse($doc->date_upload)->format('d/m/Y') }} •
+                                                {{ number_format($doc->taille_ko, 0, ',', ' ') }} Ko
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex items-center gap-2">
+                                        <a href="{{ asset('storage/' . $doc->chemin_stockage) }}" target="_blank"
+                                            class="text-blue-600 hover:text-blue-800 text-xs font-bold bg-blue-50 px-2 py-1 rounded border border-blue-100">
+                                            Voir
+                                        </a>
+                                        @can('check-permission', ['Patrimoine & Equipements', 'suppression'])
+                                            <form action="{{ route('documents.global.destroy', $doc->id_document) }}" method="POST"
+                                                class="inline" onsubmit="return confirm('Supprimer définitivement ce document ?');">
+                                                @csrf @method('DELETE')
+                                                <button type="submit"
+                                                    class="text-red-600 hover:text-red-800 text-xs font-bold bg-red-50 px-2 py-1 rounded border border-red-100">
+                                                    🗑️
+                                                </button>
+                                            </form>
+                                        @endcan
+                                    </div>
+                                </li>
+                            @empty
+                                <li class="text-sm text-slate-400 italic text-center py-4">Aucun document ou plan rattaché à cet
+                                    espace public.</li>
+                            @endforelse
+                        </ul>
+                    </div>
+
+                    @can('check-permission', ['Patrimoine & Equipements', 'ecriture'])
+                        <form action="{{ route('lieux.documents.store', $lieu->id_lieu) }}" method="POST"
+                            enctype="multipart/form-data"
+                            class="bg-slate-50 p-4 rounded-lg border border-slate-200 border-dashed mt-auto">
+                            @csrf
+
+                            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Ajouter une pièce
+                                jointe</label>
+                            <p class="text-[10px] text-slate-500 mb-3">Formats acceptés : PDF, JPG, PNG, DOC, DOCX. (Max : 5 Mo)
+                            </p>
+
+                            <div class="flex items-start gap-2">
+                                <div class="w-full">
+                                    <input type="file" name="fichier" required
+                                        class="block w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:font-semibold file:bg-slate-900 file:text-white hover:file:bg-slate-800 cursor-pointer focus:outline-none">
+
+                                    @error('fichier')
+                                        <p class="text-xs text-red-600 font-bold mt-2">⚠️ {{ $message }}</p>
+                                    @enderror
+                                </div>
+
+                                <button type="submit"
+                                    class="px-3 py-1.5 bg-indigo-600 text-white font-bold rounded-md hover:bg-indigo-700 transition text-xs whitespace-nowrap">
+                                    📤 Envoyer
+                                </button>
+                            </div>
+                        </form>
+                    @endcan
                 </div>
 
             </div>

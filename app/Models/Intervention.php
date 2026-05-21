@@ -107,4 +107,8 @@ class Intervention extends Model
     {
         return $this->hasMany(AchatMaterielConsommable::class, 'id_int');
     }
+    public function documents()
+    {
+        return $this->hasMany(Document::class, 'id_int', 'id_int');
+    }
 }
