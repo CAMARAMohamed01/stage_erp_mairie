@@ -298,8 +298,16 @@ Route::middleware('auth')->group(function () {
     // ========================================================
     // 🚧 MODULE VOIES & RÉSEAUX DIVERS (VRD) -
     // ========================================================
+    // Les routes statiques d'abord
     Route::get('/voies', [VoieController::class, 'index'])->name('voies.index');
+    Route::get('/voies/create', [VoieController::class, 'create'])->name('voies.create');
+    Route::post('/voies', [VoieController::class, 'store'])->name('voies.store');
 
+    // Les routes dynamiques avec {id} ensuite
+    Route::get('/voies/{id}', [VoieController::class, 'show'])->name('voies.show');
+    Route::get('/voies/{id}/edit', [VoieController::class, 'edit'])->name('voies.edit');
+    Route::put('/voies/{id}', [VoieController::class, 'update'])->name('voies.update');
+    Route::delete('/voies/{id}', [VoieController::class, 'destroy'])->name('voies.destroy');
     // ========================================================
     // 🚧 MODULE TRONÇONS (PARTIE GESTION DES VOIES)
 
@@ -307,6 +315,10 @@ Route::middleware('auth')->group(function () {
     Route::post('/troncons', [TronconController::class, 'store'])->name('troncons.store');
     Route::post('/troncons/{idTroncon}/documents', [TronconController::class, 'uploadDocument'])
         ->name('troncons.documents.store');
+    Route::get('/troncons/{id}', [TronconController::class, 'show'])->name('troncons.show');
+    Route::get('/troncons/{id}/edit', [TronconController::class, 'edit'])->name('troncons.edit');
+    Route::put('/troncons/{id}', [TronconController::class, 'update'])->name('troncons.update');
+    Route::delete('/troncons/{id}', [TronconController::class, 'destroy'])->name('troncons.destroy');
 
     //Ouvrages d'art
     Route::get('/ouvrages', [OuvrageController::class, 'index'])->name('ouvrages.index');

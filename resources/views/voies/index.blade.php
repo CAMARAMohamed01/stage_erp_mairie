@@ -24,14 +24,23 @@
         </div>
 
         <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-            <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+            <div class="p-4 border-b border-slate-100 flex flex-wrap justify-between items-center bg-slate-50 gap-4">
                 <h2 class="text-sm font-bold text-slate-800">Liste des Voies</h2>
-                <form action="{{ route('voies.index') }}" method="GET" class="flex gap-2">
-                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Rechercher une voie..."
-                        class="px-3 py-1 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                    <button type="submit"
-                        class="px-3 py-1 bg-slate-900 text-white text-sm font-semibold rounded-lg hover:bg-slate-800">Rechercher</button>
-                </form>
+
+                <div class="flex flex-wrap items-center gap-4">
+                    <form action="{{ route('voies.index') }}" method="GET" class="flex gap-2">
+                        <input type="text" name="search" value="{{ request('search') }}"
+                            placeholder="Rechercher une voie..."
+                            class="px-3 py-1 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        <button type="submit"
+                            class="px-3 py-1 bg-slate-900 text-white text-sm font-semibold rounded-lg hover:bg-slate-800 transition">Rechercher</button>
+                    </form>
+
+                    <a href="{{ route('voies.create') }}"
+                        class="px-4 py-1.5 bg-blue-600 text-white text-sm font-bold rounded-lg hover:bg-blue-700 transition flex items-center shadow-sm">
+                        ➕ Ajouter une voie
+                    </a>
+                </div>
             </div>
 
             <table class="w-full text-left text-xs border-collapse">
@@ -57,7 +66,7 @@
                             </td>
                             <td class="px-4 py-3 text-center">
                                 @if($voie->est_pdipr)
-                                    <span class="text-green-600 font-bold">✅</span>
+                                    <span class="text-black-600 font-bold">OUI</span>
                                 @else
                                     <span class="text-slate-300">-</span>
                                 @endif
