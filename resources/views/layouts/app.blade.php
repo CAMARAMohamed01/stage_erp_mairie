@@ -6,12 +6,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'ERP Mairie')</title>
     <script src="https://cdn.tailwindcss.com"></script>
+
+    @yield('styles')
+    <style>
+        /* Petite transition pour la flèche des menus */
+        .arrow-icon {
+            transition: transform 0.2s ease-in-out;
+        }
+
+        .rotate-90 {
+            transform: rotate(90deg);
+        }
+    </style>
 </head>
 
 <body class="bg-slate-50 font-sans antialiased flex h-screen overflow-hidden">
 
-    <aside class="w-64 bg-slate-900 text-white flex flex-col hidden md:flex shadow-xl z-20">
-        <div class="h-16 flex items-center px-6 border-b border-slate-800 font-bold text-xl tracking-wider">
+    <aside class="w-72 bg-slate-900 text-slate-300 flex flex-col hidden md:flex shadow-xl z-20">
+        <div class="h-16 flex items-center px-6 border-b border-slate-800 font-bold text-xl tracking-wider text-white">
             <svg class="w-6 h-6 text-blue-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4">
@@ -20,9 +32,10 @@
             ERP MAIRIE
         </div>
 
-        <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
+        <nav class="flex-1 px-4 py-6 space-y-1 overflow-y-auto custom-scrollbar">
+
             <a href="{{ route('technique.dashboard') }}"
-                class="flex items-center px-4 py-3 rounded-lg transition-colors font-medium {{ request()->routeIs('technique.dashboard') ? 'bg-blue-600 text-white shadow-md' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
+                class="flex items-center px-4 py-3 mb-4 rounded-lg transition-colors font-medium {{ request()->routeIs('technique.dashboard') ? 'bg-blue-600 text-white shadow-md' : 'hover:bg-slate-800 hover:text-white' }}">
                 <svg class="w-5 h-5 mr-3 {{ request()->routeIs('technique.dashboard') ? 'text-white' : 'text-slate-400' }}"
                     fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -32,196 +45,171 @@
                 Tableau de bord
             </a>
 
-            @if(Auth::user()->role_appli === 'Administrateur')
-                <a href="{{ route('admin.habilitations.index') }}"
-                    class="flex items-center px-4 py-3 rounded-lg transition-colors font-medium {{ request()->routeIs('admin.habilitations.*') ? 'bg-blue-600 text-white shadow-md' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
-                    <svg class="w-5 h-5 mr-3 {{ request()->routeIs('admin.habilitations.*') ? 'text-white' : 'text-slate-400' }}"
+            <div class="px-4 pb-2 pt-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Patrimoine &
+                Interventions</div>
+
+            <div>
+                <button onclick="toggleMenu('menu-voirie')"
+                    class="w-full flex items-center justify-between px-4 py-2.5 rounded-lg transition-colors font-medium hover:bg-slate-800 hover:text-white {{ request()->routeIs('voies.*', 'ouvrages.*', 'communes.*') ? 'text-white' : '' }}">
+                    <div class="flex items-center">
+                        <span class="text-xl mr-3 opacity-80">🛣️</span> Voirie & Réseaux
+                    </div>
+                    <svg id="arrow-menu-voirie"
+                        class="w-4 h-4 arrow-icon {{ request()->routeIs('voies.*', 'ouvrages.*', 'communes.*') ? 'rotate-90' : '' }}"
                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9.33-5M15 21v2m0 0h6m-6 0h-6">
-                        </path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                     </svg>
-                    Gestion des accès
-                </a>
+                </button>
+                <div id="menu-voirie"
+                    class="flex flex-col pl-12 pr-4 py-1 space-y-1 {{ request()->routeIs('voies.*', 'ouvrages.*', 'communes.*') ? '' : 'hidden' }}">
+                    <a href="{{ route('voies.index') }}"
+                        class="text-sm py-2 transition-colors {{ request()->routeIs('voies.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Voies
+                        & Tronçons</a>
+                    <a href="{{ route('ouvrages.index') }}"
+                        class="text-sm py-2 transition-colors {{ request()->routeIs('ouvrages.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Ouvrages
+                        d'art</a>
+                    <a href="{{ route('communes.index') }}"
+                        class="text-sm py-2 transition-colors {{ request()->routeIs('communes.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Communes
+                        partenaires</a>
+                </div>
+            </div>
+
+            <div>
+                <button onclick="toggleMenu('menu-batiments')"
+                    class="w-full flex items-center justify-between px-4 py-2.5 rounded-lg transition-colors font-medium hover:bg-slate-800 hover:text-white {{ request()->routeIs('batiments.*', 'lieux.*', 'locaux.*', 'equipements.*', 'compteurs.*') ? 'text-white' : '' }}">
+                    <div class="flex items-center">
+                        <span class="text-xl mr-3 opacity-80">🏢</span> Bâtiments & Locaux
+                    </div>
+                    <svg id="arrow-menu-batiments"
+                        class="w-4 h-4 arrow-icon {{ request()->routeIs('batiments.*', 'lieux.*', 'locaux.*', 'equipements.*', 'compteurs.*') ? 'rotate-90' : '' }}"
+                        fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                </button>
+                <div id="menu-batiments"
+                    class="flex flex-col pl-12 pr-4 py-1 space-y-1 {{ request()->routeIs('batiments.*', 'lieux.*', 'locaux.*', 'equipements.*', 'compteurs.*') ? '' : 'hidden' }}">
+                    <a href="{{ route('batiments.index') }}"
+                        class="text-sm py-2 transition-colors {{ request()->routeIs('batiments.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Bâtiments</a>
+                    <a href="{{ route('lieux.index') }}"
+                        class="text-sm py-2 transition-colors {{ request()->routeIs('lieux.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Lieux
+                        publics</a>
+                    <a href="{{ route('locaux.index') }}"
+                        class="text-sm py-2 transition-colors {{ request()->routeIs('locaux.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Locaux
+                        & Pièces</a>
+                    <a href="{{ route('equipements.index') }}"
+                        class="text-sm py-2 transition-colors {{ request()->routeIs('equipements.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Équipements</a>
+                    <a href="{{ route('compteurs.index') }}"
+                        class="text-sm py-2 transition-colors {{ request()->routeIs('compteurs.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Compteurs</a>
+                </div>
+            </div>
+
+            <div>
+                <button onclick="toggleMenu('menu-cimetiere')"
+                    class="w-full flex items-center justify-between px-4 py-2.5 rounded-lg transition-colors font-medium hover:bg-slate-800 hover:text-white {{ request()->routeIs('emplacements.*', 'concessions.*') ? 'text-white' : '' }}">
+                    <div class="flex items-center">
+                        <span class="text-xl mr-3 opacity-80">🕊️</span> Espaces Funéraires
+                    </div>
+                    <svg id="arrow-menu-cimetiere"
+                        class="w-4 h-4 arrow-icon {{ request()->routeIs('emplacements.*', 'concessions.*') ? 'rotate-90' : '' }}"
+                        fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                </button>
+                <div id="menu-cimetiere"
+                    class="flex flex-col pl-12 pr-4 py-1 space-y-1 {{ request()->routeIs('emplacements.*', 'concessions.*') ? '' : 'hidden' }}">
+                    <a href="{{ route('emplacements.index') }}"
+                        class="text-sm py-2 transition-colors {{ request()->routeIs('emplacements.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Cimetières
+                        & Emplacements</a>
+                    <a href="{{ route('concessions.index') }}"
+                        class="text-sm py-2 transition-colors {{ request()->routeIs('concessions.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Concessions</a>
+                </div>
+            </div>
+
+            <div>
+                <button onclick="toggleMenu('menu-interventions')"
+                    class="w-full flex items-center justify-between px-4 py-2.5 rounded-lg transition-colors font-medium hover:bg-slate-800 hover:text-white {{ request()->routeIs('signalements.*', 'interventions.*') ? 'text-white' : '' }}">
+                    <div class="flex items-center">
+                        <span class="text-xl mr-3 opacity-80">🛠️</span> Suivi & Travaux
+                    </div>
+                    <svg id="arrow-menu-interventions"
+                        class="w-4 h-4 arrow-icon {{ request()->routeIs('signalements.*', 'interventions.*') ? 'rotate-90' : '' }}"
+                        fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                </button>
+                <div id="menu-interventions"
+                    class="flex flex-col pl-12 pr-4 py-1 space-y-1 {{ request()->routeIs('signalements.*', 'interventions.*') ? '' : 'hidden' }}">
+                    <a href="{{ route('signalements.index') }}"
+                        class="text-sm py-2 transition-colors {{ request()->routeIs('signalements.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Signalements
+                        Citoyens</a>
+                    <a href="{{ route('interventions.index') }}"
+                        class="text-sm py-2 transition-colors {{ request()->routeIs('interventions.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Bons
+                        d'interventions</a>
+                </div>
+            </div>
+
+            <div class="px-4 pb-2 pt-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Administration
+            </div>
+
+            <div>
+                <button onclick="toggleMenu('menu-admin')"
+                    class="w-full flex items-center justify-between px-4 py-2.5 rounded-lg transition-colors font-medium hover:bg-slate-800 hover:text-white {{ request()->routeIs('tiers.*', 'contrats.*', 'dossiers-financiers.*') ? 'text-white' : '' }}">
+                    <div class="flex items-center">
+                        <span class="text-xl mr-3 opacity-80">📂</span> Finances & Tiers
+                    </div>
+                    <svg id="arrow-menu-admin"
+                        class="w-4 h-4 arrow-icon {{ request()->routeIs('tiers.*', 'contrats.*', 'dossiers-financiers.*') ? 'rotate-90' : '' }}"
+                        fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                </button>
+                <div id="menu-admin"
+                    class="flex flex-col pl-12 pr-4 py-1 space-y-1 {{ request()->routeIs('tiers.*', 'contrats.*', 'dossiers-financiers.*') ? '' : 'hidden' }}">
+                    <a href="{{ route('tiers.index') }}"
+                        class="text-sm py-2 transition-colors {{ request()->routeIs('tiers.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Annuaire
+                        Citoyens / Tiers</a>
+                    <a href="{{ route('contrats.index') }}"
+                        class="text-sm py-2 transition-colors {{ request()->routeIs('contrats.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Contrats
+                        & Engagements</a>
+                    <a href="{{ route('dossiers-financiers.index') }}"
+                        class="text-sm py-2 transition-colors {{ request()->routeIs('dossiers-financiers.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Dossiers
+                        Financiers</a>
+                </div>
+            </div>
+
+            @if(Auth::user()->role_appli === 'Administrateur')
+                <div class="pt-2">
+                    <a href="{{ route('admin.habilitations.index') }}"
+                        class="flex items-center px-4 py-3 rounded-lg transition-colors font-medium {{ request()->routeIs('admin.habilitations.*') ? 'bg-blue-600 text-white shadow-md' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                        <span class="text-xl mr-3 opacity-80">🔐</span>
+                        Paramètres d'accès
+                    </a>
+                </div>
             @endif
-            <a href="{{ route('batiments.index') }}"
-                class="flex items-center px-4 py-3 rounded-lg transition-colors font-medium {{ request()->routeIs('batiments.*') ? 'bg-blue-600 text-white shadow-md' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
-                <svg class="w-5 h-5 mr-3 {{ request()->routeIs('batiments.*') ? 'text-white' : 'text-slate-400' }}"
-                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4">
-                    </path>
-                </svg>
-                Bâtiments
-            </a>
 
-            <a href="{{ route('lieux.index') }}"
-                class="flex items-center px-4 py-3 rounded-lg transition-colors font-medium {{ request()->routeIs('lieux.*') ? 'bg-blue-600 text-white shadow-md' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
-                <svg class="w-5 h-5 mr-3 {{ request()->routeIs('lieux.*') ? 'text-white' : 'text-slate-400' }}"
-                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z">
-                    </path>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                </svg>
-                Lieux publics
-            </a>
-            <a href="{{ route('locaux.index') }}"
-                class="flex items-center px-4 py-3 rounded-lg transition-colors font-medium {{ request()->routeIs('locaux.*') ? 'bg-blue-600 text-white shadow-md' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
-                <svg class="w-5 h-5 mr-3 {{ request()->routeIs('locaux.*') ? 'text-white' : 'text-slate-400' }}"
-                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
-                    </path>
-                </svg>
-                Locaux & Pièces
-            </a>
-
-            <a href="{{ route('signalements.index') }}"
-                class="flex items-center px-4 py-3 rounded-lg transition-colors font-medium {{ request()->routeIs('signalements.*') ? 'bg-blue-600 text-white shadow-md' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
-                <svg class="w-5 h-5 mr-3 {{ request()->routeIs('signalements.*') ? 'text-white' : 'text-slate-400' }}"
-                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9">
-                    </path>
-                </svg>
-                Signalements
-            </a>
-
-            <a href="{{ route('interventions.index') }}"
-                class="flex items-center px-4 py-3 rounded-lg transition-colors font-medium {{ request()->routeIs('interventions.*') ? 'bg-blue-600 text-white shadow-md' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
-                <svg class="w-5 h-5 mr-3 {{ request()->routeIs('interventions.*') ? 'text-white' : 'text-slate-400' }}"
-                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z">
-                    </path>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                </svg>
-                Interventions
-            </a>
-
-            <a href="{{ route('equipements.index') }}"
-                class="flex items-center px-4 py-3 rounded-lg transition-colors font-medium {{ request()->routeIs('equipements.*') ? 'bg-blue-600 text-white shadow-md' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
-                <svg class="w-5 h-5 mr-3 {{ request()->routeIs('equipements.*') ? 'text-white' : 'text-slate-400' }}"
-                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10">
-                    </path>
-                </svg>
-                Équipements
-            </a>
-            <!-- // compteur -->
-            <a href="{{ route('compteurs.index') }}"
-                class="flex items-center px-4 py-3 rounded-lg transition-colors font-medium {{ request()->routeIs('compteurs.*') ? 'bg-blue-600 text-white shadow-md' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
-                <svg class="w-5 h-5 mr-3 {{ request()->routeIs('compteurs.*') ? 'text-white' : 'text-slate-400' }}"
-                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-２ ２h-２a２ ２ ０ ０１-２ -２z">
-                    </path>
-                </svg>
-                Compteurs
-            </a>
-
-
-            <a href="{{ route('voies.index') }}"
-                class="flex items-center px-4 py-3 rounded-lg transition-colors font-medium {{ request()->routeIs('voies.*') ? 'bg-blue-600 text-white shadow-md' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
-                <svg class="w-5 h-5 mr-3 {{ request()->routeIs('voies.*') ? 'text-white' : 'text-slate-400' }}"
-                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h２a２ ２０２０１２ -２v14a２ ａ２ ａ２ -２h-２a２ ａ２ -２z">
-                    </path>
-                </svg>
-                Voies & Réseaux Divers
-            </a>
-
-            <a href="{{ route('ouvrages.index') }}"
-                class="flex items-center px-4 py-3 rounded-lg transition-colors font-medium {{ request()->routeIs('ouvrages.*') ? 'bg-blue-600 text-white shadow-md' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
-                <svg class="w-5 h-5 mr-3 {{ request()->routeIs('ouvrages.*') ? 'text-white' : 'text-slate-400' }}"
-                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M5 21v-9m14 9v-9M3 12h18M7 21v-4a5 5 0 0110 0v4">
-                    </path>
-                </svg>
-                Ouvrages d'art
-            </a>
-
-            <a href="{{ route('tiers.index') }}"
-                class="flex items-center px-4 py-3 rounded-lg transition-colors font-medium {{ request()->routeIs('tiers.*') ? 'bg-blue-600 text-white shadow-md' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
-                <svg class="w-5 h-5 mr-3 {{ request()->routeIs('tiers.*') ? 'text-white' : 'text-slate-400' }}"
-                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z">
-                    </path>
-                </svg>
-                Annuaire Citoyens
-            </a>
-
-            <a href="{{ route('emplacements.index') }}"
-                class="flex items-center px-4 py-3 rounded-lg transition-colors font-medium {{ request()->routeIs('emplacements.*') ? 'bg-blue-600 text-white shadow-md' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
-                <svg class="w-5 h-5 mr-3 {{ request()->routeIs('emplacements.*') ? 'text-white' : 'text-slate-400' }}"
-                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.863a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z">
-                    </path>
-                </svg>
-                Cimetières
-            </a>
-
-            <a href="{{ route('concessions.index') }}"
-                class="flex items-center px-4 py-3 rounded-lg transition-colors font-medium {{ request()->routeIs('concessions.*') ? 'bg-blue-600 text-white shadow-md' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
-                <svg class="w-5 h-5 mr-3 {{ request()->routeIs('concessions.*') ? 'text-white' : 'text-slate-400' }}"
-                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z">
-                    </path>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M12 14l6.16-3.422a12.083 12.083 0 01.665-.33m0 0L12 14m0 0l-6.16-3.422a12.083 12.083 0 00-.665-.33m12.665 0a12.083 12.083 0 010 .658m0 .658L12 14m0 0l6.16 3.422a12.083 12.083 0 01.665.33m0 0L12 14m0 0l-6.16 3.422a12.083 12.083 0 00-.665.33m12.665 0a12.083 12.083 0 010 .658m0 .658L12 14">
-                    </path>
-                </svg>
-                Concessions cimetières
-            </a>
-            <a href="{{ route('contrats.index') }}"
-                class="flex items-center px-4 py-3 rounded-lg transition-colors font-medium {{ request()->routeIs('contrats.*') ? 'bg-blue-600 text-white shadow-md' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
-                <svg class="w-5 h-5 mr-3 {{ request()->routeIs('contrats.*') ? 'text-white' : 'text-slate-400' }}"
-                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
-                    </path>
-                </svg>
-                Contrats & Engagements
-            </a>
-            <a href="{{ route('dossiers-financiers.index') }}"
-                class="flex items-center px-4 py-3 rounded-lg transition-colors font-medium {{ request()->routeIs('dossiers-financiers.*') ? 'bg-blue-600 text-white shadow-md' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
-                <svg class="w-5 h-5 mr-3 {{ request()->routeIs('dossiers-financiers.*') ? 'text-white' : 'text-slate-400' }}"
-                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M9 14l6 0m2 0a2 2 0 002-2V6a2 2 0 00-2-2H7a2 2 0 00-2 2v6a2 2 0 002 2m10 0h2a2 2 0 002-2V6a2 2 0 00-2-2H7a2 2 0 00-2 2v6a2 2 0 002 2h10zM9 14V9a3 3 0 116.001-.001M9 14v.01M15 14v.01">
-                    </path>
-                </svg>
-                Dossiers financiers
-            </a>
         </nav>
 
-        <div class="p-4 border-t border-slate-800 text-sm text-slate-400 flex justify-between items-center">
-            <div class="flex items-center">
+        <div class="p-4 border-t border-slate-800 bg-slate-900/50 flex justify-between items-center">
+            <div class="flex items-center overflow-hidden">
                 <div
-                    class="w-8 h-8 bg-blue-600 rounded-full text-white flex items-center justify-center font-bold mr-3 uppercase">
+                    class="w-9 h-9 flex-shrink-0 bg-blue-600 rounded-full text-white flex items-center justify-center font-bold mr-3 uppercase shadow-inner">
                     {{ substr(Auth::user()->prenom_user ?? 'U', 0, 1) }}
                 </div>
-                <div>
-                    <p class="font-bold text-slate-200">
+                <div class="truncate">
+                    <p class="font-bold text-sm text-slate-200 truncate">
                         {{ Auth::user()->prenom_user ?? 'Non' }} {{ Auth::user()->nom_user ?? 'connecté' }}
                     </p>
-                    <p class="text-xs uppercase tracking-wider text-blue-400">
+                    <p class="text-[10px] uppercase tracking-wider text-blue-400 font-semibold truncate">
                         {{ Auth::user()->role_appli ?? 'Inconnu' }}
                     </p>
                 </div>
             </div>
 
-            <form method="POST" action="{{ route('logout') }}" class="ml-2">
+            <form method="POST" action="{{ route('logout') }}" class="ml-2 flex-shrink-0">
                 @csrf
-                <button type="submit" class="text-slate-500 hover:text-red-400 transition" title="Se déconnecter">
+                <button type="submit"
+                    class="p-2 text-slate-500 hover:text-red-400 hover:bg-slate-800 rounded-lg transition"
+                    title="Se déconnecter">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1">
@@ -240,13 +228,14 @@
 
             <div class="flex items-center space-x-4">
                 <button
-                    class="bg-slate-50 p-2 rounded-full text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition relative">
+                    class="bg-slate-50 border border-slate-100 p-2 rounded-full text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition relative">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9">
                         </path>
                     </svg>
-                    <span class="absolute top-1.5 right-2 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
+                    <span
+                        class="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
                 </button>
             </div>
         </header>
@@ -256,6 +245,19 @@
         </div>
 
     </main>
+
+    <script>
+        function toggleMenu(menuId) {
+            // Récupérer le menu et la flèche
+            const menu = document.getElementById(menuId);
+            const arrow = document.getElementById('arrow-' + menuId);
+
+            // Basculer la visibilité et la rotation
+            menu.classList.toggle('hidden');
+            arrow.classList.toggle('rotate-90');
+        }
+    </script>
+    @yield('scripts')
 </body>
 
 </html>

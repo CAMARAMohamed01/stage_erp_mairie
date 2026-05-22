@@ -98,4 +98,13 @@ class Equipement extends Model
     {
         return $this->hasMany(Equipement::class, 'id_parent', 'id_equipement');
     }
+    // Relation avec les tronçons (si un équipement peut être lié à plusieurs tronçons)
+    public function troncons()
+    {
+        return $this->belongsTo(
+            Troncon::class,
+            'id_troncon',
+            'id_troncon'
+        );
+    }
 }

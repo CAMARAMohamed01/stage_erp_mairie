@@ -51,14 +51,16 @@ class EquipementController extends Controller
         $locaux = Local::orderBy('nom_local', 'asc')->get();
         $lieux = LieuPublic::orderBy('nom_lieu', 'asc')->get();
         $contrats = Contrat::orderBy('numero_contrat')->get();
+        $troncons = DB::table('troncon')->orderBy('numero_troncon')->get();
         // On charge les contrôles réglementaires existants
         $controles = ControleReglementaire::orderBy('designation', 'asc')->get();
 
-        return view('equipements.create', compact('familles', 'locaux', 'lieux', 'controles', 'contrats'));
+        return view('equipements.create', compact('familles', 'locaux', 'lieux', 'controles', 'contrats', 'troncons'));
     }
 
     public function store(Request $request)
     {
+        //dd($request->all());
         // 1. Validation complète
         $validated = $request->validate([
             'nom_equipement' => 'required|max:80',
@@ -75,6 +77,7 @@ class EquipementController extends Controller
             'dates_controles' => 'nullable|array',
             'id_contrats' => 'nullable|array',
             'id_contrats.*' => 'exists:contrat,id_contrat',
+            'id_troncon' => 'nullable|exists:troncon,id_troncon',
         ]);
 
         // 2. Création de l'équipement avec les champs directs
@@ -82,6 +85,7 @@ class EquipementController extends Controller
         unset($equipementData['dates_controles']);
         unset($equipementData['id_contrats']);
         unset($equipementData['controles']);
+
         // 2. Création de l'équipement UNIQUEMENT avec ses propres colonnes
         $equipement = Equipement::create($equipementData);
         if ($request->has('id_contrats')) {
@@ -143,8 +147,9 @@ class EquipementController extends Controller
         $lieux = LieuPublic::orderBy('nom_lieu')->get();
         $controles = ControleReglementaire::orderBy('designation')->get();
         $contrats = Contrat::orderBy('numero_contrat')->get();
+        $troncons = DB::table('troncon')->orderBy('numero_troncon')->get();
 
-        return view('equipements.edit', compact('equipement', 'familles', 'locaux', 'lieux', 'controles', 'contrats'));
+        return view('equipements.edit', compact('equipement', 'familles', 'locaux', 'lieux', 'controles', 'contrats', 'troncons'));
     }
 
     public function update(Request $request, $id)
@@ -166,6 +171,7 @@ class EquipementController extends Controller
             'dates_controles' => 'nullable|array',
             'id_contrats' => 'nullable|array',
             'id_contrats.*' => 'exists:contrat,id_contrat',
+            'id_troncon' => 'nullable|exists:troncon,id_troncon',
         ]);
 
         // 2. Mise à jour de l'équipement (sans les dates_controles)
@@ -200,6 +206,8 @@ class EquipementController extends Controller
         // 2. IMPORTANT : On détache les contrôles de la table pivot 
         // pour ne pas laisser de données fantômes ou bloquer la suppression
         $equipement->controles()->detach();
+        // Détache les contrats administratifs
+
 
         // 3. On supprime l'équipement de la base de données
         $equipement->delete();

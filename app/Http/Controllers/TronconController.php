@@ -43,6 +43,7 @@ class TronconController extends Controller
             'etat_physique' => 'nullable|string|max:50',
             'gabarit_accessibilite' => 'nullable|string|max:50',
             'paysage_environnement' => 'nullable|string|max:50',
+            'geojson_data' => 'nullable|string',
 
             'id_zone' => 'nullable|exists:Zone,id_zone',
             'id_ouvrage_lie' => 'nullable|exists:ouvrage,id_ouvrage',
@@ -52,7 +53,15 @@ class TronconController extends Controller
 
             'numero_troncon.unique' => '⚠️ Ce numéro de tronçon existe déjà dans la base de données. Veuillez en choisir un autre.'
         ]);
+        // Extraction et traitement de la géométrie
+        $geojson = $validated['geojson_data'] ?? null;
+        unset($validated['geojson_data']); // On le retire du tableau car la colonne n'existe pas sous ce nom
 
+        if ($geojson) {
+            // On sécurise les apostrophes pour le SQL, sans casser les guillemets du JSON
+            $safeGeojson = str_replace("'", "''", $geojson);
+            $validated['trace_geo'] = DB::raw("ST_SetSRID(ST_GeomFromGeoJSON('" . $safeGeojson . "'), 4326)");
+        }
         $id = DB::table('troncon')->insertGetId($validated, 'id_troncon');
 
         return redirect()->route('troncons.show', $id)
@@ -82,7 +91,18 @@ class TronconController extends Controller
             'id_ouvrage_lie' => 'nullable|exists:ouvrage,id_ouvrage',
             'id_ouvrage_debut' => 'nullable|exists:ouvrage,id_ouvrage',
             'id_ouvrage_fin' => 'nullable|exists:ouvrage,id_ouvrage',
+            'geojson_data' => 'nullable|string',
         ]);
+        // Traitement de la géométrie
+        $geojson = $validated['geojson_data'] ?? null;
+        unset($validated['geojson_data']);
+        if ($geojson) {
+            // On sécurise les apostrophes pour le SQL, sans casser les guillemets du JSON
+            $safeGeojson = str_replace("'", "''", $geojson);
+            $validated['trace_geo'] = DB::raw("ST_SetSRID(ST_GeomFromGeoJSON('" . $safeGeojson . "'), 4326)");
+        } else {
+            $validated['trace_geo'] = null; // Si l'utilisateur efface le tracé sur la carte
+        }
 
         DB::table('troncon')->where('id_troncon', $id)->update($validated);
 
@@ -100,7 +120,8 @@ class TronconController extends Controller
                 'troncon.*',
                 'voie.nom_voie',
                 'Zone.nom_zone',
-                'ouvrage.nom_ouvrage as nom_ouvrage_lie'
+                'ouvrage.nom_ouvrage as nom_ouvrage_lie',
+                DB::raw('ST_AsGeoJSON(trace_geo) as geojson')
             )
             ->where('id_troncon', $id)
             ->first();
@@ -120,14 +141,22 @@ class TronconController extends Controller
         // 3. Les équipements installés sur ce tronçon
         $equipements = DB::table('equipement')
             ->where('id_troncon', $id)
+            ->orderBy('nom_equipement')
             ->get();
 
         return view('troncons.show', compact('troncon', 'interventions', 'documents', 'equipements'));
     }
     public function edit($id)
     {
+
         // 1. On récupère le tronçon à modifier
         $troncon = DB::table('troncon')->where('id_troncon', $id)->first();
+
+        // Il faut extraire le tracé existant pour pouvoir le modifier sur la carte
+        $troncon = DB::table('troncon')
+            ->select('troncon.*', DB::raw('ST_AsGeoJSON(trace_geo) as geojson'))
+            ->where('id_troncon', $id)
+            ->first();
 
         if (!$troncon)
             abort(404, 'Tronçon introuvable.');

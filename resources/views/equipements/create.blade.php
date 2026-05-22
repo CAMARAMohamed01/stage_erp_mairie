@@ -139,6 +139,17 @@
                     </div>
                 </div>
             </div>
+            <div>
+                <label class="block text-sm font-bold text-slate-700 mb-1">Tronçon rattaché</label>
+                <select name="id_troncon" class="w-full border-slate-300 rounded-lg focus:ring-blue-500">
+                    <option value="">-- Indépendant / Aucun --</option>
+                    @foreach($troncons as $t)
+                        <option value="{{ $t->id_troncon }}" {{ old('id_troncon', request('id_troncon')) == $t->id_troncon ? 'selected' : '' }}>
+                            {{ $t->numero_troncon }} {{ $t->nom_portion ? '(' . $t->nom_portion . ')' : '' }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
 
             <div>
                 <h3 class="text-lg font-bold text-slate-800 border-b pb-2 mb-4 flex items-center">

@@ -325,8 +325,18 @@ Route::middleware('auth')->group(function () {
     Route::get('/ouvrages/create', [OuvrageController::class, 'create'])->name('ouvrages.create');
     Route::post('/ouvrages', [OuvrageController::class, 'store'])->name('ouvrages.store');
     Route::get('/ouvrages/{id}', [OuvrageController::class, 'show'])->name('ouvrages.show');
+    Route::get('/ouvrages/{id}/edit', [OuvrageController::class, 'edit'])->name('ouvrages.edit');
+    Route::put('/ouvrages/{id}', [OuvrageController::class, 'update'])->name('ouvrages.update');
+    Route::delete('/ouvrages/{id}', [OuvrageController::class, 'destroy'])->name('ouvrages.destroy');
 
+    // Gestion des communes partenaires pour un ouvrage
+    Route::post('/ouvrages/{ouvrage}/communes', [OuvrageController::class, 'addCommune'])->name('ouvrages.communes.store');
+    Route::delete('/ouvrages/{ouvrage}/communes/{commune}', [OuvrageController::class, 'removeCommune'])->name('ouvrages.communes.destroy');
 
+    // Référentiel des Communes Partenaires
+    Route::get('/communes', [\App\Http\Controllers\CommunePartenaireController::class, 'index'])->name('communes.index');
+    Route::get('/communes/create', [\App\Http\Controllers\CommunePartenaireController::class, 'create'])->name('communes.create');
+    Route::post('/communes', [\App\Http\Controllers\CommunePartenaireController::class, 'store'])->name('communes.store');
     // ========================================================
     // RESTRICTION CRITIQUE : GESTION DES HABILITATIONS (ADMIN SYSTEME ONLY)
     // ========================================================

@@ -9,7 +9,7 @@
             @csrf
 
             <div class="flex items-center gap-3 border-b border-slate-100 pb-4">
-                <span class="text-3xl">导</span>
+                <span class="text-3xl">🛣️</span>
                 <div>
                     <h2 class="text-xl font-bold text-slate-900">Nouvelle Voie (Fiche Patrimoniale Complet)</h2>
                     <p class="text-sm text-slate-500">Saisie exhaustive des données juridiques, géométriques et historiques.

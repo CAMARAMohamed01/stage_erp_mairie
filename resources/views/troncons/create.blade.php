@@ -1,5 +1,8 @@
 @extends('layouts.app')
-
+@section('styles')
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="https://unpkg.com/@geoman-io/leaflet-geoman-free@latest/dist/leaflet-geoman.css" />
+@endsection
 @section('header_title', 'Ajouter un Tronçon')
 
 @section('content')
@@ -175,7 +178,16 @@
             </div>
 
         </div>
+        <div class="md:col-span-2 space-y-4">
+            <h3 class="text-sm font-bold text-slate-800 uppercase bg-slate-50 p-2 rounded flex justify-between">
+                <span>📍 Tracé Géographique (Optionnel)</span>
+                <span class="text-xs text-blue-600 font-normal">Utilisez l'outil "Ligne" sur la carte</span>
+            </h3>
 
+            <input type="hidden" name="geojson_data" id="geojson_data" value="{{ old('geojson_data') }}">
+
+            <div id="map" class="h-96 w-full rounded-lg border border-slate-300 z-0"></div>
+        </div>
         <div class="flex justify-end gap-3 pt-6 border-t border-slate-100">
             <button type="button" onclick="history.back()"
                 class="px-5 py-2.5 border border-slate-300 text-slate-700 font-bold rounded-lg hover:bg-slate-50 transition">Annuler</button>
@@ -185,4 +197,68 @@
         </div>
     </form>
 </div>
+@endsection
+
+@section('scripts')
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/@geoman-io/leaflet-geoman-free@latest/dist/leaflet-geoman.min.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // Centrage sur Dingy-Saint-Clair
+    var map = L.map('map').setView([45.928, 6.223], 14);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19
+    }).addTo(map);
+
+    // Ajout des outils de dessin (Geoman)
+    map.pm.addControls({
+        position: 'topleft',
+        drawMarker: false,
+        drawCircleMarker: false,
+        drawPolyline: true, // On autorise uniquement les lignes pour un tronçon
+        drawRectangle: false,
+        drawPolygon: false,
+        drawCircle: false,
+        drawText: false,
+        editMode: true,
+        dragMode: true,
+        cutPolygon: false,
+        removalMode: true,
+    });
+
+    map.pm.setLang('fr'); // Traduction des boutons en français
+
+    var geojsonInput = document.getElementById('geojson_data');
+    var currentLayer = null;
+
+    // Événement : Quand l'utilisateur a fini de dessiner sa ligne
+    map.on('pm:create', function(e) {
+        if (currentLayer) {
+            map.removeLayer(
+                currentLayer); // On supprime l'ancien tracé si l'utilisateur en redessine un
+        }
+        currentLayer = e.layer;
+        updateGeoJSON();
+
+        // Si l'utilisateur modifie un point du tracé qu'il vient de faire
+        currentLayer.on('pm:edit', updateGeoJSON);
+    });
+
+    // Événement : Quand l'utilisateur clique sur la gomme pour effacer
+    map.on('pm:remove', function(e) {
+        currentLayer = null;
+        geojsonInput.value = ''; // On vide le champ caché
+    });
+
+    // Fonction magique qui extrait les coordonnées et les met dans le champ caché
+    function updateGeoJSON() {
+        if (currentLayer) {
+            // On extrait uniquement la géométrie ({type: "LineString", coordinates: [...]})
+            var geo = currentLayer.toGeoJSON().geometry;
+            geojsonInput.value = JSON.stringify(geo);
+        }
+    }
+});
+</script>
 @endsection

@@ -18,4 +18,9 @@ class Zone extends Model
     {
         return $this->belongsTo(Secteur::class, 'id_secteur', 'id_secteur');
     }
+    // troncons qui composent la zone
+    public function troncons()
+    {
+        return $this->hasMany(Troncon::class, 'id_zone', 'id_zone');
+    }
 }

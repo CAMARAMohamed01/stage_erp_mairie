@@ -1,5 +1,7 @@
 @extends('layouts.app')
-
+@section('styles')
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+@endsection
 @section('header_title', 'Fiche Tronçon - ' . $troncon->numero_troncon)
 
 @section('content')
@@ -179,19 +181,44 @@
                     </div>
                 </div>
 
-                <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
-                    <h3
-                        class="text-sm font-bold text-slate-800 uppercase tracking-wider mb-4 border-b border-slate-100 pb-2">
-                        🧩 Équipements ({{ $equipements->count() ?? 0 }})</h3>
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 mt-6">
+                    <div class="flex justify-between items-center mb-4 border-b border-slate-100 pb-2">
+                        <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                            <span>🪑</span> Équipements sur ce tronçon
+                        </h3>
+
+                        @can('check-permission', ['Patrimoine & Equipements', 'ecriture'])
+                            <a href="{{ route('equipements.create', ['id_troncon' => $troncon->id_troncon]) }}"
+                                class="text-xs font-bold text-blue-600 hover:underline bg-blue-50 px-3 py-1.5 rounded-lg transition hover:bg-blue-100">
+                                + Ajouter un équipement
+                            </a>
+                        @endcan
+                    </div>
+
                     <ul class="space-y-3">
                         @forelse($equipements as $eq)
-                            <li class="text-sm text-slate-700 font-medium flex items-center gap-2">
-                                <span class="text-slate-400">⚙️</span> {{ $eq->nom_equipement }}
+                            <li
+                                class="flex items-center justify-between p-3 bg-slate-50 border border-slate-100 rounded-lg hover:border-blue-200 transition">
+                                <div>
+                                    <p class="text-sm font-bold text-slate-900">{{ $eq->nom_equipement }}</p>
+                                    <p class="text-xs text-slate-500">{{ $eq->type_equipement ?? 'Type non défini' }}</p>
+                                </div>
+                                <a href="{{ route('equipements.show', $eq->id_equipement) }}"
+                                    class="text-xs font-bold text-slate-600 hover:text-blue-600 bg-white border border-slate-200 px-2 py-1 rounded shadow-sm">
+                                    Voir
+                                </a>
                             </li>
                         @empty
-                            <li class="text-sm text-slate-400 italic">Aucun équipement rattaché.</li>
+                            <li class="text-sm text-slate-400 italic py-2 text-center">Aucun équipement recensé sur ce tronçon.
+                            </li>
                         @endforelse
                     </ul>
+                </div>
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden p-1">
+                    <div class="p-3 bg-slate-50 border-b border-slate-100 flex justify-between items-center rounded-t-lg">
+                        <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider">🗺️ Tracé Géographique</h3>
+                    </div>
+                    <div id="map" class="h-64 w-full rounded-b-lg z-0"></div>
                 </div>
 
                 <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
@@ -266,4 +293,45 @@
             </div>
         </div>
     </div>
+@endsection
+@section('scripts')
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Initialisation de la carte (Centrée par défaut vers Annecy / Dingy-Saint-Clair)
+            var map = L.map('map').setView([45.928, 6.223], 13);
+
+            // Ajout du fond de carte OpenStreetMap
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap',
+                maxZoom: 19
+            }).addTo(map);
+
+            // Récupération de la donnée GeoJSON envoyée par le contrôleur
+            var geojsonStr = `{!! $troncon->geojson ?? 'null' !!}`;
+
+            if (geojsonStr !== 'null') {
+                try {
+                    var geoData = JSON.parse(geojsonStr);
+
+                    // Dessiner le tronçon (Ligne bleue)
+                    var layer = L.geoJSON(geoData, {
+                        style: {
+                            color: "#2563eb", // blue-600
+                            weight: 5,
+                            opacity: 0.8
+                        }
+                    }).addTo(map);
+
+                    // Zoomer automatiquement pour que le tronçon prenne tout le cadre
+                    map.fitBounds(layer.getBounds(), {
+                        padding: [20, 20]
+                    });
+
+                } catch (e) {
+                    console.error("Erreur de lecture du GeoJSON", e);
+                }
+            }
+        });
+    </script>
 @endsection

@@ -2,6 +2,114 @@
 
 @section('header_title', 'Modifier le Tronçon - ' . $troncon->numero_troncon)
 
+@section('styles')
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="https://unpkg.com/@geoman-io/leaflet-geoman-free@latest/dist/leaflet-geoman.css" />
+@endsection
+@section('scripts')
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/@geoman-io/leaflet-geoman-free@latest/dist/leaflet-geoman.min.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // Initialisation de la carte sur Dingy-Saint-Clair par défaut
+    var map = L.map('map').setView([45.928, 6.223], 14);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19
+    }).addTo(map);
+
+    // Ajout des outils de dessin (Geoman)
+    map.pm.addControls({
+        position: 'topleft',
+        drawMarker: false,
+        drawCircleMarker: false,
+        drawPolyline: true, // On autorise uniquement les lignes pour un tronçon
+        drawRectangle: false,
+        drawPolygon: false,
+        drawCircle: false,
+        drawText: false,
+        editMode: true,
+        dragMode: true,
+        cutPolygon: false,
+        removalMode: true,
+    });
+
+    map.pm.setLang('fr'); // Traduction en français
+
+    var geojsonInput = document.getElementById('geojson_data');
+    var currentLayer = null;
+
+    // ==========================================
+    // 1. CHARGEMENT ET INJECTION DU TRACÉ EXISTANT
+    // ==========================================
+    var existingGeoJSON = `{!! old('geojson_data', $troncon->geojson ?? 'null') !!}`;
+
+    if (existingGeoJSON !== 'null' && existingGeoJSON !== '') {
+        try {
+            var geoData = JSON.parse(existingGeoJSON);
+
+            // Dessiner la ligne récupérée de la base PostgreSQL
+            var layerGroup = L.geoJSON(geoData, {
+                style: {
+                    color: "#2563eb",
+                    weight: 5
+                }
+            }).addTo(map);
+
+            // Assigner la ligne à Geoman pour pouvoir la manipuler
+            layerGroup.eachLayer(function(layer) {
+                currentLayer = layer;
+                // Si l'utilisateur déplace un point de cette ligne existante, on met à jour le champ caché
+                layer.on('pm:edit', updateGeoJSON);
+            });
+
+            // Zoomer automatiquement pour afficher tout le tronçon existant à l'écran
+            if (layerGroup.getBounds().isValid()) {
+                map.fitBounds(layerGroup.getBounds(), {
+                    padding: [20, 20]
+                });
+            }
+
+            // Initialiser le champ caché avec la valeur actuelle
+            updateGeoJSON();
+
+        } catch (e) {
+            console.error("Erreur de chargement du tracé existant", e);
+        }
+    }
+
+    // ==========================================
+    // 2. GESTION DES ACTIONS DE DESSIN
+    // ==========================================
+
+    // Événement : Quand l'utilisateur a fini de dessiner une nouvelle ligne
+    map.on('pm:create', function(e) {
+        if (currentLayer) {
+            map.removeLayer(currentLayer); // On supprime l'ancien tracé s'il y en avait un
+        }
+        currentLayer = e.layer;
+        updateGeoJSON();
+
+        // Écouter si la nouvelle ligne est modifiée après sa création
+        currentLayer.on('pm:edit', updateGeoJSON);
+    });
+
+    // Événement : Quand l'utilisateur clique sur la poubelle pour supprimer la géométrie
+    map.on('pm:remove', function(e) {
+        currentLayer = null;
+        geojsonInput.value = ''; // On vide le input hidden
+    });
+
+    // Fonction pour extraire la géométrie pure et l'envoyer dans le formulaire
+    function updateGeoJSON() {
+        if (currentLayer) {
+            var geo = currentLayer.toGeoJSON().geometry;
+            geojsonInput.value = JSON.stringify(geo);
+        }
+    }
+});
+</script>
+@endsection
 @section('content')
 <div class="max-w-5xl mx-auto">
     <form action="{{ route('troncons.update', $troncon->id_troncon) }}" method="POST"
@@ -185,14 +293,28 @@
             </div>
 
         </div>
+        <div class="space-y-4 md:col-span-2">
+            <h3
+                class="text-sm font-bold text-slate-800 uppercase bg-slate-50 p-2 rounded flex justify-between items-center">
+                <span>📍 Tracé Géographique</span>
+                <span class="text-xs text-blue-600 font-normal normal-case">Modifiez les points avec l'outil
+                    d'édition</span>
+            </h3>
 
-        <div class="flex justify-end gap-3 pt-6 border-t border-slate-100">
-            <button type="button" onclick="history.back()"
-                class="px-5 py-2.5 border border-slate-300 text-slate-700 font-bold rounded-lg hover:bg-slate-50 transition">Annuler</button>
-            <button type="submit"
-                class="px-5 py-2.5 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition">
-                Enregistrer les modifications</button>
+            <input type="hidden" name="geojson_data" id="geojson_data" value="{{ old('geojson_data') }}">
+
+            <div id="map" class="h-96 w-full rounded-lg border border-slate-300 z-0 relative z-[1]"></div>
         </div>
-    </form>
+
+</div>
+<div class="flex justify-end gap-3 pt-6 border-t border-slate-100"></div>
+
+<div class="flex justify-end gap-3 pt-6 border-t border-slate-100">
+    <button type="button" onclick="history.back()"
+        class="px-5 py-2.5 border border-slate-300 text-slate-700 font-bold rounded-lg hover:bg-slate-50 transition">Annuler</button>
+    <button type="submit" class="px-5 py-2.5 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition">
+        Enregistrer les modifications</button>
+</div>
+</form>
 </div>
 @endsection
