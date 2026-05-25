@@ -20,6 +20,9 @@ use App\Http\Controllers\CompteurController;
 use App\Http\Controllers\TronconController;
 use App\Http\Controllers\VoieController;
 use App\Http\Controllers\OuvrageController;
+use App\Http\Controllers\secteurController;
+use App\Http\Controllers\ZoneController;
+use App\Http\Controllers\ParcelleController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -337,6 +340,34 @@ Route::middleware('auth')->group(function () {
     Route::get('/communes', [\App\Http\Controllers\CommunePartenaireController::class, 'index'])->name('communes.index');
     Route::get('/communes/create', [\App\Http\Controllers\CommunePartenaireController::class, 'create'])->name('communes.create');
     Route::post('/communes', [\App\Http\Controllers\CommunePartenaireController::class, 'store'])->name('communes.store');
+
+    // Secteurs
+    Route::get('/secteurs', [SecteurController::class, 'index'])->name('secteurs.index');
+    Route::get('/secteurs/create', [SecteurController::class, 'create'])->name('secteurs.create');
+    Route::post('/secteurs', [SecteurController::class, 'store'])->name('secteurs.store');
+    Route::get('/secteurs/{id}', [SecteurController::class, 'show'])->name('secteurs.show');
+    Route::get('/secteurs/{id}/edit', [SecteurController::class, 'edit'])->name('secteurs.edit');
+    Route::put('/secteurs/{id}', [SecteurController::class, 'update'])->name('secteurs.update');
+    Route::delete('/secteurs/{id}', [SecteurController::class, 'destroy'])->name('secteurs.destroy');
+
+    // Zones
+    Route::get('/zones', [ZoneController::class, 'index'])->name('zones.index');
+    Route::get('/zones/create', [ZoneController::class, 'create'])->name('zones.create');
+    Route::post('/zones', [ZoneController::class, 'store'])->name('zones.store');
+    Route::get('/zones/{id}', [ZoneController::class, 'show'])->name('zones.show');
+    Route::get('/zones/{id}/edit', [ZoneController::class, 'edit'])->name('zones.edit');
+    Route::put('/zones/{id}', [ZoneController::class, 'update'])->name('zones.update');
+    Route::delete('/zones/{id}', [ZoneController::class, 'destroy'])->name('zones.destroy');
+
+    //Parcelles
+    Route::get('/parcelles', [ParcelleController::class, 'index'])->name('parcelles.index');
+    Route::get('/parcelles/create', [ParcelleController::class, 'create'])->name('parcelles.create');
+    Route::post('/parcelles', [ParcelleController::class, 'store'])->name('parcelles.store');
+    Route::get('/parcelles/{id}', [ParcelleController::class, 'show'])->name('parcelles.show');
+    Route::get('/parcelles/{id}/edit', [ParcelleController::class, 'edit'])->name('parcelles.edit');
+    Route::put('/parcelles/{id}', [ParcelleController::class, 'update'])->name('parcelles.update');
+    Route::delete('/parcelles/{id}', [ParcelleController::class, 'destroy'])->name('parcelles.destroy');
+
     // ========================================================
     // RESTRICTION CRITIQUE : GESTION DES HABILITATIONS (ADMIN SYSTEME ONLY)
     // ========================================================

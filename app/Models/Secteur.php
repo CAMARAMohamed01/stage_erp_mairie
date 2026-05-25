@@ -16,7 +16,9 @@ class Secteur extends Model
     protected $primaryKey = 'id_secteur';
 
     // 3. On autorise l'insertion en masse (très utile pour l'import Excel !)
+    public $timestamps = false;
     protected $guarded = [];
+
 
     // 4. LA RELATION : Un secteur possède PLUSIEURS zones
     public function zones()

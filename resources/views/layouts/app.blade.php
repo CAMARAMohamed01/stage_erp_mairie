@@ -9,14 +9,14 @@
 
     @yield('styles')
     <style>
-        /* Petite transition pour la flèche des menus */
-        .arrow-icon {
-            transition: transform 0.2s ease-in-out;
-        }
+    /* Petite transition pour la flèche des menus */
+    .arrow-icon {
+        transition: transform 0.2s ease-in-out;
+    }
 
-        .rotate-90 {
-            transform: rotate(90deg);
-        }
+    .rotate-90 {
+        transform: rotate(90deg);
+    }
     </style>
 </head>
 
@@ -47,6 +47,29 @@
 
             <div class="px-4 pb-2 pt-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Patrimoine &
                 Interventions</div>
+            <div>
+                <button onclick="toggleMenu('menu-territoire')"
+                    class="w-full flex items-center justify-between px-4 py-2.5 rounded-lg transition-colors font-medium hover:bg-slate-800 hover:text-white {{ request()->routeIs('secteurs.*', 'zones.*', 'parcelles.*') ? 'text-white' : '' }}">
+                    <div class="flex items-center">
+                        <span class="text-xl mr-3 opacity-80">🗺️</span> Territoire & Cadastre
+                    </div>
+                    <svg id="arrow-menu-territoire"
+                        class="w-4 h-4 arrow-icon {{ request()->routeIs('secteurs.*', 'zones.*', 'parcelles.*') ? 'rotate-90' : '' }}"
+                        fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                </button>
+                <div id="menu-territoire"
+                    class="flex flex-col pl-12 pr-4 py-1 space-y-1 {{ request()->routeIs('secteurs.*', 'zones.*', 'parcelles.*') ? '' : 'hidden' }}">
+                    <a href="{{ route('secteurs.index') }}"
+                        class="text-sm py-2 transition-colors {{ request()->routeIs('secteurs.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Secteurs</a>
+                    <a href="{{ route('zones.index') }}"
+                        class="text-sm py-2 transition-colors {{ request()->routeIs('zones.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Zones</a>
+                    <a href="{{ route('parcelles.index') }}"
+                        class="text-sm py-2 transition-colors {{ request()->routeIs('parcelles.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Parcelles
+                        Cadastrales</a>
+                </div>
+            </div>
 
             <div>
                 <button onclick="toggleMenu('menu-voirie')"
@@ -178,13 +201,13 @@
             </div>
 
             @if(Auth::user()->role_appli === 'Administrateur')
-                <div class="pt-2">
-                    <a href="{{ route('admin.habilitations.index') }}"
-                        class="flex items-center px-4 py-3 rounded-lg transition-colors font-medium {{ request()->routeIs('admin.habilitations.*') ? 'bg-blue-600 text-white shadow-md' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
-                        <span class="text-xl mr-3 opacity-80">🔐</span>
-                        Paramètres d'accès
-                    </a>
-                </div>
+            <div class="pt-2">
+                <a href="{{ route('admin.habilitations.index') }}"
+                    class="flex items-center px-4 py-3 rounded-lg transition-colors font-medium {{ request()->routeIs('admin.habilitations.*') ? 'bg-blue-600 text-white shadow-md' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                    <span class="text-xl mr-3 opacity-80">🔐</span>
+                    Paramètres d'accès
+                </a>
+            </div>
             @endif
 
         </nav>
@@ -247,15 +270,15 @@
     </main>
 
     <script>
-        function toggleMenu(menuId) {
-            // Récupérer le menu et la flèche
-            const menu = document.getElementById(menuId);
-            const arrow = document.getElementById('arrow-' + menuId);
+    function toggleMenu(menuId) {
+        // Récupérer le menu et la flèche
+        const menu = document.getElementById(menuId);
+        const arrow = document.getElementById('arrow-' + menuId);
 
-            // Basculer la visibilité et la rotation
-            menu.classList.toggle('hidden');
-            arrow.classList.toggle('rotate-90');
-        }
+        // Basculer la visibilité et la rotation
+        menu.classList.toggle('hidden');
+        arrow.classList.toggle('rotate-90');
+    }
     </script>
     @yield('scripts')
 </body>

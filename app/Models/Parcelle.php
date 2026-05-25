@@ -11,6 +11,7 @@ class Parcelle extends Model
 
     protected $table = 'parcelle';
     protected $primaryKey = 'id_parcelle';
+    public $timestamps = false;
     protected $guarded = [];
 
     public function lieuDit()
