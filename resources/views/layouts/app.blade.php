@@ -44,6 +44,11 @@
                 </svg>
                 Tableau de bord
             </a>
+            <a href="{{ route('cartographie.index') }}"
+                class="flex items-center px-4 py-3 mb-4 rounded-lg transition-colors font-medium {{ request()->routeIs('cartographie.index') ? 'bg-blue-600 text-white shadow-md' : 'hover:bg-slate-800 hover:text-white' }}">
+                <span class="w-5 h-5 mr-3 ">🌍</span>
+                Cartographie Globale
+            </a>
 
             <div class="px-4 pb-2 pt-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Patrimoine &
                 Interventions</div>

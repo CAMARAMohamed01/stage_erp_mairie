@@ -23,6 +23,7 @@ use App\Http\Controllers\OuvrageController;
 use App\Http\Controllers\secteurController;
 use App\Http\Controllers\ZoneController;
 use App\Http\Controllers\ParcelleController;
+use App\Http\Controllers\CartographieController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -368,6 +369,8 @@ Route::middleware('auth')->group(function () {
     Route::put('/parcelles/{id}', [ParcelleController::class, 'update'])->name('parcelles.update');
     Route::delete('/parcelles/{id}', [ParcelleController::class, 'destroy'])->name('parcelles.destroy');
 
+    // La cartographie globale
+    Route::get('/cartographie', [CartographieController::class, 'index'])->name('cartographie.index');
     // ========================================================
     // RESTRICTION CRITIQUE : GESTION DES HABILITATIONS (ADMIN SYSTEME ONLY)
     // ========================================================
