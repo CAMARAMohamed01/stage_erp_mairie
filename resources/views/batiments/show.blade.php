@@ -2,8 +2,12 @@
 
 @section('header_title', 'Fiche Patrimoine - ' . $batiment->nom_bat)
 
+@section('styles')
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+@endsection
+
 @section('content')
-<div class="max-w-7xl mx-auto space-y-6">
+<div class="max-w-7xl mx-auto space-y-6 pb-12">
 
     <div
         class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 flex flex-wrap justify-between items-center gap-4">
@@ -16,14 +20,21 @@
                     ERP : Categorie {{ $batiment->categorie_erp ?? 'N/A' }}
                 </span>
             </div>
-            <p class="text-sm text-slate-500 mt-1.5 flex items-center gap-1.5">
-                📍 Adressage : <span class="text-slate-700 font-medium">
-                    @if($batiment->nom_voie)
-                    {{ $batiment->num_rue }} {{ $batiment->nom_voie }}, {{ $batiment->code_postal }}
-                    {{ $batiment->ville }}
-                    @else
-                    Adresse non renseignée
-                    @endif
+            <p class="text-sm text-slate-500 mt-1.5 flex items-center gap-3">
+                <span>
+                    📍 Adressage : <strong class="text-slate-700">
+                        @if($batiment->nom_voie)
+                        {{ $batiment->num_rue }} {{ $batiment->nom_voie }}, {{ $batiment->code_postal }}
+                        {{ $batiment->ville }}
+                        @else
+                        Adresse non renseignée
+                        @endif
+                    </strong>
+                </span>
+                <span class="text-slate-300">|</span>
+                <span>
+                    🗺️ Parcelle : <strong class="text-slate-700">Section {{ $batiment->section_cadastrale ?? '?' }} -
+                        N° {{ $batiment->num_parcelle ?? '?' }}</strong>
                 </span>
             </p>
         </div>
@@ -55,6 +66,18 @@
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
         <div class="lg:col-span-2 space-y-6">
+
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="p-4 bg-slate-50 border-b border-slate-200">
+                    <h3 class="text-sm font-bold text-slate-800 tracking-tight flex items-center gap-2">
+                        🌍 Localisation & Cadastre
+                    </h3>
+                </div>
+                <div id="map" data-batiment="{{ $batiment->geojson_batiment ?? '' }}"
+                    data-parcelle="{{ $batiment->geojson_parcelle ?? '' }}"
+                    style="height: 350px; width: 100%; z-index: 1;" class="relative">
+                </div>
+            </div>
 
             <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
                 <div class="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
@@ -125,41 +148,13 @@
             </div>
 
             <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                <div class="p-4 bg-slate-50 border-b border-slate-200">
-                    <h3 class="text-sm font-bold text-slate-800 tracking-tight flex items-center gap-2">
-                        📜 Contrats d'Exploitation / Maintenance ({{ $contrats->count() }})
-                    </h3>
-                </div>
-                <div class="divide-y divide-slate-100 max-h-48 overflow-y-auto">
-                    @forelse($contrats as $contrat)
-                    <div class="p-3.5 flex justify-between items-center hover:bg-slate-50 transition">
-                        <div>
-                            <p class="text-sm font-semibold text-slate-800">N° {{ $contrat->numero_contrat }}</p>
-                            <p class="text-xs text-slate-500">{{ $contrat->type_contrat }} |
-                                {{ $contrat->raison_sociale ?? ($contrat->nom_tiers . ' ' . $contrat->prenom_tiers) }}
-                            </p>
-                        </div>
-                        <a href="{{ route('contrats.show', $contrat->id_contrat) }}"
-                            class="text-xs text-blue-600 font-semibold hover:underline">
-                            Consulter →
-                        </a>
-                    </div>
-                    @empty
-                    <p class="p-4 text-xs text-slate-400 italic text-center">Aucun contrat lié à ce bâtiment.</p>
-                    @endforelse
-                </div>
-            </div>
-
-            <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
                 <div class="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
                     <h3 class="text-sm font-bold text-slate-800 tracking-tight flex items-center gap-2">
                         ⚡ Réseaux & Compteurs Généraux ({{ $compteurs_generaux->count() }})
                     </h3>
                     @can('check-permission', ['Patrimoine & Equipements', 'ecriture'])
                     <a href="{{ route('compteurs.create') }}"
-                        class="text-xs text-blue-600 font-semibold hover:underline">
-                        ➕ Ajouter
-                    </a>
+                        class="text-xs text-blue-600 font-semibold hover:underline">➕ Ajouter</a>
                     @endcan
                 </div>
                 <div class="divide-y divide-slate-100 max-h-48 overflow-y-auto">
@@ -181,9 +176,7 @@
                             <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-700">TGBT /
                                 Général</span>
                             <a href="{{ route('compteurs.show', $compteur->id_compteur) }}"
-                                class="text-xs text-blue-600 font-semibold hover:underline">
-                                Voir →
-                            </a>
+                                class="text-xs text-blue-600 font-semibold hover:underline">Voir →</a>
                         </div>
                     </div>
                     @empty
@@ -196,6 +189,30 @@
         </div>
 
         <div class="space-y-6">
+
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="p-4 bg-slate-50 border-b border-slate-200">
+                    <h3 class="text-sm font-bold text-slate-800 tracking-tight flex items-center gap-2">
+                        📜 Contrats d'Exploitation / Maintenance ({{ $contrats->count() }})
+                    </h3>
+                </div>
+                <div class="divide-y divide-slate-100 max-h-48 overflow-y-auto">
+                    @forelse($contrats as $contrat)
+                    <div class="p-3.5 flex justify-between items-center hover:bg-slate-50 transition">
+                        <div>
+                            <p class="text-sm font-semibold text-slate-800">N° {{ $contrat->numero_contrat }}</p>
+                            <p class="text-xs text-slate-500">{{ $contrat->type_contrat }} |
+                                {{ $contrat->raison_sociale ?? ($contrat->nom_tiers . ' ' . $contrat->prenom_tiers) }}
+                            </p>
+                        </div>
+                        <a href="{{ route('contrats.show', $contrat->id_contrat) }}"
+                            class="text-xs text-blue-600 font-semibold hover:underline">Consulter →</a>
+                    </div>
+                    @empty
+                    <p class="p-4 text-xs text-slate-400 italic text-center">Aucun contrat lié à ce bâtiment.</p>
+                    @endforelse
+                </div>
+            </div>
 
             <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
                 <div class="p-4 bg-slate-50 border-b border-slate-200">
@@ -237,42 +254,36 @@
                     </table>
                 </div>
             </div>
+
             <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
                 <div>
                     <h2 class="text-sm font-bold text-slate-800 mb-4 border-b border-slate-100 pb-2">📂 Documents
                         Techniques & Photos</h2>
-
-                    <ul class="space-y-3 mb-6">
+                    <ul class="space-y-3 mb-6 max-h-48 overflow-y-auto">
                         @forelse($documents as $doc)
                         <li
                             class="flex items-center justify-between p-3 bg-slate-50 border border-slate-100 rounded-lg transition hover:bg-slate-100">
                             <div class="flex items-center gap-3">
-                                <span class="text-2xl">
-                                    {{ in_array(strtolower($doc->type_doc), ['pdf']) ? '📄' : (in_array(strtolower($doc->type_doc), ['jpg', 'png', 'jpeg']) ? '🖼️' : '📁') }}
-                                </span>
+                                <span
+                                    class="text-2xl">{{ in_array(strtolower($doc->type_doc), ['pdf']) ? '📄' : (in_array(strtolower($doc->type_doc), ['jpg', 'png', 'jpeg']) ? '🖼️' : '📁') }}</span>
                                 <div>
-                                    <p class="text-sm font-semibold text-slate-800 line-clamp-1">{{ $doc->nom_fichier }}
-                                    </p>
+                                    <p class="text-sm font-semibold text-slate-800 line-clamp-1"
+                                        title="{{ $doc->nom_fichier }}">{{ $doc->nom_fichier }}</p>
                                     <p class="text-xs text-slate-500">
                                         {{ \Carbon\Carbon::parse($doc->date_upload)->format('d/m/Y') }} •
                                         {{ number_format($doc->taille_ko, 0, ',', ' ') }} Ko
                                     </p>
                                 </div>
                             </div>
-
                             <div class="flex items-center gap-2">
                                 <a href="{{ asset('storage/' . $doc->chemin_stockage) }}" target="_blank"
-                                    class="text-blue-600 hover:text-blue-800 text-xs font-bold bg-blue-50 px-2 py-1 rounded border border-blue-100">
-                                    Voir
-                                </a>
+                                    class="text-blue-600 hover:text-blue-800 text-xs font-bold bg-blue-50 px-2 py-1 rounded border border-blue-100">Voir</a>
                                 @can('check-permission', ['Patrimoine & Equipements', 'suppression'])
                                 <form action="{{ route('documents.global.destroy', $doc->id_document) }}" method="POST"
                                     class="inline" onsubmit="return confirm('Supprimer ce document ?');">
                                     @csrf @method('DELETE')
                                     <button type="submit"
-                                        class="text-red-600 hover:text-red-800 text-xs font-bold bg-red-50 px-2 py-1 rounded border border-red-100">
-                                        ❌
-                                    </button>
+                                        class="text-red-600 hover:text-red-800 text-xs font-bold bg-red-50 px-2 py-1 rounded border border-red-100">❌</button>
                                 </form>
                                 @endcan
                             </div>
@@ -288,35 +299,29 @@
                     enctype="multipart/form-data"
                     class="bg-slate-50 p-4 rounded-lg border border-slate-200 border-dashed mt-auto">
                     @csrf
-
                     <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Ajouter une pièce
                         jointe</label>
                     <p class="text-[10px] text-slate-500 mb-3">Formats acceptés : PDF, JPG, PNG, DOC, DOCX. (Max : 5 Mo)
                     </p>
-
                     <div class="flex items-start gap-2">
                         <div class="w-full">
                             <input type="file" name="fichier" required
                                 class="block w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:font-semibold file:bg-slate-900 file:text-white hover:file:bg-slate-800 cursor-pointer focus:outline-none">
-
-                            @error('fichier')
-                            <p class="text-xs text-red-600 font-bold mt-2">⚠️ {{ $message }}</p>
+                            @error('fichier')<p class="text-xs text-red-600 font-bold mt-2">⚠️ {{ $message }}</p>
                             @enderror
                         </div>
-
                         <button type="submit"
-                            class="px-3 py-1.5 bg-indigo-600 text-white font-bold rounded-md hover:bg-indigo-700 transition text-xs whitespace-nowrap">
-                            📤 Envoyer
-                        </button>
+                            class="px-3 py-1.5 bg-indigo-600 text-white font-bold rounded-md hover:bg-indigo-700 transition text-xs whitespace-nowrap">📤
+                            Envoyer</button>
                     </div>
                 </form>
                 @endcan
             </div>
+
             <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
                 <div class="p-4 bg-red-50/50 border-b border-red-100">
-                    <h3 class="text-sm font-bold text-red-800 tracking-tight flex items-center gap-2">
-                        🚨 Signalements Actifs ({{ $signalements->count() }})
-                    </h3>
+                    <h3 class="text-sm font-bold text-red-800 tracking-tight flex items-center gap-2">🚨 Signalements
+                        Actifs ({{ $signalements->count() }})</h3>
                 </div>
                 <div class="p-4 space-y-3 max-h-52 overflow-y-auto">
                     @forelse($signalements as $sig)
@@ -336,9 +341,8 @@
 
             <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
                 <div class="p-4 bg-slate-50 border-b border-slate-200">
-                    <h3 class="text-sm font-bold text-slate-800 tracking-tight flex items-center gap-2">
-                        🛠️ Historique des Interventions
-                    </h3>
+                    <h3 class="text-sm font-bold text-slate-800 tracking-tight flex items-center gap-2">🛠️ Historique
+                        des Interventions</h3>
                 </div>
                 <div class="divide-y divide-slate-100 text-xs">
                     @forelse($interventions as $int)
@@ -364,4 +368,75 @@
         </div>
     </div>
 </div>
+@endsection
+
+@section('scripts')
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    var mapElement = document.getElementById('map');
+    if (!mapElement) return;
+
+    var geojsonParcelleStr = mapElement.getAttribute('data-parcelle');
+    var geojsonBatimentStr = mapElement.getAttribute('data-batiment');
+
+    // Initialisation basique centrée sur Dingy-Saint-Clair par défaut
+    var map = L.map('map').setView([45.928, 6.223], 15);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19
+    }).addTo(map);
+
+    var layerBounds = [];
+
+    // 1. Dessiner la parcelle (Polygone)
+    if (geojsonParcelleStr && geojsonParcelleStr.trim() !== '') {
+        try {
+            var parcelleData = JSON.parse(geojsonParcelleStr);
+            var parcelleLayer = L.geoJSON(parcelleData, {
+                style: {
+                    color: "#8b5cf6",
+                    weight: 2,
+                    fillColor: "#8b5cf6",
+                    fillOpacity: 0.15
+                } // Violet clair
+            }).addTo(map);
+
+            if (parcelleLayer.getBounds && parcelleLayer.getBounds().isValid()) {
+                layerBounds.push(parcelleLayer.getBounds());
+            }
+        } catch (e) {
+            console.error("Erreur lecture parcelle", e);
+        }
+    }
+
+    // 2. Dessiner le bâtiment (Marqueur)
+    if (geojsonBatimentStr && geojsonBatimentStr.trim() !== '') {
+        try {
+            var batimentData = JSON.parse(geojsonBatimentStr);
+            var batimentLayer = L.geoJSON(batimentData, {
+                pointToLayer: function(feature, latlng) {
+                    // Utilisation d'un marqueur personnalisé (icône bleue)
+                    return L.marker(latlng).bindPopup('<b>{{ $batiment->nom_bat }}</b>');
+                }
+            }).addTo(map);
+
+            // Si on a un point de bâtiment, on centre dessus de façon prioritaire
+            if (batimentLayer.getBounds && batimentLayer.getBounds().isValid()) {
+                map.setView(batimentLayer.getBounds().getCenter(), 18);
+            } else if (layerBounds.length > 0) {
+                map.fitBounds(layerBounds[0], {
+                    padding: [30, 30]
+                });
+            }
+        } catch (e) {
+            console.error("Erreur lecture bâtiment", e);
+        }
+    } else if (layerBounds.length > 0) {
+        // S'il n'y a pas de point de bâtiment mais qu'il y a une parcelle, on centre sur la parcelle
+        map.fitBounds(layerBounds[0], {
+            padding: [30, 30]
+        });
+    }
+});
+</script>
 @endsection

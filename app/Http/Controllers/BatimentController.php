@@ -26,16 +26,22 @@ class BatimentController extends Controller
     public function show($id)
     {
         // 1. Infos du bâtiment, son type ERP ET son Adresse
+        // 1. Infos du bâtiment, son type ERP, son Adresse ET sa Parcelle
         $batiment = DB::table('batiment')
             ->leftJoin('type_erp', 'batiment.id_type_erp', '=', 'type_erp.id_type_erp')
             ->leftJoin('Adresse', 'batiment.id_adresse', '=', 'Adresse.id_adresse')
+            ->leftJoin('parcelle', 'batiment.id_parcelle', '=', 'parcelle.id_parcelle') // 
             ->select(
                 'batiment.*',
                 'type_erp.categorie_erp',
                 'Adresse.num_rue',
                 'Adresse.nom_voie',
                 'Adresse.code_postal',
-                'Adresse.ville'
+                'Adresse.ville',
+                'parcelle.section_cadastrale', // <-- Info parcelle
+                'parcelle.num_parcelle',       // <-- Info parcelle
+                DB::raw('ST_AsGeoJSON(batiment.geom_batiment) as geojson_batiment'), // Point GPS du bâtiment
+                DB::raw('ST_AsGeoJSON(parcelle.geom_parcelle) as geojson_parcelle')  // Polygone de la parcelle
             )
             ->where('id_batiment', $id)
             ->first();
@@ -146,8 +152,8 @@ class BatimentController extends Controller
             'id_type_erp' => 'required|integer|exists:type_erp,id_type_erp',
             'id_adresse' => 'required|integer|exists:Adresse,id_adresse',
             'id_immo' => 'required|integer|exists:immobilisation_inventaire_,id_immo|unique:batiment,id_immo',
-
-            // NOUVEAU : Validation des contrats
+            'geojson_data' => 'nullable|json',
+            // Validation des contrats
             'id_contrats' => 'nullable|array',
             'id_contrats.*' => 'exists:contrat,id_contrat',
         ]);
@@ -168,6 +174,15 @@ class BatimentController extends Controller
         if ($request->has('id_contrats')) {
             $batiment->contratsAdministratifs()->attach($request->id_contrats);
         }
+        // Enregistrement du Point GPS
+        if ($request->filled('geojson_data')) {
+            DB::update(
+                "UPDATE batiment 
+             SET geom_batiment = ST_SetSRID(ST_GeomFromGeoJSON(?), 4326) 
+             WHERE id_batiment = ?",
+                [$request->geojson_data, $batiment->id_batiment]
+            );
+        }
 
         return redirect()->route('batiments.index')->with('success', 'Le bâtiment a été intégré avec succès.');
     }
@@ -175,7 +190,9 @@ class BatimentController extends Controller
     public function edit($id)
     {
         // On remplace DB::table par Eloquent pour charger les contrats liés
-        $batiment = Batiment::with('contratsAdministratifs')->findOrFail($id);
+        $batiment = Batiment::with('contratsAdministratifs')
+            ->select('*', DB::raw('ST_AsGeoJSON(geom_batiment) as geojson'))
+            ->findOrFail($id);
 
         $tiers = DB::table('tiers')
             ->leftJoin('tiers_morale', 'tiers.id_tiers', '=', 'tiers_morale.id_tiers')
@@ -228,7 +245,15 @@ class BatimentController extends Controller
             'id_adresse' => $request->id_adresse,
             'id_immo' => $request->id_immo,
         ]);
-
+        // Enregistrement du Point GPS
+        if ($request->filled('geojson_data')) {
+            DB::update(
+                "UPDATE batiment 
+             SET geom_batiment = ST_SetSRID(ST_GeomFromGeoJSON(?), 4326) 
+             WHERE id_batiment = ?",
+                [$request->geojson_data, $batiment->id_batiment]
+            );
+        }
 
         $batiment->contratsAdministratifs()->sync($request->id_contrats ?? []);
 

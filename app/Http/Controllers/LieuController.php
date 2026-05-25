@@ -76,10 +76,11 @@ class LieuController extends Controller
             // Validation du tableau des contrats
             'id_contrats' => 'nullable|array',
             'id_contrats.*' => 'exists:contrat,id_contrat',
+            'geojson_data' => 'nullable|json'
         ]);
 
         // 1. On utilise le modèle Eloquent pour créer l'enregistrement principal
-        $lieu = \App\Models\LieuPublic::create([
+        $lieu = LieuPublic::create([
             'nom_lieu' => $request->nom_lieu,
             'typologie_lieu' => $request->typologie_lieu,
             'surface_m2' => $request->surface_m2,
@@ -98,6 +99,14 @@ class LieuController extends Controller
         if ($request->has('id_contrats')) {
             $lieu->contratsAdministratifs()->attach($request->id_contrats);
         }
+        if ($request->filled('geojson_data')) {
+            DB::update(
+                "UPDATE lieux_publics 
+             SET geom_lieu = ST_SetSRID(ST_GeomFromGeoJSON(?), 4326) 
+             WHERE id_lieu = ?",
+                [$request->geojson_data, $lieu->id_lieu]
+            );
+        }
 
         return redirect()->route('lieux.index')
             ->with('success', 'Le nouvel espace public a été enregistré dans le patrimoine.');
@@ -107,14 +116,14 @@ class LieuController extends Controller
     public function edit($id)
     {
         // On charge l'objet avec ses contrats pour pré-cocher les cases
-        $lieu = \App\Models\LieuPublic::with('contratsAdministratifs')->findOrFail($id);
+        $lieu = LieuPublic::with('contratsAdministratifs')->findOrFail($id);
 
         $immos = DB::table('immobilisation_inventaire_')->orderBy('num_inventaire')->get();
         $decisions = DB::table('decision_administratif')->orderByDesc('date_decision')->get();
         $batiments = DB::table('batiment')->orderBy('nom_bat')->get();
         $types_erp = DB::table('type_erp')->get();
 
-        $contrats = \App\Models\Contrat::orderBy('numero_contrat')->get();
+        $contrats = Contrat::orderBy('numero_contrat')->get();
 
         $parcelles = DB::table('parcelle')
             ->join('lieu_dit', 'parcelle.id_lieu_dit', '=', 'lieu_dit.id_lieu_dit')
@@ -143,9 +152,11 @@ class LieuController extends Controller
             // Validation du tableau des contrats
             'id_contrats' => 'nullable|array',
             'id_contrats.*' => 'exists:contrat,id_contrat',
+            'geojson_data' => 'nullable|json',
         ]);
 
-        $lieu = \App\Models\LieuPublic::findOrFail($id);
+
+        $lieu = LieuPublic::findOrFail($id);
 
         // 1. Mise à jour des colonnes de la table lieux_publics
         $lieu->update([
@@ -162,8 +173,18 @@ class LieuController extends Controller
             'id_parcelle' => $request->id_parcelle,
         ]);
 
+
         // 2. Synchronisation des contrats dans la table pivot
         $lieu->contratsAdministratifs()->sync($request->id_contrats ?? []);
+        if ($request->filled('geojson_data')) {
+            DB::update(
+                "UPDATE lieux_publics 
+             SET geom_lieu = ST_SetSRID(ST_GeomFromGeoJSON(?), 4326) 
+             WHERE id_batiment = ?",
+                [$request->geojson_data, $lieu->id_lieu]
+            );
+        }
+
 
         return redirect()->route('lieux.show', $id)
             ->with('success', 'Les informations du lieu ont été mises à jour.');
@@ -191,6 +212,8 @@ class LieuController extends Controller
                 'immobilisation_inventaire_.libelle_comptable',
                 'decision_administratif.numero_decision',
                 'decision_administratif.date_decision',
+                DB::raw('ST_AsGeoJSON(lieux_publics.geom_lieu) as geojson_lieu'), //  Point GPS du lieu
+                DB::raw('ST_AsGeoJSON(parcelle.geom_parcelle) as geojson_parcelle') // Polygone parcelle
             )
             ->where('lieux_publics.id_lieu', $id)
             ->first();
