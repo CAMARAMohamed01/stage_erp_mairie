@@ -56,12 +56,18 @@ class Contrat extends Model
     // Relation Many-to-Many avec les équipements couverts
     public function equipementsCouverts()
     {
-        return $this->belongsToMany(
-            Equipement::class,
-            'contrat_equipement',
-            'id_contrat',
-            'id_equipement'
-        );
+        return $this->belongsToMany(Equipement::class, 'contrat_equipement', 'id_contrat', 'id_equipement')
+            ->withPivot([
+                'id_decision',
+                'quantite_louee',
+                'quantite_rendue',
+                'etat_depart',
+                'etat_retour',
+                'montant_penalite',
+                'date_debut_utilisation',
+                'date_fin_utilisation',
+                'statut_ligne'
+            ]);
     }
 
     public function batimentsCouverts()
@@ -71,11 +77,26 @@ class Contrat extends Model
 
     public function locauxCouverts()
     {
-        return $this->belongsToMany(\App\Models\Local::class, 'contrat_local', 'id_contrat', 'id_local');
+        return $this->belongsToMany(Local::class, 'contrat_local', 'id_contrat', 'id_local')
+            ->withPivot([
+                'date_debut_utilisation',
+                'date_fin_utilisation',
+                'etat_lieux_entree',
+                'caution_retenue'
+            ]);
     }
-
     public function lieuxCouverts()
     {
-        return $this->belongsToMany(\App\Models\LieuPublic::class, 'contrat_lieu', 'id_contrat', 'id_lieu');
+        return $this->belongsToMany(LieuPublic::class, 'contrat_lieu', 'id_contrat', 'id_lieu')
+            ->withPivot([
+                'date_debut_occupation',
+                'date_fin_occupation',
+                'surface_occupee_m2',
+                'usage_specifique',
+                'etat_lieux_avant',
+                'etat_lieux_apres',
+                //'date_modification', 
+                'statut_ligne'
+            ]);
     }
 }

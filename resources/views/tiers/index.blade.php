@@ -22,6 +22,22 @@
             </span>
         </div>
 
+        <div class="px-6 py-4 bg-slate-50 border-b border-slate-200">
+            <form action="{{ route('tiers.index') }}" method="GET" class="flex flex-wrap items-center gap-3">
+                <input type="text" name="search" value="{{ request('search') }}"
+                    placeholder="Rechercher par nom, prénom, email ou téléphone..."
+                    class="text-sm border-slate-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2 bg-white w-full md:w-96 shadow-sm">
+
+                <button type="submit"
+                    class="px-4 py-2 bg-slate-800 text-white rounded-lg text-sm font-medium hover:bg-slate-700 transition">Rechercher</button>
+
+                @if(request('search'))
+                    <a href="{{ route('tiers.index') }}"
+                        class="text-xs text-red-600 hover:underline font-medium">Réinitialiser</a>
+                @endif
+            </form>
+        </div>
+
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
                 <thead>
@@ -92,7 +108,7 @@
                     @empty
                         <tr>
                             <td colspan="5" class="px-6 py-8 text-center text-slate-500 italic">
-                                Aucun citoyen enregistré dans la base Tiers.
+                                Aucun citoyen ne correspond à votre recherche.
                             </td>
                         </tr>
                     @endforelse

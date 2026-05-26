@@ -69,7 +69,18 @@
                         @endforeach
                     </select>
                 </div>
-
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Projet Communal</label>
+                    <select name="id_projet" class="w-full border border-gray-300 rounded-lg px-4 py-2 bg-white">
+                        <option value="">-- Aucun projet spécifique --</option>
+                        @foreach($projets as $p)
+                        <option value="{{ $p->id_projet }}"
+                            {{ old('id_projet', $projet_id ?? null) == $p->id_projet ? 'selected' : '' }}>
+                            {{ $p->nom_projet }}
+                        </option>
+                        @endforeach
+                    </select>
+                </div>
 
             </div>
             <div>

@@ -173,6 +173,8 @@
                     <a href="{{ route('interventions.index') }}"
                         class="text-sm py-2 transition-colors {{ request()->routeIs('interventions.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Bons
                         d'interventions</a>
+                    <a href="{{ route('projets.index') }}"
+                        class="text-sm py-2 transition-colors {{ request()->routeIs('projets.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Projets</a>
                 </div>
             </div>
 

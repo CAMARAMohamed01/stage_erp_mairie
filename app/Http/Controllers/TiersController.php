@@ -16,6 +16,22 @@ class TiersController extends Controller
             ->where('type_tiers', 'Physique')
             ->get();
 
+        $query = Tiers::with('physique')->where('type_tiers', 'Physique');
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+
+            $query->where(function ($q) use ($search) {
+                // Recherche sur les champs de la table principale
+                $q->where('email_tiers', 'ilike', '%' . $search . '%')
+                    ->orWhere('tel_tiers', 'ilike', '%' . $search . '%')
+                    // Recherche sur la table liée (tiers_physique)
+                    ->orWhereHas('physique', function ($subQuery) use ($search) {
+                        $subQuery->where('nom_tiers', 'ilike', '%' . $search . '%')
+                            ->orWhere('prenom_tiers', 'ilike', '%' . $search . '%');
+                    });
+            });
+        }
         return view('tiers.index', compact('citoyens'));
     }
 

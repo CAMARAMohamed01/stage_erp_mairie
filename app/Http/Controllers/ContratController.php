@@ -81,48 +81,32 @@ class ContratController extends Controller
 
     public function show($id)
     {
-        // 1. Infos de base + Jointures pour récupérer le VRAI nom du titulaire (entreprise ou particulier)
+        // 1. Infos de base + Jointures pour le Tiers (Prestataire)
         $contrat = Contrat::leftJoin('tiers', 'contrat.id_tiers', '=', 'tiers.id_tiers')
             ->leftJoin('tiers_physique', 'tiers.id_tiers', '=', 'tiers_physique.id_tiers')
             ->leftJoin('tiers_morale', 'tiers.id_tiers', '=', 'tiers_morale.id_tiers')
             ->select('contrat.*', 'tiers_physique.nom_tiers', 'tiers_physique.prenom_tiers', 'tiers_morale.raison_sociale')
             ->findOrFail($id);
 
-        // 2. Périmètre d'application (Les liaisons classiques N:M)
-        $equipementsLies = DB::table('equipement')
-            ->join('contrat_equipement', 'equipement.id_equipement', '=', 'contrat_equipement.id_equipement')
-            ->where('contrat_equipement.id_contrat', $id)
-            ->select('equipement.*')
-            ->get();
+        // 2. Périmètre d'application (Les liaisons N:M via Eloquent avec les infos "Location")
+        // Grâce à ton modèle, ça remplace les 3 grosses requêtes manuelles !
+        $equipementsLies = $contrat->equipementsCouverts;
+        $locauxLies = $contrat->locauxCouverts;
+        $lieuxLies = $contrat->lieuxCouverts;
 
-        // CORRECTION : On passe par la table pivot contrat_local
-        $locauxLies = DB::table('local_')
-            ->join('contrat_local', 'local_.id_local', '=', 'contrat_local.id_local')
-            ->where('contrat_local.id_contrat', $id)
-            ->select('local_.*')
-            ->get();
-
-        // 3. Spécifique aux contrats de LOCATION (Les nouvelles requêtes)
+        // 3. Spécifique aux formulaires d'ajout (pour les listes déroulantes)
         $equipementsDisponibles = DB::table('equipement')->orderBy('nom_equipement')->get();
-
         $decisions = DB::table('decision_administratif')->orderBy('numero_decision', 'desc')->get();
 
-        // CORRECTION : On ajoute le select() pour forcer Laravel à récupérer le nom de l'équipement
-        $locations = DB::table('location_equipement')
-            ->join('equipement', 'location_equipement.id_equipement', '=', 'equipement.id_equipement')
-            ->join('decision_administratif', 'location_equipement.id_decision', '=', 'decision_administratif.id_decision')
-            ->where('location_equipement.id_contrat', $id)
-            ->select('location_equipement.*', 'equipement.nom_equipement', 'decision_administratif.numero_decision')
-            ->get();
+        // 4. On supprime $locations qui est maintenant obsolète (intégré dans $equipementsLies)
 
-        // 4. On envoie TOUT à la vue
         return view('contrats.show', compact(
             'contrat',
             'equipementsLies',
             'locauxLies',
+            'lieuxLies',
             'equipementsDisponibles',
-            'decisions',
-            'locations'
+            'decisions'
         ));
     }
     // ENREGISTRER UNE LIGNE DE LOCATION DE MATÉRIEL
@@ -138,7 +122,7 @@ class ContratController extends Controller
         ]);
 
         // Insertion via DB pour éviter les blocages de clés primaires composites de l'ORM
-        DB::table('location_equipement')->insert([
+        DB::table('contrat_equipement')->insert([
             'id_contrat' => $id_contrat,
             'id_equipement' => $request->id_equipement,
             'id_decision' => $request->id_decision,
@@ -146,10 +130,8 @@ class ContratController extends Controller
             'etat_depart' => $request->etat_depart,
             'date_debut_utilisation' => $request->date_debut_utilisation,
             'date_fin_utilisation' => $request->date_fin_utilisation,
-            'statut_ligne' => 'En cours',
-            'date_modification' => now()->format('Y-m-d')
+            'statut_ligne' => 'En cours'
         ]);
-
         return redirect()->back()->with('success', 'Équipement ajouté à la feuille de location.');
     }
 
@@ -175,15 +157,27 @@ class ContratController extends Controller
         $contrat = Contrat::findOrFail($id);
 
         $validated = $request->validate([
-            'numero_contrat' => 'required|string|max:50',
-            'type_contrat' => 'required|string|max:100',
-            'date_signature' => 'nullable|date',
-            'date_effet' => 'nullable|date',
-            'date_echeance' => 'nullable|date',
-            'montant_ht' => 'nullable|numeric|min:0',
-            'statut_contrat' => 'required|string|max:50',
+            'numero_contrat' => 'nullable|max:30|unique:contrat,numero_contrat,' . $id . ',id_contrat',
+            'type_contrat' => 'required|max:50',
+            'objet_contrat' => 'nullable|max:255',
             'id_tiers' => 'required|exists:tiers,id_tiers',
+            'date_signature_contrat' => 'nullable|date',
+            'date_debut_contrat' => 'required|date',
+            'date_fin_contrat' => 'nullable|date|after_or_equal:date_debut_contrat',
+            'date_echeance' => 'nullable|date',
+            'prix_mois' => 'nullable|numeric|min:0',
+            'prix_annuel' => 'nullable|numeric|min:0',
+            'frequence_facturation' => 'nullable|max:100',
+            'mode_reglement' => 'nullable|max:50',
+            'duree_mois' => 'nullable|integer|min:0',
+            'preavis_resiliation_mois' => 'nullable|integer|min:0',
+            'modalite_renouvellement' => 'nullable|max:255',
+            'code_imputation' => 'nullable|max:20',
+            'lot' => 'nullable|max:20',
+            'code_analytique' => 'nullable|max:100',
         ]);
+
+        $validated['revision_prix_prevue'] = $request->has('revision_prix_prevue');
 
         $contrat->update($validated);
 

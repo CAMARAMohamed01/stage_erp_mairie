@@ -29,9 +29,9 @@ class BatimentController extends Controller
         // 1. Infos du bâtiment, son type ERP, son Adresse ET sa Parcelle
         $batiment = DB::table('batiment')
             ->leftJoin('type_erp', 'batiment.id_type_erp', '=', 'type_erp.id_type_erp')
-            ->join('lieu_dit', 'parcelle.id_lieu_dit', '=', 'lieu_dit.id_lieu_dit')
             ->leftJoin('Adresse', 'batiment.id_adresse', '=', 'Adresse.id_adresse')
-            ->leftJoin('parcelle', 'batiment.id_parcelle', '=', 'parcelle.id_parcelle') // 
+            ->leftJoin('parcelle', 'batiment.id_parcelle', '=', 'parcelle.id_parcelle')
+            ->leftJoin('lieu_dit', 'parcelle.id_lieu_dit', '=', 'lieu_dit.id_lieu_dit') // ← manquant
             ->select(
                 'batiment.*',
                 'type_erp.categorie_erp',
@@ -39,11 +39,11 @@ class BatimentController extends Controller
                 'Adresse.nom_voie',
                 'Adresse.code_postal',
                 'Adresse.ville',
-                'parcelle.section_cadastrale', // <-- Info parcelle
-                'parcelle.num_parcelle',       // <-- Info parcelle
+                'parcelle.section_cadastrale',
+                'parcelle.num_parcelle',
                 'lieu_dit.nom_lieu_dit',
-                DB::raw('ST_AsGeoJSON(batiment.geom_batiment) as geojson_batiment'), // Point GPS du bâtiment
-                DB::raw('ST_AsGeoJSON(parcelle.geom_parcelle) as geojson_parcelle')  // Polygone de la parcelle
+                DB::raw('ST_AsGeoJSON(batiment.geom_batiment) as geojson_batiment'),
+                DB::raw('ST_AsGeoJSON(parcelle.geom_parcelle) as geojson_parcelle')
             )
             ->where('id_batiment', $id)
             ->first();

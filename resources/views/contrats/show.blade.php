@@ -35,7 +35,7 @@
 
                 @if(auth()->user()->can('check-permission', ['Finances & Achats', 'suppression']))
                     <form action="{{ route('contrats.destroy', $contrat->id_contrat) }}" method="POST"
-                        onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer définitivement ce contrat ? Cette action supprimera également les liaisons avec les équipements.');">
+                        onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer définitivement ce contrat ? Cette action supprimera également les liaisons avec les équipements et locaux.');">
                         @csrf
                         @method('DELETE')
                         <button type="submit"
@@ -68,6 +68,18 @@
                             </p>
                         </div>
                         <div>
+                            <p class="text-slate-500 mb-1">Date de signature</p>
+                            <p class="font-semibold text-slate-800">
+                                {{ $contrat->date_signature_contrat ? $contrat->date_signature_contrat->format('d/m/Y') : '-' }}
+                            </p>
+                        </div>
+                        <div>
+                            <p class="text-slate-500 mb-1">Date d'échéance</p>
+                            <p class="font-semibold text-slate-800">
+                                {{ $contrat->date_echeance ? $contrat->date_echeance->format('d/m/Y') : '-' }}
+                            </p>
+                        </div>
+                        <div>
                             <p class="text-slate-500 mb-1">Titulaire (Prestataire)</p>
                             <p class="font-bold text-blue-700">
                                 {{ $contrat->raison_sociale ?? ($contrat->nom_tiers ? $contrat->nom_tiers . ' ' . $contrat->prenom_tiers : 'Titulaire inconnu') }}
@@ -88,6 +100,7 @@
                         </div>
                     </div>
                 </div>
+
                 @if(str_contains(strtolower($contrat->type_contrat), 'location'))
                     <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mt-6">
                         <div class="p-4 bg-slate-50 border-b border-slate-200">
@@ -96,28 +109,35 @@
                         </div>
 
                         <div class="divide-y divide-slate-100 bg-white">
-                            @forelse($locations ?? [] as $loc)
+                            @forelse($equipementsLies as $equip)
+                                @php
+                                    // Recherche du numéro de décision correspondant à l'ID stocké dans la table pivot
+                                    $decisionPivot = $equip->pivot->id_decision ? collect($decisions)->firstWhere(
+                                        'id_decision',
+                                        $equip->pivot->id_decision
+                                    ) : null;
+                                @endphp
                                 <div class="p-4 flex flex-wrap justify-between items-center text-sm hover:bg-slate-50">
                                     <div>
                                         <p class="font-semibold text-slate-800">
-                                            {{ $loc->nom_equipement ?? 'Équipement inconnu' }}
-                                            (x{{ $loc->quantite_louee ?? 0 }})
+                                            {{ $equip->nom_equipement ?? 'Équipement inconnu' }}
+                                            (x{{ $equip->pivot->quantite_louee ?? 0 }})
                                         </p>
                                         <p class="text-xs text-slate-400">
                                             Réf Décision : <span
-                                                class="font-mono text-slate-600 font-bold">{{ $loc->numero_decision ?? 'N/A' }}</span>
+                                                class="font-mono text-slate-600 font-bold">{{ $decisionPivot->numero_decision ?? 'N/A' }}</span>
                                             | État départ : <span
-                                                class="text-slate-600 italic">{{ $loc->etat_depart ?? 'Non spécifié' }}</span>
+                                                class="text-slate-600 italic">{{ $equip->pivot->etat_depart ?? 'Non spécifié' }}</span>
                                         </p>
                                     </div>
                                     <div class="text-right text-xs">
                                         <span class="px-2 py-0.5 font-bold rounded bg-blue-50 text-blue-700 border border-blue-100">
-                                            {{ $loc->statut_ligne ?? 'En cours' }}
+                                            {{ $equip->pivot->statut_ligne ?? 'En cours' }}
                                         </span>
                                         <p class="text-[10px] text-slate-400 mt-1">Du
-                                            {{ $loc->date_debut_utilisation ? \Carbon\Carbon::parse($loc->date_debut_utilisation)->format('d/m/Y') : 'N/A' }}
+                                            {{ $equip->pivot->date_debut_utilisation ? \Carbon\Carbon::parse($equip->pivot->date_debut_utilisation)->format('d/m/Y') : 'N/A' }}
                                             au
-                                            {{ $loc->date_fin_utilisation ? \Carbon\Carbon::parse($loc->date_fin_utilisation)->format('d/m/Y') : 'Indéterminé' }}
+                                            {{ $equip->pivot->date_fin_utilisation ? \Carbon\Carbon::parse($equip->pivot->date_fin_utilisation)->format('d/m/Y') : 'Indéterminé' }}
                                         </p>
                                     </div>
                                 </div>
@@ -186,9 +206,9 @@
                     <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider mb-4 border-b pb-2">🏢 Périmètre
                         d'application (Patrimoine concerné)</h3>
 
-                    @if($equipementsLies->isEmpty() && $locauxLies->isEmpty())
+                    @if($equipementsLies->isEmpty() && $locauxLies->isEmpty() && $lieuxLies->isEmpty())
                         <p class="text-sm text-slate-400 italic text-center py-4 bg-slate-50 rounded border border-dashed">Aucun
-                            équipement ou local n'est directement rattaché à ce contrat pour le moment.</p>
+                            équipement, local ou lieu n'est directement rattaché à ce contrat pour le moment.</p>
                     @else
                         <div class="space-y-4">
                             @foreach($locauxLies as $local)
@@ -200,6 +220,20 @@
                                         <span class="font-semibold text-sm text-slate-800">{{ $local->nom_local }}</span>
                                     </div>
                                     <a href="{{ route('locaux.show', $local->id_local) }}"
+                                        class="text-xs text-blue-600 font-bold hover:underline">Voir →</a>
+                                </div>
+                            @endforeach
+
+                            @foreach($lieuxLies as $lieu)
+                                <div
+                                    class="flex items-center justify-between p-3 bg-slate-50 border border-slate-100 rounded-lg hover:bg-slate-100">
+                                    <div>
+                                        <span
+                                            class="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded font-bold mr-2">LIEU
+                                            PUBLIC</span>
+                                        <span class="font-semibold text-sm text-slate-800">{{ $lieu->nom_lieu }}</span>
+                                    </div>
+                                    <a href="{{ route('lieux.show', $lieu->id_lieu) }}"
                                         class="text-xs text-blue-600 font-bold hover:underline">Voir →</a>
                                 </div>
                             @endforeach

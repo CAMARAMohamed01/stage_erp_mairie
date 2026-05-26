@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ProjetController;
 use App\Http\Controllers\ReleveCompteurController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardTechniqueController;
@@ -76,6 +77,19 @@ Route::middleware('auth')->group(function () {
 
     // Suppression
     Route::delete('/actions/{id}', [ActionController::class, 'destroy'])->middleware('can:check-permission,"actions","suppression"')->name('actions.destroy');
+
+    //   // ========================================================
+// 🔏 SECURISE : MODULE PROJET VIA LA MATRICE DE DROITS
+// ========================================================
+// --- Module : Patrimoine & Travaux ---
+    Route::get('/projets', [ProjetController::class, 'index'])->middleware('can:check-permission,"Patrimoine & Travaux","lecture"')->name('projets.index');
+    Route::get('/projets/create', [ProjetController::class, 'create'])->middleware('can:check-permission,"Patrimoine & Travaux","ecriture"')->name('projets.create');
+    Route::post('/projets', [ProjetController::class, 'store'])->middleware('can:check-permission,"Patrimoine & Travaux","ecriture"')->name('projets.store');
+
+    Route::get('/projets/{id}', [ProjetController::class, 'show'])->middleware('can:check-permission,"Patrimoine & Travaux","lecture"')->name('projets.show');
+    Route::get('/projets/{id}/edit', [ProjetController::class, 'edit'])->middleware('can:check-permission,"Patrimoine & Travaux","ecriture"')->name('projets.edit');
+    Route::put('/projets/{id}', [ProjetController::class, 'update'])->middleware('can:check-permission,"Patrimoine & Travaux","ecriture"')->name('projets.update');
+    Route::delete('/projets/{id}', [ProjetController::class, 'destroy'])->middleware('can:check-permission,"Patrimoine & Travaux","suppression"')->name('projets.destroy');
 
 
     // ========================================================

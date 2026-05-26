@@ -12,10 +12,13 @@
         </div>
 
         <div class="px-6 py-4 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-4">
-            <form action="{{ route('interventions.index') }}" method="GET" class="flex items-center gap-3">
-                <label for="statut" class="text-sm font-medium text-slate-600">Filtrer par statut :</label>
+
+            <form action="{{ route('interventions.index') }}" method="GET" class="flex flex-wrap items-center gap-3">
+                <input type="text" name="search" value="{{ request('search') }}" placeholder="N° Réf ou mot-clé..."
+                    class="text-sm border-slate-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2 bg-white w-full md:w-48 shadow-sm">
+
                 <select name="statut" id="statut" onchange="this.form.submit()"
-                    class="text-sm border-slate-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2 bg-white">
+                    class="text-sm border-slate-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2 bg-white shadow-sm">
                     <option value="Tous" {{ request('statut') == 'Tous' ? 'selected' : '' }}>Tous les statuts</option>
                     <option value="En cours" {{ request('statut') == 'En cours' ? 'selected' : '' }}>🚧 En cours</option>
                     <option value="Terminé" {{ request('statut') == 'Terminé' ? 'selected' : '' }}>✅ Terminé</option>
@@ -23,8 +26,12 @@
                     </option>
                 </select>
 
-                @if(request('statut') && request('statut') !== 'Tous')
-                    <a href="{{ route('interventions.index') }}" class="text-xs text-red-600 hover:underline">Réinitialiser</a>
+                <button type="submit"
+                    class="px-3 py-2 bg-slate-800 text-white rounded-lg text-sm font-medium hover:bg-slate-700 transition">Chercher</button>
+
+                @if((request('statut') && request('statut') !== 'Tous') || request('search'))
+                    <a href="{{ route('interventions.index') }}"
+                        class="text-xs text-red-600 hover:underline font-medium">Réinitialiser</a>
                 @endif
             </form>
 
@@ -38,12 +45,12 @@
                 </a>
 
                 <a href="{{ route('interventions.excel') }}"
-                    class="px-3 py-2 bg-white border border-slate-300 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-100 transition flex items-center">
+                    class="px-3 py-2 bg-white border border-slate-300 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-100 transition flex items-center shadow-sm">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1M7 10l5 5m0 0l5-5m-5 5V3"></path>
                     </svg>
-                    Exporter (Excel)
+                    Exporter
                 </a>
             </div>
         </div>
@@ -60,7 +67,7 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
-                    @foreach($interventions as $intervention)
+                    @forelse($interventions as $intervention)
                         <tr class="hover:bg-slate-50 transition-colors text-sm">
                             <td class="px-6 py-4 font-bold text-slate-700">#{{ $intervention->id_int }}</td>
                             <td class="px-6 py-4">
@@ -79,7 +86,12 @@
                                     class="text-blue-600 hover:text-blue-800 font-medium">Détails</a>
                             </td>
                         </tr>
-                    @endforeach
+                    @empty
+                        <tr>
+                            <td colspan="5" class="px-6 py-8 text-center text-slate-500 italic">Aucune intervention ne
+                                correspond à votre recherche.</td>
+                        </tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>

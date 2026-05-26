@@ -33,9 +33,13 @@ class Intervention extends Model
         'id_user_demandeur',
         'id_service',
         'id_action',
-        'id_operation'
+        'id_operation',
+        'id_projet',
     ];
-
+    public function projet()
+    {
+        return $this->belongsTo(Projet::class, 'id_projet');
+    }
     // Une intervention peut faire suite à un action
     public function action()
     {

@@ -16,6 +16,7 @@ use App\Models\Tiers;
 use Illuminate\Support\Facades\DB;
 use App\Models\Contrat;
 use App\Models\OperationComptable;
+use App\Models\Projet;
 
 class InterventionController extends Controller
 {
@@ -25,6 +26,26 @@ class InterventionController extends Controller
         // 1. On commence la requête
         $query = Intervention::with('categorie');
 
+
+        // Filtre par statut existant
+        if ($request->filled('statut') && $request->statut !== 'Tous') {
+            // Attention au nom exact de ton champ, ici 'statut_global' selon tes vues
+            $query->where('statut_global', $request->statut);
+        }
+
+        // Filtre textuel (ID ou description ou type)
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('description', 'ilike', '%' . $search . '%')
+                    ->orWhere('type_intervention', 'ilike', '%' . $search . '%');
+
+                // Si la recherche est un nombre, on cherche aussi par ID
+                if (is_numeric($search)) {
+                    $q->orWhere('id_int', $search);
+                }
+            });
+        }
         // 2. Si un statut est sélectionné dans le filtre, on ajoute une condition
         if ($request->has('statut') && $request->statut !== 'Tous') {
             $query->where('statut_global', $request->statut);
@@ -170,7 +191,8 @@ class InterventionController extends Controller
         $lieux_publics = LieuPublic::orderBy('nom_lieu', 'asc')->get();
         $contrats = Contrat::orderBy('numero_contrat', 'asc')->get();
         $operations = OperationComptable::orderBy('numero_operation', 'asc')->get();
-
+        $projets = Projet::orderBy('nom_projet', 'asc')->get();
+        $projet_id = $request->query('projet_id');
         $agents = Utilisateur::orderBy('nom_user')->get();
         $tiers = DB::table('tiers')
             ->leftJoin('tiers_physique', 'tiers.id_tiers', '=', 'tiers_physique.id_tiers')
@@ -199,6 +221,7 @@ class InterventionController extends Controller
             'tiers',
             'contrats',
             'operations',
+            'projets',
         ));
     }
 
@@ -221,6 +244,7 @@ class InterventionController extends Controller
             'id_tiers' => 'nullable|exists:tiers,id_tiers',
             'id_contrat' => 'nullable|exists:contrat,id_contrat',
             'id_operation' => 'nullable|exists:operation_comptable,id_operation',
+            'id_projet' => 'nullable|exists:projet,id_projet',
         ]);
 
         // 2. Préparation des données pour la table 'intervention'
@@ -235,6 +259,7 @@ class InterventionController extends Controller
             'id_batiment' => $validated['id_batiment'] ?? null, // Si tu as ajouté la colonne, sinon géré par projet_batiment ou description
             'id_contrat' => $validated['id_contrat'] ?? null,
             'id_operation' => $validated['id_operation'] ?? null,
+            'id_projet' => $validated['id_projet'] ?? null,
         ];
 
         // 3. Transaction pour garantir la cohérence des tables pivots
@@ -281,6 +306,7 @@ class InterventionController extends Controller
         $agents = Utilisateur::orderBy('nom_user')->get();
         $contrats = Contrat::orderBy('numero_contrat', 'asc')->get();
         $operations = OperationComptable::orderBy('numero_operation', 'asc')->get();
+        $projets = Projet::orderBy('nom_projet', 'asc')->get();
         $tiers = DB::table('tiers')
             ->leftJoin('tiers_physique', 'tiers.id_tiers', '=', 'tiers_physique.id_tiers')
             ->leftJoin('tiers_morale', 'tiers.id_tiers', '=', 'tiers_morale.id_tiers')
@@ -299,7 +325,7 @@ class InterventionController extends Controller
         // On récupère l'ID de l'équipement lié (s'il y en a un) pour pré-sélectionner la liste
         $equipement_preselectionne = $intervention->equipements->first()->id_equipement ?? null;
 
-        return view('interventions.edit', compact('intervention', 'equipements', 'categories', 'agents', 'tiers', 'equipement_preselectionne', 'contrats', 'operations'));
+        return view('interventions.edit', compact('intervention', 'equipements', 'categories', 'agents', 'tiers', 'equipement_preselectionne', 'contrats', 'operations', 'projets'));
     }
 
     // TRAITER LA MODIFICATION
@@ -318,6 +344,7 @@ class InterventionController extends Controller
             'id_tiers' => 'nullable|exists:tiers,id_tiers',
             'id_contrat' => 'nullable|exists:contrat,id_contrat',
             'id_operation' => 'nullable|exists:operation_comptable,id_operation',
+            'id_projet' => 'nullable|exists:projet,id_projet',
         ]);
 
         $interventionData = $validated;

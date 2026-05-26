@@ -124,14 +124,15 @@
             <span class="text-xs text-gray-500 mt-1 block">À renseigner uniquement si l'intervention est
                 externalisée.</span>
         </div>
+
         <h3 class="text-lg font-bold text-slate-800 border-b pb-2 mb-4 mt-8">Cadre Administratif & Budgétaire</h3>
         <div class="bg-blue-50 p-4 rounded-xl border border-blue-100 space-y-4">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
                     <label class="block text-sm font-medium text-blue-900 mb-1">Contrat associé (Optionnel)</label>
                     <select name="id_contrat"
                         class="w-full border border-blue-200 rounded-lg px-4 py-2 bg-white focus:ring-blue-500">
-                        <option value="">-- Aucun contrat spécifique --</option>
+                        <option value="">-- Aucun contrat --</option>
                         @foreach($contrats as $contrat)
                         <option value="{{ $contrat->id_contrat }}"
                             {{ (isset($intervention) && $intervention->id_contrat == $contrat->id_contrat) ? 'selected' : '' }}>
@@ -142,10 +143,24 @@
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-blue-900 mb-1">Imputation (Projet / Opération)</label>
+                    <label class="block text-sm font-medium text-blue-900 mb-1">Projet Communal</label>
+                    <select name="id_projet"
+                        class="w-full border border-blue-200 rounded-lg px-4 py-2 bg-white focus:ring-blue-500">
+                        <option value="">-- Aucun projet --</option>
+                        @foreach($projets as $projet)
+                        <option value="{{ $projet->id_projet }}"
+                            {{ old('id_projet', $intervention->id_projet) == $projet->id_projet ? 'selected' : '' }}>
+                            {{ $projet->nom_projet }}
+                        </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-blue-900 mb-1">Opération Comptable</label>
                     <select name="id_operation"
                         class="w-full border border-blue-200 rounded-lg px-4 py-2 bg-white focus:ring-blue-500">
-                        <option value="">-- Hors projet spécifique --</option>
+                        <option value="">-- Aucune opération --</option>
                         @foreach($operations as $op)
                         <option value="{{ $op->id_operation }}"
                             {{ (isset($intervention) && $intervention->id_operation == $op->id_operation) ? 'selected' : '' }}>
