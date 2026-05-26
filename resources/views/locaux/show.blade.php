@@ -199,14 +199,14 @@
                 <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
                     <div class="p-4 bg-red-50/50 border-b border-red-100">
                         <h3 class="text-sm font-bold text-red-800 tracking-tight flex items-center gap-2">
-                            🚨 Incidents en cours ({{ $signalements->count() }})
+                            🚨 Incidents en cours ({{ $actions->count() }})
                         </h3>
                     </div>
                     <div class="p-4 space-y-3 max-h-52 overflow-y-auto">
-                        @forelse($signalements as $sig)
+                        @forelse($actions as $sig)
                             <div class="p-2.5 bg-slate-50 border border-slate-150 rounded-lg text-xs">
                                 <div class="flex justify-between font-semibold text-slate-800">
-                                    <span class="truncate pr-2">⚠️ {{ $sig->statut_signalement }}</span>
+                                    <span class="truncate pr-2">⚠️ {{ $sig->statut_action }}</span>
                                     <span class="text-red-600 shrink-0">{{ $sig->priorite ?? 'Normale' }}</span>
                                 </div>
                                 <p class="text-slate-500 mt-1 line-clamp-2">{{ $sig->description }}</p>

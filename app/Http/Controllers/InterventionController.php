@@ -64,7 +64,7 @@ class InterventionController extends Controller
             ->get();
 
         // On récupère l'intervention avec ses relations
-        $intervention = Intervention::with(['equipements', 'categorie', 'signalement', 'suiviActions', 'agents', 'tiers', 'contrat', 'achatsMateriels'])->findOrFail($id);
+        $intervention = Intervention::with(['equipements', 'categorie', 'action', 'suiviActions', 'agents', 'tiers', 'contrat', 'achatsMateriels'])->findOrFail($id);
         return view('interventions.show', compact('intervention', 'documents'));
     }
 
@@ -118,7 +118,7 @@ class InterventionController extends Controller
 
     public function imprimer($id)
     {
-        $intervention = Intervention::with(['categorie', 'signalement', 'suiviActions', 'agents', 'tiers', 'contrat', 'achatsMateriels'])->findOrFail($id);
+        $intervention = Intervention::with(['categorie', 'action', 'suiviActions', 'agents', 'tiers', 'contrat', 'achatsMateriels'])->findOrFail($id);
         // On renvoie simplement une vue propre, et on déclenchera l'impression en JS
         return view('interventions.print', compact('intervention'));
     }

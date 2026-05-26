@@ -29,7 +29,7 @@
                         <th class="px-6 py-4 font-semibold">ID</th>
                         <th class="px-6 py-4 font-semibold">Nom & Prénom</th>
                         <th class="px-6 py-4 font-semibold">Contact</th>
-                        <th class="px-6 py-4 font-semibold text-center">Historique Signalements</th>
+                        <th class="px-6 py-4 font-semibold text-center">Historique actions</th>
                         <th class="px-6 py-4 font-semibold text-right">Action</th>
                     </tr>
                 </thead>
@@ -72,10 +72,10 @@
                             </td>
 
                             <td class="px-6 py-4 text-center">
-                                @if($citoyen->signalements_count > 0)
+                                @if($citoyen->actions_count > 0)
                                     <span
                                         class="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full border border-blue-200">
-                                        {{ $citoyen->signalements_count }}
+                                        {{ $citoyen->actions_count }}
                                     </span>
                                 @else
                                     <span class="text-slate-400 text-xs italic">Aucun</span>

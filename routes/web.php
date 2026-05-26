@@ -3,7 +3,7 @@
 use App\Http\Controllers\ReleveCompteurController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardTechniqueController;
-use App\Http\Controllers\SignalementController;
+use App\Http\Controllers\ActionController;
 use App\Http\Controllers\InterventionController;
 use App\Http\Controllers\EquipementController;
 use App\Http\Controllers\TiersController;
@@ -55,27 +55,27 @@ Route::middleware('auth')->group(function () {
         return back()->with('success', 'Document supprimé définitivement.');
     })->middleware('can:check-permission,"Patrimoine & Equipements","suppression"')->name('documents.global.destroy');
     // ========================================================
-    // 🔏 SECURISE : MODULE SIGNALEMENTS VIA LA MATRICE DE DROITS
+    // 🔏 SECURISE : MODULE actionS VIA LA MATRICE DE DROITS
     // ========================================================
 
     // Lecture (Index, Fiche Détails, Export)
-    Route::get('/signalements', [SignalementController::class, 'index'])->middleware('can:check-permission,"Signalements","lecture"')->name('signalements.index');
-    Route::get('/signalements/export/excel', [SignalementController::class, 'exportExcel'])->middleware('can:check-permission,"Signalements","lecture"')->name('signalements.excel');
-    Route::get('/signalements/{id}', [SignalementController::class, 'show'])->middleware('can:check-permission,"Signalements","lecture"')->name('signalements.show');
-    Route::get('/signalement/{id}/pdf', [SignalementController::class, 'imprimer'])->middleware('can:check-permission,"Signalements","lecture"')->name('signalement.pdf');
+    Route::get('/actions', [ActionController::class, 'index'])->middleware('can:check-permission,"actions","lecture"')->name('actions.index');
+    Route::get('/actions/export/excel', [ActionController::class, 'exportExcel'])->middleware('can:check-permission,"actions","lecture"')->name('actions.excel');
+    Route::get('/actions/{id}', [ActionController::class, 'show'])->middleware('can:check-permission,"actions","lecture"')->name('actions.show');
+    Route::get('/action/{id}/pdf', [ActionController::class, 'imprimer'])->middleware('can:check-permission,"actions","lecture"')->name('action.pdf');
 
     // Écriture / Création
-    Route::get('/signalement/nouveau', [SignalementController::class, 'create'])->middleware('can:check-permission,"Signalements","ecriture"')->name('signalements.create');
-    Route::post('/signalement/nouveau', [SignalementController::class, 'store'])->middleware('can:check-permission,"Signalements","ecriture"')->name('signalements.store');
+    Route::get('/action/nouveau', [ActionController::class, 'create'])->middleware('can:check-permission,"actions","ecriture"')->name('actions.create');
+    Route::post('/action/nouveau', [ActionController::class, 'store'])->middleware('can:check-permission,"actions","ecriture"')->name('actions.store');
 
     // Écriture / Modification & Prise en charge
-    Route::get('/signalements/{id}/edit', [SignalementController::class, 'edit'])->middleware('can:check-permission,"Signalements","ecriture"')->name('signalements.edit');
-    Route::put('/signalements/{id}', [SignalementController::class, 'update'])->middleware('can:check-permission,"Signalements","ecriture"')->name('signalements.update');
-    Route::patch('/signalement/{id}/prendre-en-charge', [SignalementController::class, 'prendreEnCharge'])->middleware('can:check-permission,"Signalements","ecriture"')->name('signalement.prendre-en-charge');
-    Route::post('/signalement/{id}/creer-intervention', [SignalementController::class, 'creerIntervention'])->middleware('can:check-permission,"Signalements","ecriture"')->name('signalement.creer-intervention');
+    Route::get('/actions/{id}/edit', [ActionController::class, 'edit'])->middleware('can:check-permission,"actions","ecriture"')->name('actions.edit');
+    Route::put('/actions/{id}', [ActionController::class, 'update'])->middleware('can:check-permission,"actions","ecriture"')->name('actions.update');
+    Route::patch('/action/{id}/prendre-en-charge', [ActionController::class, 'prendreEnCharge'])->middleware('can:check-permission,"actions","ecriture"')->name('action.prendre-en-charge');
+    Route::post('/action/{id}/creer-intervention', [ActionController::class, 'creerIntervention'])->middleware('can:check-permission,"actions","ecriture"')->name('action.creer-intervention');
 
     // Suppression
-    Route::delete('/signalements/{id}', [SignalementController::class, 'destroy'])->middleware('can:check-permission,"Signalements","suppression"')->name('signalements.destroy');
+    Route::delete('/actions/{id}', [ActionController::class, 'destroy'])->middleware('can:check-permission,"actions","suppression"')->name('actions.destroy');
 
 
     // ========================================================

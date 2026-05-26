@@ -10,8 +10,8 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('signalement', function (Blueprint $table) {
-            $table->id('id_sig');
+        Schema::create('action', function (Blueprint $table) {
+            $table->id('id_action');
             $table->timestamp('date_creation'); // Format TIMESTAMP
             $table->string('emetteur_nom', 50)->nullable();
             $table->string('emetteur_prenom', 50)->nullable();
@@ -19,7 +19,7 @@ return new class extends Migration {
             $table->string('description', 500);
             $table->string('mode_reception', 100);
             $table->string('priorite', 50);
-            $table->string('statut_signalement', 50);
+            $table->string('statut_action', 50);
 
             // L'agent à qui le ticket est assigné (nullable car au début, personne n'est assigné)
             $table->unsignedBigInteger('id_user_assigne')->nullable()->after('id_user');
@@ -27,7 +27,7 @@ return new class extends Migration {
             $table->unsignedBigInteger('id_adresse')->nullable();
             $table->unsignedBigInteger('id_local')->nullable();
             $table->unsignedBigInteger('id_cat')->nullable();
-            $table->unsignedBigInteger('id_tiers')->nullable()->after('statut_signalement');
+            $table->unsignedBigInteger('id_tiers')->nullable()->after('statut_action');
 
             $table->foreign('id_user_assigne')->references('id_user')->on('utilisateur');
             $table->foreign('id_tiers')->references('id_tiers')->on('tiers');
@@ -44,11 +44,11 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::table('signalement', function (Blueprint $table) {
+        Schema::table('action', function (Blueprint $table) {
             $table->dropForeign(['id_tiers']);
             $table->dropColumn('id_tiers');
         });
 
-        Schema::dropIfExists('signalement');
+        Schema::dropIfExists('action');
     }
 };

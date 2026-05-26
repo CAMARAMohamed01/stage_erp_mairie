@@ -32,14 +32,14 @@ class Intervention extends Model
         'id_local',
         'id_user_demandeur',
         'id_service',
-        'id_sig',
+        'id_action',
         'id_operation'
     ];
 
-    // Une intervention peut faire suite à un signalement
-    public function signalement()
+    // Une intervention peut faire suite à un action
+    public function action()
     {
-        return $this->belongsTo(Signalement::class, 'id_sig', 'id_sig');
+        return $this->belongsTo(action::class, 'id_action', 'id_action');
     }
 
     // L'agent ou l'équipe assignée à l'intervention

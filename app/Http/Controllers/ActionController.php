@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Signalement;
+use App\Models\action;
 use App\Models\Intervention;
 use App\Models\Utilisateur;
 use App\Models\Categorie;
@@ -13,57 +13,57 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Session;
-class SignalementController extends Controller
+class actionController extends Controller
 {
     public function index()
     {
-        // On récupère tous les signalements avec leur catégorie
-        $signalements = Signalement::with('categorie')->orderBy('date_creation', 'desc')->get();
+        // On récupère tous les actions avec leur catégorie
+        $actions = action::with('categorie')->orderBy('date_creation', 'desc')->get();
 
-        return view('signalements.index', compact('signalements'));
+        return view('actions.index', compact('actions'));
     }
     // La méthode pour afficher UN dossier complet
     public function show($id)
     {
-        // On cherche le signalement avec sa catégorie et l'utilisateur associé (s'il y en a un)
+        // On cherche le action avec sa catégorie et l'utilisateur associé (s'il y en a un)
         // failOrFail permet d'afficher une belle page 404 si l'ID n'existe pas dans la base
-        $signalement = Signalement::with(['categorie'])->findOrFail($id);
+        $action = action::with(['categorie'])->findOrFail($id);
 
-        return view('signalements.show', compact('signalement'));
+        return view('actions.show', compact('action'));
     }
     public function prendreEnCharge($id)
     {
-        // 1. Récupérer le signalement
-        $signalement = Signalement::findOrFail($id);
+        // 1. Récupérer le action
+        $action = action::findOrFail($id);
 
         // 2. Mettre à jour le statut
-        $signalement->update([
-            'statut_signalement' => 'En cours'
+        $action->update([
+            'statut_action' => 'En cours'
         ]);
 
         // 3. Rediriger avec un message de succès
-        return redirect()->back()->with('success', 'Le signalement est désormais en cours de traitement.');
+        return redirect()->back()->with('success', 'Le action est désormais en cours de traitement.');
     }
 
     public function creerIntervention($id)
     {
-        $signalement = Signalement::findOrFail($id);
+        $action = action::findOrFail($id);
 
         // 1. Créer l'intervention technique
-        // On récupère les infos du signalement pour pré-remplir l'intervention
+        // On récupère les infos du action pour pré-remplir l'intervention
         $intervention = Intervention::create([
             'date_ouverture' => now(),
-            'type_intervention' => 'Réparation : ' . $signalement->description,
+            'type_intervention' => 'Réparation : ' . $action->description,
             'statut_global' => 'En cours',
-            'id_cat' => $signalement->id_cat,
-            'id_sig' => $signalement->id_sig, // C'est ici que le lien se fait dans votre BDD !
-            'description' => 'Suite au signalement #' . $signalement->id_sig,
+            'id_cat' => $action->id_cat,
+            'id_action' => $action->id_action, // C'est ici que le lien se fait dans votre BDD !
+            'description' => 'Suite au action #' . $action->id_action,
         ]);
 
-        // 2. On lie le signalement à l'intervention (si vous avez une colonne id_int dans votre table signalement)
+        // 2. On lie le action à l'intervention (si vous avez une colonne id_int dans votre table action)
         // Et on change le statut en "Transmis"
-        $signalement->update([
-            'statut_signalement' => 'Transmis'
+        $action->update([
+            'statut_action' => 'Transmis'
         ]);
 
         return redirect()->route('technique.dashboard')->with('success', 'Intervention générée avec succès !');
@@ -71,8 +71,8 @@ class SignalementController extends Controller
 
     public function exportExcel()
     {
-        $signalements = Signalement::with('categorie')->get();
-        $fileName = 'registre_signalements_' . date('d_m_Y') . '.csv';
+        $actions = action::with('categorie')->get();
+        $fileName = 'registre_actions_' . date('d_m_Y') . '.csv';
 
         $headers = [
             "Content-type" => "text/csv; charset=UTF-8",
@@ -82,21 +82,21 @@ class SignalementController extends Controller
             "Expires" => "0"
         ];
 
-        $callback = function () use ($signalements) {
+        $callback = function () use ($actions) {
             $file = fopen('php://output', 'w');
             fprintf($file, chr(0xEF) . chr(0xBB) . chr(0xBF)); // BOM UTF-8
 
-            // En-têtes adaptés à la table signalement
+            // En-têtes adaptés à la table action
             fputcsv($file, ['ID', 'Date', 'Émetteur', 'Catégorie', 'Priorité', 'Statut', 'Description']);
 
-            foreach ($signalements as $sig) {
+            foreach ($actions as $sig) {
                 fputcsv($file, [
-                    $sig->id_sig,
+                    $sig->id_action,
                     $sig->date_creation,
                     $sig->emetteur_nom,
                     $sig->categorie->libelle ?? 'N/A',
                     $sig->priorite,
-                    $sig->statut_signalement,
+                    $sig->statut_action,
                     $sig->description
                 ]);
             }
@@ -108,15 +108,15 @@ class SignalementController extends Controller
 
     public function imprimer($id)
     {
-        $signalement = Signalement::with('categorie')->findOrFail($id);
-        return view('signalements.print', compact('signalement'));
+        $action = action::with('categorie')->findOrFail($id);
+        return view('actions.print', compact('action'));
     }
     public function create()
     {
         $categories = Categorie::all();
         // On récupère les tiers physiques existants pour la liaison
         $tiers = TiersPhysique::all();
-        return view('signalements.create', compact('categories', 'tiers'));
+        return view('actions.create', compact('categories', 'tiers'));
     }
 
     public function store(Request $request)
@@ -160,7 +160,7 @@ class SignalementController extends Controller
 
                 $id_tiers_final = $nouveauTiers->id_tiers;
 
-                // On garde le nom pour le signalement
+                // On garde le nom pour le action
                 $emetteur_nom_final = trim($request->emetteur_prenom . ' ' . $request->emetteur_nom);
 
             }
@@ -181,21 +181,21 @@ class SignalementController extends Controller
                 $emetteur_nom_final = trim($request->emetteur_prenom . ' ' . $request->emetteur_nom);
             }
 
-            // 3. Création du signalement avec le bon nom !
-            $signalement = Signalement::create([
+            // 3. Création du action avec le bon nom !
+            $action = action::create([
                 'date_creation' => now(),
                 'description' => $request->description,
                 'id_cat' => $request->id_cat,
                 'mode_reception' => $request->mode_reception,
                 'priorite' => $request->priorite,
-                'statut_signalement' => 'Nouveau',
+                'statut_action' => 'Nouveau',
                 'id_user' => Auth::id(),
                 'id_tiers' => $id_tiers_final,
                 'emetteur_nom' => $emetteur_nom_final,
                 'emetteur_contact' => $emetteur_contact_final
             ]);
 
-            return redirect()->route('signalements.index')->with('success', 'Signalement enregistré avec succès.');
+            return redirect()->route('actions.index')->with('success', 'action enregistré avec succès.');
 
         } catch (\Exception $e) {
             dd($e->getMessage());
@@ -205,20 +205,20 @@ class SignalementController extends Controller
     // AFFICHER LE FORMULAIRE DE MODIFICATION
     public function edit($id)
     {
-        $signalement = Signalement::findOrFail($id);
+        $action = action::findOrFail($id);
 
         // On charge les listes pour les menus déroulants
         $categories = \App\Models\Categorie::orderBy('libelle')->get();
         // Assure-toi que la requête correspond à ce que tu as dans create()
         $tiers = \App\Models\TiersPhysique::orderBy('nom_tiers')->get();
 
-        return view('signalements.edit', compact('signalement', 'categories', 'tiers'));
+        return view('actions.edit', compact('action', 'categories', 'tiers'));
     }
 
     // TRAITER LA MODIFICATION
     public function update(Request $request, $id)
     {
-        $signalement = Signalement::findOrFail($id);
+        $action = action::findOrFail($id);
 
         $validated = $request->validate([
             'description' => 'required',
@@ -247,7 +247,7 @@ class SignalementController extends Controller
         }
 
         // Mise à jour
-        $signalement->update([
+        $action->update([
             'description' => $request->description,
             'id_cat' => $request->id_cat,
             'mode_reception' => $request->mode_reception,
@@ -257,22 +257,22 @@ class SignalementController extends Controller
             'emetteur_contact' => $request->emetteur_contact
         ]);
 
-        return redirect()->route('signalements.show', $signalement->id_sig)
-            ->with('success', 'Signalement mis à jour avec succès.');
+        return redirect()->route('actions.show', $action->id_action)
+            ->with('success', 'action mis à jour avec succès.');
     }
 
-    // SUPPRIMER LE SIGNALEMENT
+    // SUPPRIMER LE action
     public function destroy($id)
     {
-        $signalement = Signalement::findOrFail($id);
+        $action = action::findOrFail($id);
 
-        // IMPORTANT : S'il y a des interventions liées à ce signalement,
-        // on vide le champ 'id_sig' pour ne pas bloquer la suppression
-        Intervention::where('id_sig', $id)->update(['id_sig' => null]);
+        // IMPORTANT : S'il y a des interventions liées à ce action,
+        // on vide le champ 'id_action' pour ne pas bloquer la suppression
+        Intervention::where('id_action', $id)->update(['id_action' => null]);
 
-        $signalement->delete();
+        $action->delete();
 
-        return redirect()->route('signalements.index')
-            ->with('success', 'Signalement supprimé définitivement.');
+        return redirect()->route('actions.index')
+            ->with('success', 'action supprimé définitivement.');
     }
 }

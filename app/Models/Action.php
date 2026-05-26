@@ -5,17 +5,17 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Signalement extends Model
+class action extends Model
 {
     use HasFactory;
 
-    protected $table = 'signalement';
-    protected $primaryKey = 'id_sig';
+    protected $table = 'action';
+    protected $primaryKey = 'id_action';
     public $timestamps = false;
     protected $guarded = [];
 
 
-    // L'agent qui a saisi le signalement
+    // L'agent qui a saisi le action
     public function agent()
     {
         return $this->belongsTo(Utilisateur::class, 'id_user', 'id_user');

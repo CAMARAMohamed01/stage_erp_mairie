@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Signalement #{{ $signalement->id_sig }}</title>
+    <title>action #{{ $action->id_action }}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @media print {
@@ -21,13 +21,13 @@
 
     <div class="flex justify-between items-start border-b-2 border-slate-900 pb-6 mb-8">
         <div>
-            <h1 class="text-3xl font-black text-slate-900">RÉCÉPISSÉ DE SIGNALEMENT</h1>
+            <h1 class="text-3xl font-black text-slate-900">RÉCÉPISSÉ DE action</h1>
             <p class="text-slate-600 uppercase tracking-widest text-sm">Administration Communale</p>
         </div>
         <div class="text-right">
-            <p class="font-bold text-xl">#{{ $signalement->id_sig }}</p>
+            <p class="font-bold text-xl">#{{ $action->id_action }}</p>
             <p class="text-sm text-slate-500">Date :
-                {{ \Carbon\Carbon::parse($signalement->date_creation)->format('d/m/Y H:i') }}
+                {{ \Carbon\Carbon::parse($action->date_creation)->format('d/m/Y H:i') }}
             </p>
         </div>
     </div>
@@ -36,17 +36,17 @@
         <section>
             <h2 class="bg-slate-100 p-2 font-bold uppercase text-sm mb-4">Détails du demandeur</h2>
             <div class="grid grid-cols-2 gap-4">
-                <p><span class="text-slate-500">Nom :</span> {{ $signalement->emetteur_nom }}</p>
-                <p><span class="text-slate-500">Contact :</span> {{ $signalement->emetteur_contact ?? 'Non renseigné' }}
+                <p><span class="text-slate-500">Nom :</span> {{ $action->emetteur_nom }}</p>
+                <p><span class="text-slate-500">Contact :</span> {{ $action->emetteur_contact ?? 'Non renseigné' }}
                 </p>
-                <p><span class="text-slate-500">Mode de réception :</span> {{ $signalement->mode_reception }}</p>
+                <p><span class="text-slate-500">Mode de réception :</span> {{ $action->mode_reception }}</p>
             </div>
         </section>
 
         <section>
             <h2 class="bg-slate-100 p-2 font-bold uppercase text-sm mb-4">Description de l'incident</h2>
             <div class="border p-4 rounded-lg bg-slate-50">
-                <p class="text-lg italic">"{{ $signalement->description }}"</p>
+                <p class="text-lg italic">"{{ $action->description }}"</p>
             </div>
         </section>
 
@@ -54,13 +54,13 @@
             <div>
                 <h2 class="bg-slate-100 p-2 font-bold uppercase text-sm mb-4">Classification</h2>
                 <p><span class="text-slate-500">Catégorie :</span>
-                    {{ $signalement->categorie->libelle ?? 'Non défini' }}</p>
-                <p><span class="text-slate-500">Priorité :</span> {{ $signalement->priorite }}</p>
+                    {{ $action->categorie->libelle ?? 'Non défini' }}</p>
+                <p><span class="text-slate-500">Priorité :</span> {{ $action->priorite }}</p>
             </div>
             <div>
                 <h2 class="bg-slate-100 p-2 font-bold uppercase text-sm mb-4">État de traitement</h2>
                 <p><span class="text-slate-500">Statut actuel :</span>
-                    <strong>{{ $signalement->statut_signalement }}</strong>
+                    <strong>{{ $action->statut_action }}</strong>
                 </p>
             </div>
         </section>

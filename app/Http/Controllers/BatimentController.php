@@ -29,6 +29,7 @@ class BatimentController extends Controller
         // 1. Infos du bâtiment, son type ERP, son Adresse ET sa Parcelle
         $batiment = DB::table('batiment')
             ->leftJoin('type_erp', 'batiment.id_type_erp', '=', 'type_erp.id_type_erp')
+            ->join('lieu_dit', 'parcelle.id_lieu_dit', '=', 'lieu_dit.id_lieu_dit')
             ->leftJoin('Adresse', 'batiment.id_adresse', '=', 'Adresse.id_adresse')
             ->leftJoin('parcelle', 'batiment.id_parcelle', '=', 'parcelle.id_parcelle') // 
             ->select(
@@ -40,6 +41,7 @@ class BatimentController extends Controller
                 'Adresse.ville',
                 'parcelle.section_cadastrale', // <-- Info parcelle
                 'parcelle.num_parcelle',       // <-- Info parcelle
+                'lieu_dit.nom_lieu_dit',
                 DB::raw('ST_AsGeoJSON(batiment.geom_batiment) as geojson_batiment'), // Point GPS du bâtiment
                 DB::raw('ST_AsGeoJSON(parcelle.geom_parcelle) as geojson_parcelle')  // Polygone de la parcelle
             )
@@ -106,14 +108,14 @@ class BatimentController extends Controller
             ->orderByDesc('date_upload')
             ->get();
 
-        // 6. Les signalements citoyens : liés à l'adresse du bâtiment
-        $signalements = DB::table('signalement')
+        // 6. Les actions citoyens : liés à l'adresse du bâtiment
+        $actions = DB::table('action')
             ->where('id_adresse', $batiment->id_adresse)
-            ->where('statut_signalement', '!=', 'Clôturé')
+            ->where('statut_action', '!=', 'Clôturé')
             ->get();
 
         // On ajoute 'locaux' dans le compact
-        return view('batiments.show', compact('batiment', 'locaux', 'equipements', 'controles', 'interventions', 'signalements', 'compteurs_generaux', 'contrats', 'documents'));
+        return view('batiments.show', compact('batiment', 'locaux', 'equipements', 'controles', 'interventions', 'actions', 'compteurs_generaux', 'contrats', 'documents'));
     }
 
     // Afficher le formulaire de création

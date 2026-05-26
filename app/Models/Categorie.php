@@ -13,9 +13,9 @@ class Categorie extends Model
     protected $primaryKey = 'id_cat';
     protected $guarded = [];
     public $timestamps = false;
-    // Une catégorie peut regrouper de nombreux signalements
-    public function signalements()
+    // Une catégorie peut regrouper de nombreux actions
+    public function actions()
     {
-        return $this->hasMany(Signalement::class, 'id_cat', 'id_cat');
+        return $this->hasMany(action::class, 'id_cat', 'id_cat');
     }
 }

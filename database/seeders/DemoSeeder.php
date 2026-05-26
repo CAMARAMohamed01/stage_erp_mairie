@@ -8,7 +8,7 @@ use Carbon\Carbon;
 use App\Models\Categorie;
 use App\Models\Utilisateur;
 use App\Models\FamilleEquipement;
-use App\Models\Signalement;
+use App\Models\action;
 use App\Models\Intervention;
 use App\Models\Equipement;
 use App\Models\ControleReglementaire;
@@ -29,27 +29,27 @@ class DemoSeeder extends Seeder
 
         $famille = FamilleEquipement::create(['libelle_famille' => 'Véhicules & Engins']);
 
-        // 2. On insère les signalements
+        // 2. On insère les actions
         // L'avantage : la fonction getKey() va automatiquement chercher la bonne clé primaire (id_cat, id_user...) 
         // selon ce que vous avez configuré dans vos Models !
-        Signalement::create([
+        action::create([
             'date_creation' => Carbon::now()->subDays(2),
             'emetteur_nom' => 'M. Bernard',
             'description' => 'Gros nid de poule dangereux',
             'mode_reception' => 'Téléphone',
             'priorite' => 'Haute',
-            'statut_signalement' => 'Nouveau',
+            'statut_action' => 'Nouveau',
             'id_user' => $user->getKey(),
             'id_cat' => $categorie->getKey(),
         ]);
 
-        Signalement::create([
+        action::create([
             'date_creation' => Carbon::now()->subHours(5),
             'emetteur_nom' => 'Mme Martin',
             'description' => 'Lampadaire clignotant devant l\'école',
             'mode_reception' => 'Email',
             'priorite' => 'Normale',
-            'statut_signalement' => 'Nouveau',
+            'statut_action' => 'Nouveau',
             'id_user' => $user->getKey(),
             'id_cat' => $categorie->getKey(),
         ]);
@@ -59,7 +59,7 @@ class DemoSeeder extends Seeder
             'date_ouverture' => Carbon::now()->subDays(1),
             'type_intervention' => 'Rebouchage asphalte',
             'statut_global' => 'En cours',
-            'description' => 'Intervention suite à signalement',
+            'description' => 'Intervention suite à action',
             'id_cat' => $categorie->getKey(),
         ]);
 

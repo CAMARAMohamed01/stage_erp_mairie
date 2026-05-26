@@ -75,11 +75,11 @@
                     </svg>
                     Historique des requêtes
                 </h2>
-                <span class="text-sm text-slate-500 font-medium">{{ $citoyen->signalements->count() }} demande(s) au
+                <span class="text-sm text-slate-500 font-medium">{{ $citoyen->actions->count() }} demande(s) au
                     total</span>
             </div>
 
-            @if($citoyen->signalements->count() > 0)
+            @if($citoyen->actions->count() > 0)
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
                         <thead>
@@ -92,26 +92,26 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100">
-                            @foreach($citoyen->signalements as $signalement)
+                            @foreach($citoyen->actions as $action)
                                 <tr class="hover:bg-slate-50 transition-colors text-sm">
                                     <td class="px-6 py-4 whitespace-nowrap text-slate-600 font-medium">
-                                        {{ \Carbon\Carbon::parse($signalement->date_creation)->format('d/m/Y') }}
+                                        {{ \Carbon\Carbon::parse($action->date_creation)->format('d/m/Y') }}
                                     </td>
                                     <td class="px-6 py-4 font-bold text-slate-400">
-                                        #{{ $signalement->id_sig }}
+                                        #{{ $action->id_action }}
                                     </td>
                                     <td class="px-6 py-4">
                                         <div class="text-slate-900 font-medium truncate max-w-xs"
-                                            title="{{ $signalement->description }}">
-                                            {{ Str::limit($signalement->description, 50) }}
+                                            title="{{ $action->description }}">
+                                            {{ Str::limit($action->description, 50) }}
                                         </div>
-                                        <div class="text-xs text-slate-500 mt-1">Via {{ $signalement->mode_reception }}</div>
+                                        <div class="text-xs text-slate-500 mt-1">Via {{ $action->mode_reception }}</div>
                                     </td>
                                     <td class="px-6 py-4">
-                                        <x-badge type="statut" :value="$signalement->statut_signalement" />
+                                        <x-badge type="statut" :value="$action->statut_action" />
                                     </td>
                                     <td class="px-6 py-4 text-right">
-                                        <a href="{{ route('signalements.show', $signalement->id_sig) }}"
+                                        <a href="{{ route('actions.show', $action->id_action) }}"
                                             class="text-blue-600 hover:text-blue-800 font-bold text-xs uppercase tracking-wider">
                                             Consulter →
                                         </a>
@@ -131,7 +131,7 @@
                             </path>
                         </svg>
                     </div>
-                    <p class="text-slate-500 font-medium">Ce citoyen n'a aucun signalement dans son historique pour le moment.
+                    <p class="text-slate-500 font-medium">Ce citoyen n'a aucun action dans son historique pour le moment.
                     </p>
                 </div>
             @endif

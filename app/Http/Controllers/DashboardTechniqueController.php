@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Signalement;
+use App\Models\action;
 use App\Models\Intervention;
 use App\Models\Equipement;
 use App\Models\ControleReglementaire;
@@ -12,9 +12,9 @@ class DashboardTechniqueController extends Controller
 {
     public function index()
     {
-        // 1. Signalements à traiter
-        $nouveauxSignalements = Signalement::with('categorie')
-            ->where('statut_signalement', 'Nouveau')
+        // 1. actions à traiter
+        $nouveauxactions = action::with('categorie')
+            ->where('statut_action', 'Nouveau')
             ->orderBy('date_creation', 'desc')
             ->take(5)
             ->get();
@@ -35,7 +35,7 @@ class DashboardTechniqueController extends Controller
 
         // On envoie tout à la vue grâce à la fonction compact() qui est plus propre
         return view('technique.dashboard', compact(
-            'nouveauxSignalements',
+            'nouveauxactions',
             'interventionsEnCours',
             'equipementsEnPanne',
             'controles'

@@ -9,8 +9,8 @@
         <div
             class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm flex items-center justify-between hover:shadow-md transition">
             <div>
-                <div class="text-slate-500 text-sm font-bold uppercase tracking-wider mb-1">Signalements</div>
-                <div class="text-3xl font-extrabold text-slate-800">{{ count($nouveauxSignalements) }}<span
+                <div class="text-slate-500 text-sm font-bold uppercase tracking-wider mb-1">actions</div>
+                <div class="text-3xl font-extrabold text-slate-800">{{ count($nouveauxactions) }}<span
                         class="text-sm font-medium text-slate-400 ml-1">nouveaux</span></div>
             </div>
             <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center">
@@ -79,23 +79,23 @@
             <div class="bg-slate-50 px-6 py-4 border-b border-slate-200 flex justify-between items-center">
                 <h2 class="font-bold text-slate-800 text-lg flex items-center">
                     <span class="w-2 h-2 rounded-full bg-amber-500 mr-2"></span>
-                    🚨 Derniers Signalements
+                    🚨 Derniers actions
                 </h2>
                 <div class="flex items-center gap-3">
-                    <a href="{{ route('signalements.create') }}"
+                    <a href="{{ route('actions.create') }}"
                         class="text-xs bg-blue-600 text-white px-3 py-1.5 rounded-lg font-bold hover:bg-blue-700 transition shadow-sm">
                         + Saisir
                     </a>
-                    <a href="{{ route('signalements.index') }}"
+                    <a href="{{ route('actions.index') }}"
                         class="text-xs font-bold text-slate-500 hover:text-blue-600 transition">Voir tout →</a>
                 </div>
             </div>
             <div class="flex-1 p-0">
                 <ul class="divide-y divide-slate-100 text-sm">
-                    @forelse($nouveauxSignalements as $signalement)
+                    @forelse($nouveauxactions as $action)
                         <li class="hover:bg-slate-50 transition-colors">
-                            <a href="{{ route('signalements.show', $signalement->id_sig) }}" class="block px-6 py-4">
-                                <div class="font-bold text-slate-800 truncate mb-1">{{ $signalement->description }}</div>
+                            <a href="{{ route('actions.show', $action->id_action) }}" class="block px-6 py-4">
+                                <div class="font-bold text-slate-800 truncate mb-1">{{ $action->description }}</div>
                                 <div class="text-slate-500 flex justify-between items-center">
                                     <span class="flex items-center">
                                         <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -103,9 +103,9 @@
                                                 d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z">
                                             </path>
                                         </svg>
-                                        {{ $signalement->categorie->libelle ?? 'Non catégorisé' }}
+                                        {{ $action->categorie->libelle ?? 'Non catégorisé' }}
                                     </span>
-                                    <x-badge type="priorite" :value="$signalement->priorite" />
+                                    <x-badge type="priorite" :value="$action->priorite" />
                                 </div>
                             </a>
                         </li>
@@ -114,7 +114,7 @@
                             <svg class="w-8 h-8 mb-2 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            Aucun nouveau signalement à traiter.
+                            Aucun nouveau action à traiter.
                         </li>
                     @endforelse
                 </ul>

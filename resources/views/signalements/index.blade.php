@@ -1,16 +1,16 @@
 @extends('layouts.app')
 
-@section('title', 'Registre des Signalements')
+@section('title', 'Registre des actions')
 
 @section('content')
     <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
         <div class="bg-slate-50 px-6 py-4 border-b border-slate-200 flex justify-between items-center">
             <div>
-                <h1 class="text-xl font-bold text-slate-800">📋 Registre des Signalements</h1>
+                <h1 class="text-xl font-bold text-slate-800">📋 Registre des actions</h1>
                 <p class="text-sm text-slate-500">Liste exhaustive des doléances citoyennes</p>
             </div>
             <div class="flex gap-3">
-                <a href="{{ route('signalements.excel') }}"
+                <a href="{{ route('actions.excel') }}"
                     class="flex items-center gap-2 bg-white border border-slate-300 px-4 py-2 rounded-lg text-sm font-semibold text-slate-700 hover:bg-slate-50 transition">
                     <svg class="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd"
@@ -20,12 +20,12 @@
                     Exporter
                 </a>
 
-                <a href="{{ route('signalements.create') }}"
+                <a href="{{ route('actions.create') }}"
                     class="flex items-center gap-2 bg-blue-600 px-4 py-2 rounded-lg text-sm font-bold text-white hover:bg-blue-700 shadow-md transition">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                     </svg>
-                    Nouveau Signalement
+                    Nouveau action
                 </a>
             </div>
         </div>
@@ -43,9 +43,9 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
-                    @foreach($signalements as $sig)
+                    @foreach($actions as $sig)
                         <tr class="hover:bg-slate-50 transition-colors text-sm">
-                            <td class="px-6 py-4 font-bold text-slate-700">#{{ $sig->id_sig }}</td>
+                            <td class="px-6 py-4 font-bold text-slate-700">#{{ $sig->id_action }}</td>
                             <td class="px-6 py-4 text-slate-600">
                                 {{ \Carbon\Carbon::parse($sig->date_creation)->format('d/m/Y') }}
                             </td>
@@ -57,10 +57,10 @@
                                 {{ Str::limit($sig->description, 60) }}
                             </td>
                             <td class="px-6 py-4">
-                                <x-badge type="statut" :value="$sig->statut_signalement" />
+                                <x-badge type="statut" :value="$sig->statut_action" />
                             </td>
                             <td class="px-6 py-4 text-right">
-                                <a href="{{ route('signalements.show', $sig->id_sig) }}"
+                                <a href="{{ route('actions.show', $sig->id_action) }}"
                                     class="text-blue-600 hover:text-blue-800 font-medium">
                                     Consulter →
                                 </a>

@@ -11,7 +11,7 @@ class DatabaseRefSeeder extends Seeder
     {
         // On ne garde STRICTEMENT que les modules applicatifs réels
         $modules = [
-            ['nom_module' => 'Signalements'],
+            ['nom_module' => 'actions'],
             ['nom_module' => 'Interventions'],
             ['nom_module' => 'Patrimoine & Equipements'],
             ['nom_module' => 'Utilisateurs & Droits'],

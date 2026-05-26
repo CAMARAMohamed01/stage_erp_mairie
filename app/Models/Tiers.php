@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+
 class Tiers extends Model
 {
     use HasFactory;
@@ -31,9 +32,9 @@ class Tiers extends Model
     {
         return $this->hasOne(TiersMorale::class, 'id_tiers', 'id_tiers');
     }
-    public function signalements()
+    public function actions()
     {
-        return $this->hasMany(Signalement::class, 'id_tiers', 'id_tiers');
+        return $this->hasMany(action::class, 'id_tiers', 'id_tiers');
     }
 
     // Création d'un attribut virtuel "nom_affiche"

@@ -1,17 +1,17 @@
 @extends('layouts.app')
 
-@section('title', 'Détail du Signalement #' . $signalement->id_sig)
+@section('title', 'Détail du action #' . $action->id_action)
 
 @section('content')
     <div class="max-w-4xl mx-auto">
         <div class="mb-6">
-            <a href="{{ route('signalements.index') }}"
+            <a href="{{ route('actions.index') }}"
                 class="text-slate-500 hover:text-slate-800 text-sm flex items-center transition">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18">
                     </path>
                 </svg>
-                Retour à la liste des signalements
+                Retour à la liste des actions
             </a>
         </div>
 
@@ -19,25 +19,25 @@
             <div class="p-8">
                 <div class="flex justify-between items-start mb-6 border-b border-slate-100 pb-6">
                     <div class="pr-6">
-                        <h1 class="text-2xl font-bold text-slate-900 mb-2">Signalement #{{ $signalement->id_sig }}</h1>
+                        <h1 class="text-2xl font-bold text-slate-900 mb-2">action #{{ $action->id_action }}</h1>
                         <p class="text-slate-600 text-lg italic bg-slate-50 p-3 rounded border border-slate-100">
-                            "{{ $signalement->description }}"
+                            "{{ $action->description }}"
                         </p>
                     </div>
                     <div class="flex flex-col items-end gap-3 min-w-max">
                         <div class="flex gap-2">
-                            <x-badge type="statut" :value="$signalement->statut_signalement" class="text-sm px-4 py-1" />
-                            <x-badge type="priorite" :value="$signalement->priorite" class="text-sm px-4 py-1" />
+                            <x-badge type="statut" :value="$action->statut_action" class="text-sm px-4 py-1" />
+                            <x-badge type="priorite" :value="$action->priorite" class="text-sm px-4 py-1" />
                         </div>
 
                         <div class="flex items-center gap-2 mt-2">
-                            <a href="{{ route('signalements.edit', $signalement->id_sig) }}"
+                            <a href="{{ route('actions.edit', $action->id_action) }}"
                                 class="text-xs bg-amber-100 text-amber-700 hover:bg-amber-200 px-3 py-1.5 rounded-lg font-bold transition">
                                 ✏️ Modifier
                             </a>
 
-                            <form action="{{ route('signalements.destroy', $signalement->id_sig) }}" method="POST"
-                                onsubmit="return confirm('⚠️ Êtes-vous sûr de vouloir supprimer ce signalement ?');">
+                            <form action="{{ route('actions.destroy', $action->id_action) }}" method="POST"
+                                onsubmit="return confirm('⚠️ Êtes-vous sûr de vouloir supprimer ce action ?');">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit"
@@ -64,13 +64,13 @@
                                 <div class="text-right">
                                     @php
                                         // On prépare le nom à afficher par défaut
-                                        $nomAffiche = $signalement->emetteur_nom;
+                                        $nomAffiche = $action->emetteur_nom;
 
                                         // S'il y a un ID Tiers, on va chercher dynamiquement le vrai nom !
-                                        if ($signalement->id_tiers) {
+                                        if ($action->id_tiers) {
                                             $citoyen = \App\Models\TiersPhysique::where(
                                                 'id_tiers',
-                                                $signalement->id_tiers
+                                                $action->id_tiers
                                             )->first();
                                             if ($citoyen) {
                                                 $nomAffiche = $citoyen->prenom_tiers . ' ' . $citoyen->nom_tiers;
@@ -80,7 +80,7 @@
 
                                     <span class="font-bold text-slate-800">{{ $nomAffiche }}</span>
 
-                                    @if($signalement->id_tiers)
+                                    @if($action->id_tiers)
                                         <span
                                             class="ml-2 inline-block text-[10px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full uppercase font-bold"
                                             title="Citoyen enregistré dans la base Tiers">
@@ -92,16 +92,16 @@
                             <div class="flex justify-between items-center border-b border-slate-200 pb-2">
                                 <span class="text-slate-500 text-sm">Contact :</span>
                                 <span
-                                    class="font-medium text-slate-800">{{ $signalement->emetteur_contact ?? 'Non renseigné' }}</span>
+                                    class="font-medium text-slate-800">{{ $action->emetteur_contact ?? 'Non renseigné' }}</span>
                             </div>
                             <div class="flex justify-between items-center border-b border-slate-200 pb-2">
                                 <span class="text-slate-500 text-sm">Réception :</span>
-                                <span class="font-medium text-slate-800">{{ $signalement->mode_reception }}</span>
+                                <span class="font-medium text-slate-800">{{ $action->mode_reception }}</span>
                             </div>
                             <div class="flex justify-between items-center">
                                 <span class="text-slate-500 text-sm">Date d'alerte :</span>
                                 <span
-                                    class="font-medium text-slate-800">{{ \Carbon\Carbon::parse($signalement->date_creation)->format('d/m/Y à H:i') }}</span>
+                                    class="font-medium text-slate-800">{{ \Carbon\Carbon::parse($action->date_creation)->format('d/m/Y à H:i') }}</span>
                             </div>
                         </div>
                     </div>
@@ -119,7 +119,7 @@
                             <div class="flex justify-between items-center border-b border-slate-200 pb-2">
                                 <span class="text-slate-500 text-sm">Catégorie :</span>
                                 <span
-                                    class="font-bold text-slate-800">{{ $signalement->categorie->libelle ?? 'Non définie' }}</span>
+                                    class="font-bold text-slate-800">{{ $action->categorie->libelle ?? 'Non définie' }}</span>
                             </div>
                             <div class="flex justify-between items-center">
                                 <span class="text-slate-500 text-sm">Assigné à :</span>
@@ -147,13 +147,13 @@
                 </div>
 
                 <div class="flex flex-wrap gap-3">
-                    <a href="{{ route('signalement.pdf', $signalement->id_sig) }}" target="_blank"
+                    <a href="{{ route('action.pdf', $action->id_action) }}" target="_blank"
                         class="px-4 py-2 bg-white border border-slate-300 text-slate-700 rounded-lg font-bold hover:bg-slate-100 transition shadow-sm flex items-center text-sm">
                         🖨️ Imprimer Récépissé
                     </a>
 
-                    @if($signalement->statut_signalement === 'Nouveau')
-                        <form action="{{ route('signalement.prendre-en-charge', $signalement->id_sig) }}" method="POST">
+                    @if($action->statut_action === 'Nouveau')
+                        <form action="{{ route('action.prendre-en-charge', $action->id_action) }}" method="POST">
                             @csrf
                             @method('PATCH')
                             <button type="submit"
@@ -172,8 +172,8 @@
                         </button>
                     @endif
 
-                    @if($signalement->statut_signalement !== 'Transmis')
-                        <form action="{{ route('signalement.creer-intervention', $signalement->id_sig) }}" method="POST">
+                    @if($action->statut_action !== 'Transmis')
+                        <form action="{{ route('action.creer-intervention', $action->id_action) }}" method="POST">
                             @csrf
                             <button type="submit"
                                 class="px-5 py-2 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 shadow-sm transition flex items-center text-sm">

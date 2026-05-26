@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Nouveau Signalement')
+@section('title', 'Nouveau action')
 
 @section('content')
     <div class="max-w-3xl mx-auto">
@@ -17,8 +17,8 @@
                                 d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
                                 clip-rule="evenodd"></path>
                         </svg>
-                        <a href="{{ route('signalements.index') }}"
-                            class="ml-1 text-sm text-slate-500 hover:text-blue-600 font-medium">Signalements</a>
+                        <a href="{{ route('actions.index') }}"
+                            class="ml-1 text-sm text-slate-500 hover:text-blue-600 font-medium">actions</a>
                     </div>
                 </li>
                 <li aria-current="page">
@@ -36,11 +36,11 @@
 
         <div class="bg-white rounded-xl border border-slate-200 shadow-lg overflow-hidden">
             <div class="bg-slate-900 px-8 py-6">
-                <h1 class="text-2xl font-bold text-white">Saisie d'un signalement</h1>
+                <h1 class="text-2xl font-bold text-white">Saisie d'un action</h1>
                 <p class="text-slate-400 text-sm mt-1">Enregistrement d'une doléance ou d'un incident technique.</p>
             </div>
 
-            <form action="{{ route('signalements.store') }}" method="POST" class="p-8 space-y-8">
+            <form action="{{ route('actions.store') }}" method="POST" class="p-8 space-y-8">
                 @csrf
 
                 <div class="bg-blue-50/50 p-6 rounded-xl border border-blue-100 space-y-6">
@@ -107,7 +107,7 @@
                                     (Base Tiers)</span>
                             </label>
                             <p class="text-xs text-slate-500 ml-8 mt-1">Cochez cette case si cette personne habite la
-                                commune. Elle sera ajoutée au répertoire pour ses futurs signalements.</p>
+                                commune. Elle sera ajoutée au répertoire pour ses futurs actions.</p>
                         </div>
                     </div>
                 </div>
@@ -174,13 +174,13 @@
                 </div>
 
                 <div class="pt-6 border-t border-slate-100 flex justify-end gap-4">
-                    <a href="{{ route('signalements.index') }}"
+                    <a href="{{ route('actions.index') }}"
                         class="px-6 py-2.5 text-sm font-bold text-slate-500 hover:text-slate-800 transition">
                         Annuler
                     </a>
                     <button type="submit"
                         class="px-8 py-2.5 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 shadow-md transition-all transform hover:-translate-y-0.5">
-                        Enregistrer le signalement
+                        Enregistrer le action
                     </button>
                 </div>
             </form>

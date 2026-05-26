@@ -128,14 +128,14 @@ class LocalController extends Controller
             ->orderBy('type_reseau')
             ->get();
 
-        // 4. Signalements ouverts pour cette pièce
-        $signalements = DB::table('signalement')
+        // 4. actions ouverts pour cette pièce
+        $actions = DB::table('action')
             ->where('id_local', $id)
-            ->where('statut_signalement', '!=', 'Clôturé')
+            ->where('statut_action', '!=', 'Clôturé')
             ->orderByDesc('date_creation')
             ->get();
 
-        return view('locaux.show', compact('local', 'equipements', 'compteurs', 'signalements', 'documents'));
+        return view('locaux.show', compact('local', 'equipements', 'compteurs', 'actions', 'documents'));
     }
 
     // --- FORMULAIRE DE MODIFICATION ---
@@ -204,11 +204,11 @@ class LocalController extends Controller
             return redirect()->back()->with('error', "🛑 Suppression impossible : Ce local abrite $compteurs compteur(s) de réseaux.");
         }
 
-        // 3. Vérifier s'il y a des signalements ou interventions liés à cette pièce
-        $signalements = DB::table('signalement')->where('id_local', $id)->count();
+        // 3. Vérifier s'il y a des actions ou interventions liés à cette pièce
+        $actions = DB::table('action')->where('id_local', $id)->count();
         $interventions = DB::table('intervention')->where('id_local', $id)->count();
-        if ($signalements > 0 || $interventions > 0) {
-            return redirect()->back()->with('error', "🛑 Suppression impossible : Ce local est référencé dans $signalements signalement(s) ou $interventions intervention(s).");
+        if ($actions > 0 || $interventions > 0) {
+            return redirect()->back()->with('error', "🛑 Suppression impossible : Ce local est référencé dans $actions action(s) ou $interventions intervention(s).");
         }
 
         // 4. Si aucun blocage, exécution de la suppression

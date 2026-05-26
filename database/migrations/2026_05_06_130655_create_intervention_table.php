@@ -32,7 +32,7 @@ return new class extends Migration {
             $table->unsignedBigInteger('id_local')->nullable();
             $table->unsignedBigInteger('id_user_demandeur')->nullable();
             $table->unsignedBigInteger('id_service')->nullable();
-            $table->unsignedBigInteger('id_sig')->nullable();
+            $table->unsignedBigInteger('id_action')->nullable();
             $table->unsignedBigInteger('id_operation')->nullable();
 
             $table->foreign('id_adresse')->references('id_adresse')->on('Adresse');
@@ -46,7 +46,7 @@ return new class extends Migration {
             $table->foreign('id_local')->references('id_local')->on('local_');
             $table->foreign('id_user_demandeur')->references('id_user')->on('utilisateur');
             $table->foreign('id_service')->references('id_service')->on('service_mairie');
-            $table->foreign('id_sig')->references('id_sig')->on('signalement');
+            $table->foreign('id_action')->references('id_action')->on('action');
             $table->foreign('id_operation')->references('id_operation')->on('operation_comptable');
             $table->timestamps();
         });

@@ -85,7 +85,7 @@
                 <tr>
                     <td class="py-1 text-slate-500">Origine :</td>
                     <td class="py-1 font-semibold">
-                        {{ $intervention->id_sig ? 'Signalement #' . $intervention->id_sig : 'Interne' }}
+                        {{ $intervention->id_action ? 'action #' . $intervention->id_action : 'Interne' }}
                     </td>
                 </tr>
             </table>

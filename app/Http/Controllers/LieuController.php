@@ -115,8 +115,10 @@ class LieuController extends Controller
     // --- FORMULAIRE DE MODIFICATION ---
     public function edit($id)
     {
-        // On charge l'objet avec ses contrats pour pré-cocher les cases
-        $lieu = LieuPublic::with('contratsAdministratifs')->findOrFail($id);
+        // 🟢 CORRECTION : Ajout du selectRaw pour récupérer le GeoJSON du point GPS
+        $lieu = LieuPublic::with('contratsAdministratifs')
+            ->select('*', DB::raw('ST_AsGeoJSON(geom_lieu) as geojson_lieu'))
+            ->findOrFail($id);
 
         $immos = DB::table('immobilisation_inventaire_')->orderBy('num_inventaire')->get();
         $decisions = DB::table('decision_administratif')->orderByDesc('date_decision')->get();
@@ -179,12 +181,11 @@ class LieuController extends Controller
         if ($request->filled('geojson_data')) {
             DB::update(
                 "UPDATE lieux_publics 
-             SET geom_lieu = ST_SetSRID(ST_GeomFromGeoJSON(?), 4326) 
-             WHERE id_batiment = ?",
+                 SET geom_lieu = ST_SetSRID(ST_GeomFromGeoJSON(?), 4326) 
+                 WHERE id_lieu = ?",
                 [$request->geojson_data, $lieu->id_lieu]
             );
         }
-
 
         return redirect()->route('lieux.show', $id)
             ->with('success', 'Les informations du lieu ont été mises à jour.');
@@ -263,24 +264,56 @@ class LieuController extends Controller
     }
 
 
-
-    // --- SUPPRESSION SÉCURISÉE ---
     public function destroy($id)
     {
-        // Vérification des dépendances multiples
-        $locaux = DB::table('local_')->where('id_lieu', $id)->count();
-        $equipements = DB::table('equipement')->where('id_lieu', $id)->count();
-        $vegetaux = DB::table('patrimoine_vegetal')->where('id_lieu', $id)->count();
-        $emplacements = DB::table('emplacement_funeraire')->where('id_lieu', $id)->count();
-        $plans = DB::table('plan_entretien_vert')->where('id_lieu', $id)->count();
-        $interventions = DB::table('intervention_espace')->where('id_lieu', $id)->count();
+        try {
+            // On lance une transaction : si une seule suppression échoue, on annule tout pour ne pas corrompre la base
+            DB::beginTransaction();
 
-        if ($locaux > 0 || $equipements > 0 || $vegetaux > 0 || $emplacements > 0 || $plans > 0 || $interventions > 0) {
-            return redirect()->back()->with('error', "🛑 Impossible de supprimer ce lieu. Il contient encore des éléments rattachés (Locaux: $locaux, Équipements: $equipements, Végétaux: $vegetaux, Emplacements: $emplacements, Entretien: $plans, Interventions: $interventions).");
+            $lieu = LieuPublic::findOrFail($id);
+
+            // 1. Détacher les contrats de la table pivot
+            $lieu->contratsAdministratifs()->detach();
+
+            // 2. Gestion des sous-dépendances (ex: Compteurs liés aux locaux de ce lieu)
+            $locauxIds = DB::table('local_')->where('id_lieu', $id)->pluck('id_local');
+            if ($locauxIds->isNotEmpty()) {
+                // On supprime d'abord les compteurs rattachés aux locaux de ce lieu
+                DB::table('compteur')->whereIn('id_local', $locauxIds)->delete();
+                // S'il y avait d'autres choses rattachées au local (ex: equipements de local), il faudrait les ajouter ici
+            }
+
+            // 3. Nettoyage de toutes les tables liées directement à id_lieu
+            DB::table('controle_reglementaire')->where('id_lieu', $id)->delete(); // <-- C'est elle qui manquait !
+            DB::table('document')->where('id_lieu', $id)->delete();
+            DB::table('equipement')->where('id_lieu', $id)->update(['id_lieu' => null]);
+            DB::table('patrimoine_vegetal')->where('id_lieu', $id)->delete();
+            DB::table('emplacement_funeraire')->where('id_lieu', $id)->delete();
+            DB::table('plan_entretien_vert')->where('id_lieu', $id)->delete();
+            DB::table('intervention_espace')->where('id_lieu', $id)->delete();
+
+            // 4. Maintenant on peut supprimer les locaux
+            DB::table('local_')->where('id_lieu', $id)->delete();
+
+            // 5. Et enfin, on supprime le lieu lui-même
+            $lieu->delete();
+
+            // On valide toutes les requêtes
+            DB::commit();
+
+            return redirect()->route('lieux.index')
+                ->with('success', '✅ Le lieu public et l\'intégralité de ses éléments rattachés ont été supprimés avec succès.');
+
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Si PostgreSQL bloque la suppression, on annule et on affiche l'erreur exacte
+            DB::rollBack();
+
+            // On extrait le message d'erreur SQL pour qu'il soit lisible
+            return redirect()->back()->with('error', "🛑 Échec de la suppression à cause d'une contrainte de base de données. Détail technique : " . $e->getMessage());
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', "🛑 Erreur inattendue : " . $e->getMessage());
         }
-
-        DB::table('lieux_publics')->where('id_lieu', $id)->delete();
-        return redirect()->route('lieux.index')->with('success', 'Le lieu a été retiré du référentiel.');
     }
 
     public function uploadDocument(Request $request, $idLieu)

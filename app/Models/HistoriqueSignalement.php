@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class HistoriqueSignalement extends Model
+class Historiqueaction extends Model
 {
     //
 }
