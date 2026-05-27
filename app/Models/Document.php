@@ -16,4 +16,33 @@ class Document extends Model
     public $timestamps = false;
 
     protected $guarded = [];
+
+    public function physique()
+    {
+        return $this->hasOne(TiersPhysique::class, 'id_tiers', 'id_tiers');
+    }
+
+    // Relation Entreprise
+    public function morale()
+    {
+        return $this->hasOne(TiersMorale::class, 'id_tiers', 'id_tiers');
+    }
+
+    // NOUVEAU : Relation vers les comptes bancaires
+    public function comptesBancaires()
+    {
+        return $this->hasMany(CompteBancaire::class, 'id_tiers', 'id_tiers');
+    }
+
+    // NOUVEAU : Relation directe vers les documents du tiers
+    public function documents()
+    {
+        return $this->hasMany(Document::class, 'id_tiers', 'id_tiers');
+    }
+
+    // Relation vers l'historique des requêtes (Nomme-le bien selon ton modèle d'actions)
+    public function actions()
+    {
+        return $this->hasMany(Action::class, 'id_tiers', 'id_tiers');
+    }
 }

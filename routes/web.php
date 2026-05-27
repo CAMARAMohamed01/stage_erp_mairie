@@ -44,7 +44,23 @@ Route::middleware('auth')->group(function () {
 
     // --- MODULE CITOYENS / TIERS ---
     Route::get('/citoyens', [TiersController::class, 'index'])->name('tiers.index');
+    Route::get('/tiers/create', [TiersController::class, 'create'])->name('tiers.create');
+    Route::post('/tiers', [TiersController::class, 'store'])->name('tiers.store');
     Route::get('/citoyens/{id}', [TiersController::class, 'show'])->name('tiers.show');
+    Route::get('/tiers/{id}/edit', [TiersController::class, 'edit'])->name('tiers.edit');
+    Route::put('/tiers/{id}', [TiersController::class, 'update'])->name('tiers.update');
+
+    // ---MODULE ENTREPRISE---//
+    // CRUD Tiers Morale (Entreprises)
+    Route::get('/entreprises', [TiersController::class, 'entreprises'])->name('tiers.entreprises');
+    Route::get('/entreprises/create', [TiersController::class, 'createEntreprise'])->name('tiers.create_entreprise');
+    Route::post('/entreprises', [TiersController::class, 'storeEntreprise'])->name('tiers.store_entreprise');
+    Route::get('/entreprises/{id}', [TiersController::class, 'showEntreprise'])->name('tiers.show_entreprise');
+    Route::get('/entreprises/{id}/edit', [TiersController::class, 'editEntreprise'])->name('tiers.edit_entreprise');
+
+    Route::put('/entreprises/{id}', [TiersController::class, 'updateEntreprise'])->name('tiers.update_entreprise');
+    // Route de suppression générique pour les Tiers (Physique ou Morale)
+    Route::delete('/tiers/{id}', [TiersController::class, 'destroy'])->name('tiers.destroy');
 
     // ======================================================== suppression de la route globale de suppression de document (sécurisée via la matrice de droits)
     Route::delete('/documents/global/{id}', function ($id) {

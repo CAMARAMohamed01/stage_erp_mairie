@@ -17,9 +17,15 @@
                 </h1>
                 <p class="text-slate-400 text-sm mt-1">Base de données des contacts (Tiers Physiques)</p>
             </div>
-            <span class="bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-bold">
-                {{ $citoyens->count() }} contact(s)
-            </span>
+            <div>
+                <span class="bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-bold">
+                    {{ $citoyens->count() }} contact(s)
+                </span>
+                <a href="{{ route('tiers.create') }}"
+                    class="ml-4 bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 rounded text-sm font-bold shadow-sm transition">
+                    + Nouveau Citoyen
+                </a>
+            </div>
         </div>
 
         <div class="px-6 py-4 bg-slate-50 border-b border-slate-200">

@@ -27,10 +27,19 @@ class Tiers extends Model
     {
         return $this->hasOne(TiersPhysique::class, 'id_tiers', 'id_tiers');
     }
-
+    // Relation directe vers les documents rattachés au tiers
+    public function documents()
+    {
+        return $this->hasMany(Document::class, 'id_tiers', 'id_tiers');
+    }
     public function morale()
     {
         return $this->hasOne(TiersMorale::class, 'id_tiers', 'id_tiers');
+    }
+
+    public function comptesBancaires()
+    {
+        return $this->hasMany(CompteBancaire::class, 'id_tiers', 'id_tiers');
     }
     public function actions()
     {

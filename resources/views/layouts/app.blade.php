@@ -197,7 +197,10 @@
                     class="flex flex-col pl-12 pr-4 py-1 space-y-1 {{ request()->routeIs('tiers.*', 'contrats.*', 'dossiers-financiers.*') ? '' : 'hidden' }}">
                     <a href="{{ route('tiers.index') }}"
                         class="text-sm py-2 transition-colors {{ request()->routeIs('tiers.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Annuaire
-                        Citoyens / Tiers</a>
+                        Citoyens</a>
+                    <a href="{{ route('tiers.entreprises') }}"
+                        class="text-sm py-2 transition-colors {{ request()->routeIs('entreprises.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Annuaire
+                        Entreprises</a>
                     <a href="{{ route('contrats.index') }}"
                         class="text-sm py-2 transition-colors {{ request()->routeIs('contrats.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Contrats
                         & Engagements</a>
