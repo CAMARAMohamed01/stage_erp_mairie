@@ -9,9 +9,24 @@ use Illuminate\Support\Facades\DB;
 
 class EmplacementFuneraireController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $emplacements = EmplacementFuneraire::with('lieu')->orderBy('reference_emplacement')->get();
+        // 1. Initialisation de la requête
+        $query = EmplacementFuneraire::with('lieu');
+
+        // 2. Filtrage par Statut
+        if ($request->filled('statut')) {
+            $query->where('statut_occupation', $request->statut);
+        }
+
+        // 3. Filtrage par Type
+        if ($request->filled('type')) {
+            $query->where('type_emplacement', $request->type);
+        }
+
+        // 4. Exécution
+        $emplacements = $query->orderBy('reference_emplacement')->get();
+
         return view('emplacements.index', compact('emplacements'));
     }
 

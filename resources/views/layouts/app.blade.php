@@ -166,7 +166,7 @@
                     </svg>
                 </button>
                 <div id="menu-interventions"
-                    class="flex flex-col pl-12 pr-4 py-1 space-y-1 {{ request()->routeIs('actions.*', 'interventions.*') ? '' : 'hidden' }}">
+                    class="flex flex-col pl-12 pr-4 py-1 space-y-1 {{ request()->routeIs('actions.*', 'interventions.*', 'projets.*') ? '' : 'hidden' }}">
                     <a href="{{ route('actions.index') }}"
                         class="text-sm py-2 transition-colors {{ request()->routeIs('actions.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">actions
                         Citoyens</a>

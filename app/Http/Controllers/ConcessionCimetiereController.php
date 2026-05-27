@@ -11,9 +11,46 @@ use Illuminate\Support\Facades\DB;
 
 class ConcessionCimetiereController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $concessions = ConcessionCimetiere::with(['emplacement', 'contrat.tiers', 'defunts'])->get();
+        // 1. Initialisation avec les relations nécessaires
+        $query = ConcessionCimetiere::with(['emplacement.lieu', 'contrat.tiers', 'defunts']);
+
+        // 2. Recherche textuelle (Titulaire ou N° de contrat)
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->whereHas('contrat', function ($q) use ($search) {
+                $q->where('numero_contrat', 'ilike', '%' . $search . '%')
+                    ->orWhereHas('tiers', function ($q2) use ($search) {
+                        // On cherche dans les tables enfants au lieu de chercher dans la table parente
+                        $q2->whereHas('physique', function ($sub) use ($search) {
+                            $sub->where('nom_tiers', 'ilike', '%' . $search . '%')
+                                ->orWhere('prenom_tiers', 'ilike', '%' . $search . '%');
+                        })
+                            ->orWhereHas('morale', function ($sub) use ($search) {
+                            $sub->where('raison_sociale', 'ilike', '%' . $search . '%');
+                        });
+                    });
+            });
+        }
+
+        // 3. Filtrage par statut (via la date d'échéance du contrat)
+        if ($request->filled('statut')) {
+            $statut = $request->statut;
+
+            $query->whereHas('contrat', function ($q) use ($statut) {
+                if ($statut === 'perpétuelle') {
+                    $q->whereNull('date_echeance');
+                } elseif ($statut === 'en_cours') {
+                    $q->where('date_echeance', '>', now());
+                } elseif ($statut === 'echues') {
+                    $q->where('date_echeance', '<=', now());
+                }
+            });
+        }
+
+        $concessions = $query->orderBy('id_concession', 'desc')->get();
+
         return view('concessions.index', compact('concessions'));
     }
 

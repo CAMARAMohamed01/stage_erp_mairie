@@ -29,7 +29,52 @@
                 </a>
             </div>
         </div>
+        <form action="{{ route('actions.index') }}" method="GET" class="flex flex-wrap gap-2 mb-6">
 
+            <div class="relative flex-grow max-w-sm">
+                <input type="text" name="search" value="{{ request('search') }}"
+                    placeholder="Rechercher par émetteur ou description..."
+                    class="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 shadow-sm transition">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                </div>
+            </div>
+
+            <select name="statut"
+                class="border border-slate-300 rounded-lg py-2 px-3 text-sm focus:ring-2 focus:ring-blue-500 shadow-sm">
+                <option value="">Tous les statuts</option>
+                <option value="Ouvert" {{ request('statut') == 'Ouvert' ? 'selected' : '' }}>Ouvert</option>
+                <option value="En cours" {{ request('statut') == 'En cours' ? 'selected' : '' }}>En cours</option>
+                <option value="Transmis" {{ request('statut') == 'Transmis' ? 'selected' : '' }}>Transmis</option>
+                <option value="Abandonné" {{ request('statut') == 'Abandonné' ? 'selected' : '' }}>Abandonné</option>
+                <option value="Terminé" {{ request('statut') == 'Terminé' ? 'selected' : '' }}>Terminé</option>
+            </select>
+
+            <select name="categorie_id"
+                class="border border-slate-300 rounded-lg py-2 px-3 text-sm focus:ring-2 focus:ring-blue-500 shadow-sm">
+                <option value="">Toutes catégories</option>
+                @foreach($categories as $cat)
+                    <option value="{{ $cat->id_cat }}" {{ request('categorie_id') == $cat->id_cat ? 'selected' : '' }}>
+                        {{ $cat->libelle }}
+                    </option>
+                @endforeach
+            </select>
+
+            <button type="submit"
+                class="px-4 py-2 bg-slate-800 text-white text-sm font-bold rounded-lg hover:bg-slate-700 transition">
+                Filtrer
+            </button>
+
+            @if(request()->anyFilled(['search', 'statut', 'categorie_id']))
+                <a href="{{ route('actions.index') }}"
+                    class="px-4 py-2 bg-slate-100 text-slate-600 text-sm font-bold rounded-lg hover:bg-slate-200 transition">
+                    Réinitialiser
+                </a>
+            @endif
+        </form>
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
                 <thead>

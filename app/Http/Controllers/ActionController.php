@@ -15,12 +15,35 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Session;
 class actionController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        // On récupère tous les actions avec leur catégorie
-        $actions = action::with('categorie')->orderBy('date_creation', 'desc')->get();
+        // 1. Initialisation de la requête
+        $query = action::query()->with('categorie');
 
-        return view('actions.index', compact('actions'));
+        // 2. Recherche textuelle (Description ou Émetteur)
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('description', 'ilike', '%' . $search . '%')
+                    ->orWhere('emetteur_nom', 'ilike', '%' . $search . '%');
+            });
+        }
+
+        // 3. Filtrage par Statut
+        if ($request->filled('statut')) {
+            $query->where('statut_action', $request->statut);
+        }
+
+        // 4. Filtrage par Catégorie
+        if ($request->filled('categorie_id')) {
+            $query->where('id_cat', $request->categorie_id);
+        }
+
+        // 5. Exécution et récupération des catégories pour le menu déroulant
+        $actions = $query->orderBy('date_creation', 'desc')->get();
+        $categories = Categorie::orderBy('libelle')->get();
+
+        return view('actions.index', compact('actions', 'categories'));
     }
     // La méthode pour afficher UN dossier complet
     public function show($id)

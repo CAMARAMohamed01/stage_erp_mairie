@@ -10,9 +10,49 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 class CompteurController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $compteurs = Compteur::with(['local.batiment', 'contrat'])->orderBy('numero_compteur')->get();
+        // 1. Initialisation avec Eager Loading pour éviter les requêtes N+1
+        $query = Compteur::with(['local.batiment', 'contrat']);
+
+        // 2. Application du filtre
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('point_comptage', 'ilike', '%' . $search . '%')
+                    ->orWhere('numero_compteur', 'ilike', '%' . $search . '%')
+                    ->orWhere('type_reseau', 'ilike', '%' . $search . '%')
+                    // Recherche avancée dans les tables liées
+                    ->orWhereHas('local', function ($q) use ($search) {
+                        $q->where('nom_local', 'ilike', '%' . $search . '%')
+                            ->orWhereHas('batiment', function ($q) use ($search) {
+                                $q->where('nom_bat', 'ilike', '%' . $search . '%');
+                            });
+                    });
+            });
+        }
+        if ($request->filled('statut')) {
+            $statut = $request->statut;
+
+            if ($statut === 'en_service') {
+                // Un compteur est en service si la date_arret est nulle OU dans le futur
+                $query->where(function ($q) {
+                    $q->whereNull('date_arret')
+                        ->orWhere('date_arret', '>', now());
+                });
+            } elseif ($statut === 'depose') {
+                // Un compteur est déposé si la date_arret est passée
+                $query->whereNotNull('date_arret')
+                    ->where('date_arret', '<=', now());
+            }
+        }
+        if ($request->filled('type_reseau')) {
+            $query->where('type_reseau', $request->type_reseau);
+        }
+
+        // Tri et exécution
+        $compteurs = $query->orderBy('numero_compteur')->get();
+
         return view('compteurs.index', compact('compteurs'));
     }
 

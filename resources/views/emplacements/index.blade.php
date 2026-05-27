@@ -16,7 +16,39 @@
                 </a>
             @endif
         </div>
+        <form action="{{ route('emplacements.index') }}" method="GET" class="flex flex-wrap gap-2 mb-6">
 
+            <select name="statut"
+                class="border border-slate-300 rounded-lg py-2 px-3 text-sm focus:ring-2 focus:ring-slate-500 shadow-sm">
+                <option value="">Tous les statuts</option>
+                <option value="Libre" {{ request('statut') == 'Libre' ? 'selected' : '' }}>Libre</option>
+                <option value="Occupé" {{ request('statut') == 'Occupé' ? 'selected' : '' }}>Occupé</option>
+                <option value="Réservé" {{ request('statut') == 'Réservé' ? 'selected' : '' }}>Réservé</option>
+            </select>
+
+            <select name="type"
+                class="border border-slate-300 rounded-lg py-2 px-3 text-sm focus:ring-2 focus:ring-slate-500 shadow-sm">
+                <option value="">Tous les types</option>
+                <option value="Pleine terre" {{ request('type') == 'Pleine terre' ? 'selected' : '' }}>Pleine terre</option>
+                <option value="Caveau" {{ request('type') == 'Caveau' ? 'selected' : '' }}>Caveau</option>
+                <option value="Case columbarium" {{ request('type') == 'Case columbarium' ? 'selected' : '' }}>Case
+                    columbarium</option>
+                <option value="Cavurne" {{ request('type') == 'Cavurne' ? 'selected' : '' }}>Cavurne</option>
+                <option value="Enfeu" {{ request('type') == 'Enfeu' ? 'selected' : '' }}>Enfeu</option>
+            </select>
+
+            <button type="submit"
+                class="px-4 py-2 bg-slate-800 text-white text-sm font-semibold rounded-lg hover:bg-slate-700 transition">
+                Filtrer
+            </button>
+
+            @if(request()->filled('statut') || request()->filled('type'))
+                <a href="{{ route('emplacements.index') }}"
+                    class="px-4 py-2 bg-slate-100 text-slate-600 text-sm font-semibold rounded-lg hover:bg-slate-200 transition">
+                    Réinitialiser
+                </a>
+            @endif
+        </form>
         <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
             <table class="w-full text-left border-collapse">
                 <thead>
