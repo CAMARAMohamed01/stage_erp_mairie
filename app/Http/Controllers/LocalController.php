@@ -9,21 +9,32 @@ use Illuminate\Support\Facades\DB;
 class LocalController extends Controller
 {
     // Afficher la liste de tous les locaux
-    public function index()
+    public function index(Request $request)
     {
-        // On récupère les locaux avec leur bâtiment et leur usage
-        $locaux = DB::table('local_')
+        // 1. Initialisation de la requête avec les jointures
+        $query = DB::table('local_')
             ->leftJoin('batiment', 'local_.id_batiment', '=', 'batiment.id_batiment')
             ->leftJoin('type_usage', 'local_.id_usage', '=', 'type_usage.id_usage')
-            ->select('local_.*', 'batiment.nom_bat', 'type_usage.libelle_usage')
-            ->orderBy('batiment.nom_bat')
+            ->select('local_.*', 'batiment.nom_bat', 'type_usage.libelle_usage');
+
+        // 2. Application du filtre si une recherche est effectuée
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('local_.nom_local', 'ilike', '%' . $search . '%')
+                    ->orWhere('batiment.nom_bat', 'ilike', '%' . $search . '%')
+                    ->orWhere('type_usage.libelle_usage', 'ilike', '%' . $search . '%');
+            });
+        }
+
+        // 3. Tri final
+        $locaux = $query->orderBy('batiment.nom_bat')
             ->orderBy('local_.niveau')
             ->orderBy('local_.nom_local')
             ->get();
 
         return view('locaux.index', compact('locaux'));
     }
-
     // Préparer le formulaire d'ajout
     public function create()
     {
