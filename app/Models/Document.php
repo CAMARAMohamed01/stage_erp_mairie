@@ -6,16 +6,22 @@ use Illuminate\Database\Eloquent\Model;
 
 class Document extends Model
 {
-    // On force le nom singulier de la table
     protected $table = 'document';
 
-    // On précise la clé primaire
+    // ⚠️ CRUCIAL : Indiquer le nom de la clé primaire
     protected $primaryKey = 'id_document';
 
-    // On désactive les timestamps (created_at, updated_at) si tu ne les as pas dans ta table
     public $timestamps = false;
 
-    protected $guarded = [];
+    protected $fillable = [
+        'nom_fichier',
+        'type_doc',
+        'chemin_stockage',
+        'taille_ko',
+        'date_upload',
+        'id_compte',
+        'id_tiers'
+    ];
 
     public function physique()
     {
@@ -28,10 +34,9 @@ class Document extends Model
         return $this->hasOne(TiersMorale::class, 'id_tiers', 'id_tiers');
     }
 
-    // NOUVEAU : Relation vers les comptes bancaires
-    public function comptesBancaires()
+    public function compteBancaire()
     {
-        return $this->hasMany(CompteBancaire::class, 'id_tiers', 'id_tiers');
+        return $this->belongsTo(CompteBancaire::class, 'id_compte', 'id_compte');
     }
 
     // NOUVEAU : Relation directe vers les documents du tiers

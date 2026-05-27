@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Dossier Citoyen : ' . ($citoyen->physique->nom_tiers ?? 'Inconnu'))
+@section('title', 'Dossier Citoyen : ' . ($citoyen->physique?->nom_tiers ?? 'Inconnu'))
 
 @section('content')
     <div class="max-w-5xl mx-auto space-y-6">
@@ -37,15 +37,15 @@
             <div class="flex items-center gap-5">
                 <div
                     class="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-2xl font-bold shadow-inner">
-                    {{ substr($citoyen->physique->prenom_tiers ?? 'X', 0, 1) }}{{ substr($citoyen->physique->nom_tiers ?? 'X', 0, 1) }}
+                    {{ substr($citoyen->physique?->prenom_tiers ?? 'X', 0, 1) }}{{ substr($citoyen->physique?->nom_tiers ?? 'X', 0, 1) }}
                 </div>
                 <div>
                     <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-                        @if($citoyen->physique->civilite)
-                            <span class="text-lg text-slate-500 font-semibold mt-1">{{ $citoyen->physique->civilite }}</span>
+                        @if($citoyen->physique?->civilite)
+                            <span class="text-lg text-slate-500 font-semibold mt-1">{{ $citoyen->physique?->civilite }}</span>
                         @endif
-                        {{ $citoyen->physique->prenom_tiers ?? '' }}
-                        {{ $citoyen->physique->nom_tiers ?? 'Citoyen Inconnu' }}
+                        {{ $citoyen->physique?->prenom_tiers ?? '' }}
+                        {{ $citoyen->physique?->nom_tiers ?? 'Citoyen Inconnu' }}
                     </h1>
                     <p class="text-slate-500 font-medium mt-1">
                         Citoyen répertorié #{{ $citoyen->id_tiers }}
@@ -57,14 +57,14 @@
                 <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 border-b border-slate-200 pb-1">
                     Identité</h3>
                 <div class="space-y-2 mb-5">
-                    @if($citoyen->physique->date_naissance)
+                    @if($citoyen->physique?->date_naissance)
                         <div class="flex items-center text-slate-700 text-sm font-medium">
                             <svg class="w-4 h-4 mr-2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
                                 </path>
                             </svg>
-                            Né(e) le {{ \Carbon\Carbon::parse($citoyen->physique->date_naissance)->format('d/m/Y') }}
+                            Né(e) le {{ \Carbon\Carbon::parse($citoyen->physique?->date_naissance)->format('d/m/Y') }}
                         </div>
                     @else
                         <p class="text-sm text-slate-400 italic">Date de naissance inconnue.</p>
@@ -113,7 +113,7 @@
                     </svg>
                     Comptes Bancaires
                 </h2>
-                <a href="#"
+                <a href="{{ route('tiers.comptes.create', $citoyen->id_tiers) }}"
                     class="px-3 py-1.5 bg-blue-100 text-blue-700 text-xs font-bold rounded-lg hover:bg-blue-200 transition shadow-sm">
                     + Ajouter un compte
                 </a>
@@ -123,9 +123,27 @@
                 @if(isset($citoyen->comptesBancaires) && $citoyen->comptesBancaires->count() > 0)
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         @foreach($citoyen->comptesBancaires as $compte)
-                            <div class="p-4 bg-slate-50 border border-slate-200 rounded-lg shadow-sm relative overflow-hidden">
+                            <div
+                                class="p-4 bg-slate-50 border border-slate-200 rounded-lg shadow-sm relative overflow-hidden group">
                                 <div class="relative z-10">
-                                    <p class="text-xs font-bold uppercase text-slate-500 mb-1">Titulaire</p>
+                                    <div class="flex justify-between items-start mb-1">
+                                        <p class="text-xs font-bold uppercase text-slate-500">Titulaire</p>
+
+                                        <form action="{{ route('tiers.comptes.destroy', $compte->id_compte) }}" method="POST"
+                                            class="inline-block" onsubmit="return confirm('Supprimer ce compte bancaire ?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="text-slate-400 hover:text-red-500 transition"
+                                                title="Supprimer le compte">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                                                    </path>
+                                                </svg>
+                                            </button>
+                                        </form>
+                                    </div>
+
                                     <p class="text-sm font-semibold text-slate-800 mb-3">{{ $compte->titulaire_compte }}</p>
 
                                     <div class="bg-white p-2 rounded border border-slate-100 mb-2">
@@ -133,7 +151,7 @@
                                         <p class="font-mono text-sm text-slate-900 tracking-wide">{{ $compte->iban }}</p>
                                     </div>
 
-                                    <div class="flex justify-between items-center mt-2">
+                                    <div class="flex justify-between items-end mt-2">
                                         <div>
                                             <p class="text-[10px] text-slate-400 uppercase">BIC</p>
                                             <p class="font-mono text-sm text-slate-700">{{ $compte->bic }}</p>
@@ -142,10 +160,10 @@
                                         @if($compte->documents && $compte->documents->count() > 0)
                                             <div class="text-xs">
                                                 @foreach($compte->documents as $doc)
-                                                    <a href="#"
-                                                        class="inline-flex items-center px-2 py-1 bg-blue-50 text-blue-700 border border-blue-100 rounded hover:bg-blue-100 transition"
+                                                    <a href="{{ asset('storage/' . $doc->chemin_stockage) }}" target="_blank"
+                                                        class="inline-flex items-center px-3 py-1.5 bg-blue-100 text-blue-700 font-semibold border border-blue-200 rounded hover:bg-blue-200 transition shadow-sm"
                                                         title="{{ $doc->nom_fichier }}">
-                                                        📎 RIB
+                                                        📎 Voir le RIB
                                                     </a>
                                                 @endforeach
                                             </div>
@@ -166,15 +184,15 @@
         <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
             <div class="px-8 py-5 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
                 <h2 class="text-lg font-bold text-slate-800 flex items-center">
-                    <svg class="w-5 h-5 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-5 h-5 mr-2 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13">
                         </path>
                     </svg>
-                    Documents rattachés
+                    Documents rattachés (KBIS, Contrats, etc.)
                 </h2>
-                <a href="#"
-                    class="px-3 py-1.5 bg-blue-100 text-blue-700 text-xs font-bold rounded-lg hover:bg-blue-200 transition shadow-sm">
+                <a href="{{ route('tiers.documents.create', $citoyen->id_tiers) }}"
+                    class="px-3 py-1.5 bg-emerald-100 text-emerald-700 text-xs font-bold rounded-lg hover:bg-emerald-200 transition shadow-sm">
                     + Téléverser un document
                 </a>
             </div>
@@ -207,11 +225,21 @@
                                     <td class="px-6 py-4 text-slate-500 text-right">
                                         {{ $doc->taille_ko }} Ko
                                     </td>
-                                    <td class="px-6 py-4 text-right">
-                                        <a href="#"
+                                    <td class="px-6 py-4 text-right flex justify-end items-center gap-4">
+                                        <a href="{{ asset('storage/' . $doc->chemin_stockage) }}" target="_blank"
                                             class="text-blue-600 hover:text-blue-800 font-bold text-xs uppercase tracking-wider">
-                                            Télécharger ↓
+                                            Voir ↓
                                         </a>
+
+                                        <form action="{{ route('documents.global.destroy', $doc->id_document) }}" method="POST"
+                                            onsubmit="return confirm('Voulez-vous vraiment supprimer ce document ?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit"
+                                                class="text-red-500 hover:text-red-700 font-bold text-xs uppercase tracking-wider">
+                                                Supprimer
+                                            </button>
+                                        </form>
                                     </td>
                                 </tr>
                             @endforeach
@@ -220,7 +248,7 @@
                 </div>
             @else
                 <div class="px-8 py-10 text-center border-t border-slate-100">
-                    <p class="text-slate-500 font-medium">Aucun document n'est rattaché à ce dossier.</p>
+                    <p class="text-slate-500 font-medium">Aucun document n'est rattaché à ce dossier citoyen.</p>
                 </div>
             @endif
         </div>

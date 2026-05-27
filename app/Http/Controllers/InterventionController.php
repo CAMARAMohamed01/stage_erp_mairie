@@ -377,8 +377,9 @@ class InterventionController extends Controller
         $intervention = Intervention::findOrFail($id);
 
         // 1. On détache les équipements (Table pivot)
-        $intervention->equipements()->detach();
 
+        $intervention->equipements()->detach();
+        $intervention->agents()->detach();
         // 2. NOUVEAU : On supprime les comptes-rendus / l'historique liés
         $intervention->suiviActions()->delete();
 
