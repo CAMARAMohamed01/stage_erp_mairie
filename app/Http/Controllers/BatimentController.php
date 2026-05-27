@@ -10,14 +10,25 @@ use App\Models\Batiment;
 class BatimentController extends Controller
 {
     // Liste de tous les bâtiments de la mairie
-    public function index()
+    public function index(Request $request)
     {
-        // Récupération de tous les bâtiments avec leur classification ERP s'ils en ont une
-        $batiments = DB::table('batiment')
+        // 1. Initialisation de la requête avec les jointures nécessaires
+        $query = DB::table('batiment')
             ->leftJoin('type_erp', 'batiment.id_type_erp', '=', 'type_erp.id_type_erp')
-            ->select('batiment.*', 'type_erp.categorie_erp')
-            ->orderBy('nom_bat')
-            ->get();
+            ->leftJoin('Adresse', 'batiment.id_adresse', '=', 'Adresse.id_adresse') // Jointure avec la table Adresse
+            ->select('batiment.*', 'type_erp.categorie_erp', 'Adresse.nom_voie', 'Adresse.ville');
+
+        // 2. Application du filtre
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('batiment.nom_bat', 'ilike', '%' . $search . '%')
+                    ->orWhere('Adresse.nom_voie', 'ilike', '%' . $search . '%') // Recherche sur la voie
+                    ->orWhere('Adresse.ville', 'ilike', '%' . $search . '%');    // Recherche sur la ville
+            });
+        }
+
+        $batiments = $query->orderBy('nom_bat')->get();
 
         return view('batiments.index', compact('batiments'));
     }
