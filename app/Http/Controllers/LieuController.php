@@ -9,13 +9,12 @@ use App\Models\LieuPublic;
 class LieuController extends Controller
 {
     // --- LISTE DES LIEUX PUBLICS ---
-    public function index()
+    public function index(Request $request)
     {
-        $lieux = DB::table('lieux_publics')
-            // Jointures obligatoires pour la localisation cadastrale
+        // 1. Initialisation de la requête avec les jointures
+        $query = DB::table('lieux_publics')
             ->join('parcelle', 'lieux_publics.id_parcelle', '=', 'parcelle.id_parcelle')
             ->join('lieu_dit', 'parcelle.id_lieu_dit', '=', 'lieu_dit.id_lieu_dit')
-            // Jointures optionnelles pour le bâtiment et son adresse
             ->leftJoin('batiment', 'lieux_publics.id_batiment', '=', 'batiment.id_batiment')
             ->leftJoin('Adresse', 'batiment.id_adresse', '=', 'Adresse.id_adresse')
             ->select(
@@ -27,9 +26,20 @@ class LieuController extends Controller
                 'Adresse.num_rue',
                 'Adresse.nom_voie',
                 'Adresse.ville'
-            )
-            ->orderBy('lieux_publics.nom_lieu')
-            ->get();
+            );
+
+        // 2. Application du filtre si présent
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('lieux_publics.nom_lieu', 'ilike', '%' . $search . '%')
+                    ->orWhere('Adresse.nom_voie', 'ilike', '%' . $search . '%')
+                    ->orWhere('lieu_dit.nom_lieu_dit', 'ilike', '%' . $search . '%');
+            });
+        }
+
+        // 3. Exécution
+        $lieux = $query->orderBy('lieux_publics.nom_lieu')->get();
 
         return view('lieux.index', compact('lieux'));
     }
