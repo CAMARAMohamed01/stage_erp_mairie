@@ -75,6 +75,26 @@
                         Cadastrales</a>
                 </div>
             </div>
+            <!-- BLOC URBANISME -->
+            <div>
+                <button onclick="toggleMenu('menu-urbanisme')"
+                    class="w-full flex items-center justify-between px-4 py-2.5 rounded-lg transition-colors font-medium hover:bg-slate-800 hover:text-white {{ request()->routeIs('dossiers-urba.*') ? 'text-white' : '' }}">
+                    <div class="flex items-center">
+                        <span class="text-xl mr-3 opacity-80">📐</span> Urbanisme
+                    </div>
+                    <svg id="arrow-menu-urbanisme"
+                        class="w-4 h-4 arrow-icon {{ request()->routeIs('dossiers-urba.*') ? 'rotate-90' : '' }}"
+                        fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                </button>
+                <div id="menu-urbanisme"
+                    class="flex flex-col pl-12 pr-4 py-1 space-y-1 {{ request()->routeIs('dossiers-urba.*') ? '' : 'hidden' }}">
+                    <a href="{{ route('dossiers-urba.index') }}"
+                        class="text-sm py-2 transition-colors {{ request()->routeIs('dossiers-urba.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Dossiers
+                        d'Urbanisme</a>
+                </div>
+            </div>
 
             <div>
                 <button onclick="toggleMenu('menu-voirie')"

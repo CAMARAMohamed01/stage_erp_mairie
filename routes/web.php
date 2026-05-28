@@ -28,7 +28,7 @@ use App\Http\Controllers\CartographieController;
 use App\Http\Controllers\ControleReglementaireController;
 use App\Http\Controllers\TypeErpController;
 use App\Http\Controllers\SupportAccesController;
-
+use App\Http\Controllers\DossierUrbaController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -495,9 +495,44 @@ Route::middleware('auth')->group(function () {
     Route::get('/parcelles/{id}/edit', [ParcelleController::class, 'edit'])->name('parcelles.edit');
     Route::put('/parcelles/{id}', [ParcelleController::class, 'update'])->name('parcelles.update');
     Route::delete('/parcelles/{id}', [ParcelleController::class, 'destroy'])->name('parcelles.destroy');
+    // Liaison d'un propriétaire à une parcelle
+    Route::post('/parcelles/{id}/proprietaires', [ParcelleController::class, 'ajouterProprietaire'])
+        ->middleware('can:check-permission,"Patrimoine & Equipements","ecriture"')->name('parcelles.proprietaires.store');
+    // Dissociation d'un propriétaire d'une parcelle
+    Route::delete('/parcelles/{id}/proprietaires/{idTiers}', [ParcelleController::class, 'retirerProprietaire'])
+        ->middleware('can:check-permission,"Patrimoine & Equipements","suppression"')->name('parcelles.proprietaires.destroy');
 
     // La cartographie globale
     Route::get('/cartographie', [CartographieController::class, 'index'])->name('cartographie.index');
+
+
+    // --- DOSSIERS D'URBANISME ---
+    Route::get('/dossiers-urba', [DossierUrbaController::class, 'index'])
+        ->middleware('can:check-permission,"Urbanisme","lecture"')->name('dossiers-urba.index');
+
+    Route::get('/dossiers-urba/create', [DossierUrbaController::class, 'create'])
+        ->middleware('can:check-permission,"Urbanisme","ecriture"')->name('dossiers-urba.create');
+
+    Route::post('/dossiers-urba', [DossierUrbaController::class, 'store'])
+        ->middleware('can:check-permission,"Urbanisme","ecriture"')->name('dossiers-urba.store');
+
+    Route::get('/dossiers-urba/{id}', [DossierUrbaController::class, 'show'])
+        ->middleware('can:check-permission,"Urbanisme","lecture"')->name('dossiers-urba.show');
+
+    Route::get('/dossiers-urba/{id}/edit', [DossierUrbaController::class, 'edit'])
+        ->middleware('can:check-permission,"Urbanisme","ecriture"')->name('dossiers-urba.edit');
+
+    Route::put('/dossiers-urba/{id}', [DossierUrbaController::class, 'update'])
+        ->middleware('can:check-permission,"Urbanisme","ecriture"')->name('dossiers-urba.update');
+
+    Route::delete('/dossiers-urba/{id}', [DossierUrbaController::class, 'destroy'])
+        ->middleware('can:check-permission,"Urbanisme","suppression"')->name('dossiers-urba.destroy');
+
+    // Route optionnelle pour charger des documents spécifiques d'urbanisme
+    Route::post('/dossiers-urba/{id}/documents', [DossierUrbaController::class, 'uploadDocument'])
+        ->middleware('can:check-permission,"Urbanisme","ecriture"')->name('dossiers-urba.documents.store');
+    Route::delete('/dossiers-urba/documents/{id}', [DossierUrbaController::class, 'destroyDocument'])
+        ->middleware('can:check-permission,"Urbanisme","suppression"')->name('dossiers-urba.documents.destroy');
     // ========================================================
     // RESTRICTION CRITIQUE : GESTION DES HABILITATIONS (ADMIN SYSTEME ONLY)
     // ========================================================

@@ -13,20 +13,25 @@ class Document extends Model
 
     public $timestamps = false;
 
-    protected $fillable = [
-        'nom_fichier',
-        'type_doc',
-        'chemin_stockage',
-        'taille_ko',
-        'date_upload',
-        'id_compte',
-        'id_tiers'
-    ];
+    protected $guarded = [];
 
     public function physique()
     {
         return $this->hasOne(TiersPhysique::class, 'id_tiers', 'id_tiers');
     }
+    public function dossierUrba()
+    {
+        return $this->belongsTo(DossierUrba::class, 'id_dossier', 'id_dossier');
+    }
+    public function tiers()
+    {
+        return $this->belongsTo(Tiers::class, 'id_tiers', 'id_tiers');
+    }
+    public function parcelle()
+    {
+        return $this->belongsTo(Parcelle::class, 'id_parcelle', 'id_parcelle');
+    }
+
 
     // Relation Entreprise
     public function morale()
@@ -39,11 +44,11 @@ class Document extends Model
         return $this->belongsTo(CompteBancaire::class, 'id_compte', 'id_compte');
     }
 
-    // NOUVEAU : Relation directe vers les documents du tiers
-    public function documents()
-    {
-        return $this->hasMany(Document::class, 'id_tiers', 'id_tiers');
-    }
+    //Relation directe vers les documents du tiers
+    // public function documents()
+    // {
+    //     return $this->hasMany(Document::class, 'id_tiers', 'id_tiers');
+    // }
 
     // Relation vers l'historique des requêtes (Nomme-le bien selon ton modèle d'actions)
     public function actions()
