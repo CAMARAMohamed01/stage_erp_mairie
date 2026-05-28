@@ -1,190 +1,275 @@
 @extends('layouts.app')
 
-@section('title', 'Dossier Financier DOS-' . str_pad($dossier->id_dossier, 4, '0', STR_PAD_LEFT))
+@section('title', 'Dossier Financier DOS-' . str_pad($dossier->id_dossier_f, 4, '0', STR_PAD_LEFT))
 
 @section('content')
-    <div class="max-w-6xl mx-auto space-y-6">
+    <div class="max-w-6xl mx-auto space-y-6 pb-12">
 
+        <!-- En-tête de la pièce comptable -->
         <div
-            class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-wrap justify-between items-start gap-4">
+            class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-l-4 border-l-emerald-600">
             <div>
-                <div class="flex items-center gap-3 mb-1">
-                    <span class="text-3xl">💳</span>
-                    <h1 class="text-2xl font-bold text-slate-800">Dossier
-                        DOS-{{ str_pad($dossier->id_dossier, 4, '0', STR_PAD_LEFT) }}</h1>
-                    <span
-                        class="px-2.5 py-1 text-[10px] font-bold rounded-full bg-blue-100 text-blue-700 uppercase tracking-wider">
-                        {{ $dossier->statut_actuel }}
-                    </span>
+                <div class="flex flex-wrap items-center gap-3 mb-1">
+                    <span class="text-3xl drop-shadow-sm">💳</span>
+                    <h1 class="text-2xl font-bold text-slate-800">
+                        Dossier DOS-{{ str_pad($dossier->id_dossier_f, 4, '0', STR_PAD_LEFT) }}
+                    </h1>
+
+                    <!-- Modification rapide du statut du dossier municipal -->
+                    @can('check-permission', ['Finances & Achats', 'ecriture'])
+                        <form action="{{ route('dossiers-financiers.statut.update', $dossier->id_dossier_f) }}" method="POST"
+                            class="inline-flex items-center">
+                            @csrf
+                            @method('PATCH')
+                            <select name="statut_actuel" onchange="this.form.submit()"
+                                class="text-xs bg-slate-100 border border-slate-200 font-bold text-slate-700 px-2.5 py-1 rounded-full cursor-pointer focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500/20 transition">
+                                <option value="En cours de traitement" {{ $dossier->statut_actuel == 'En cours de traitement' ? 'selected' : '' }}>En cours de
+                                    traitement</option>
+                                <option value="Transmis Trésorerie" {{ $dossier->statut_actuel == 'Transmis Trésorerie' ? 'selected' : '' }}>Transmis Trésorerie
+                                </option>
+                                <option value="Payé" {{ $dossier->statut_actuel == 'Payé' ? 'selected' : '' }}>Payé</option>
+                                <option value="Annulé" {{ $dossier->statut_actuel == 'Annulé' ? 'selected' : '' }}>Annulé
+                                </option>
+                            </select>
+                        </form>
+                    @else
+                        @php
+                            $badgeColor = match ($dossier->statut_actuel) {
+                                'Payé' => 'bg-green-50 text-green-700 border-green-100',
+                                'Annulé' => 'bg-red-50 text-red-700 border-red-100',
+                                default => 'bg-blue-50 text-blue-700 border-blue-100'
+                            };
+                        @endphp
+                        <span
+                            class="px-2.5 py-1 text-[10px] font-bold rounded-full border {{ $badgeColor }} uppercase tracking-wider">
+                            {{ $dossier->statut_actuel }}
+                        </span>
+                    @endcan
                 </div>
-                <p class="text-slate-500 font-medium ml-11">{{ $dossier->objet_dossier }}</p>
+                <p class="text-sm text-slate-500 font-medium ml-1">{{ $dossier->objet_dossier }}</p>
             </div>
             <div>
-                <button onclick="history.back()"
-                    class="px-4 py-2 border border-slate-300 text-slate-700 text-sm font-semibold rounded-lg hover:bg-slate-50">←
-                    Retour</button>
+                <a href="{{ route('dossiers-financiers.index') }}"
+                    class="px-4 py-2 border border-slate-300 text-slate-700 text-sm font-semibold rounded-lg hover:bg-slate-50 shadow-sm transition">
+                    ← Registre
+                </a>
             </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div class="lg:col-span-2 space-y-6">
 
+            <!-- SECTION GAUCHE : DÉTAIL DES ARTICLES & LIGNES BUDGÉTAIRES -->
+            <div class="lg:col-span-2 space-y-6">
                 <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                    <div class="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
-                        <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider">📄 Ventilation / Détail des
-                            ventilations financières</h3>
+                    <div class="p-4 bg-slate-50 border-b border-slate-200">
+                        <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider">📄 Articles comptables imputés
+                            (Ventilation)</h3>
                         @php
-                            $totalHT = $lignes->sum('montant_ht');
-                            $totalTTC = $lignes->sum('montant_ttc');
+                            $totalHT = $dossier->lignes->sum('montant_ht');
+                            $totalTTC = $dossier->lignes->sum('montant_ttc');
                         @endphp
                     </div>
 
                     <div class="divide-y divide-slate-100 bg-white">
-                        @forelse($lignes as $ligne)
-                            <div class="p-4 flex justify-between items-center text-sm hover:bg-slate-50">
-                                <div>
-                                    <p class="font-semibold text-slate-800">{{ $ligne->designation_ligne }}</p>
+                        @forelse($dossier->lignes as $ligne)
+                            <div class="p-4 flex justify-between items-center text-sm hover:bg-slate-50 transition">
+                                <div class="space-y-0.5 pr-4">
+                                    <p class="font-bold text-slate-900">{{ $ligne->designation_ligne }}</p>
                                     <p class="text-xs text-slate-400">
-                                        Imputation Budget ID: <span
-                                            class="font-medium text-slate-600">#{{ $ligne->id_budget }}</span>
-                                        | Charge : <span
-                                            class="font-medium text-slate-600">{{ $ligne->nature_charge ?? 'N/A' }}</span>
+                                        Enveloppe : <span class="font-medium text-slate-700">#{{ $ligne->id_budget }}</span>
+                                        @if($ligne->operationComptable)
+                                            | Opération : <span
+                                                class="font-mono text-blue-600">[{{ $ligne->operationComptable->numero_operation }}]</span>
+                                        @endif
+                                        | Nature : <span
+                                            class="text-slate-600 font-medium">{{ $ligne->nature_charge ?? 'Non spécifié' }}</span>
                                     </p>
                                 </div>
-                                <div class="text-right">
-                                    <span class="font-bold text-slate-900">{{ number_format($ligne->montant_ttc, 2, ',', ' ') }}
-                                        € TTC</span>
-                                    <p class="text-xs text-slate-400">HT : {{ number_format($ligne->montant_ht, 2, ',', ' ') }}
-                                        €</p>
+                                <div class="text-right flex items-center gap-4 flex-shrink-0">
+                                    <div>
+                                        <span
+                                            class="font-bold text-slate-900 block">{{ number_format($ligne->montant_ttc, 2, ',', ' ') }}
+                                            € TTC</span>
+                                        <p class="text-xs text-slate-400 font-normal">HT :
+                                            {{ number_format($ligne->montant_ht, 2, ',', ' ') }} €
+                                        </p>
+                                    </div>
+
+                                    <!-- Suppression d'un article de la facture -->
+                                    @can('check-permission', ['Finances & Achats', 'suppression'])
+                                        <form
+                                            action="{{ route('dossiers-financiers.lignes.destroy', [$dossier->id_dossier_f, $ligne->id_ligne]) }}"
+                                            method="POST"
+                                            onsubmit="return confirm('⚠️ Retirer cette ligne comptable de la facture ?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit"
+                                                class="text-slate-400 hover:text-red-600 font-bold p-1 text-sm transition"
+                                                title="Supprimer la ligne">
+                                                🗑️
+                                            </button>
+                                        </form>
+                                    @endcan
                                 </div>
                             </div>
                         @empty
-                            <p class="p-6 text-center text-sm text-slate-400 italic">Aucun montant ventilé sur ce dossier pour
-                                le moment.</p>
+                            <p class="p-8 text-center text-sm text-slate-400 italic">Aucune ventilation budgétaire n'a encore
+                                été saisie sur ce dossier.</p>
                         @endforelse
                     </div>
-
-                    @if(auth()->user()->can('check-permission', ['Finances & Achats', 'ecriture']))
-                        <div class="p-4 bg-slate-50 border-t border-slate-200">
-                            <span class="text-xs font-bold uppercase text-slate-400 tracking-wider block mb-3">➕ Ajouter un
-                                article / une ligne comptable</span>
-                            <form action="{{ route('dossiers-financiers.ligne.store', $dossier->id_dossier) }}" method="POST"
-                                class="space-y-3">
-                                @csrf
-                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                    <div class="sm:col-span-2">
-                                        <input type="text" name="designation_ligne" required
-                                            placeholder="Désignation de la prestation ou marchandise"
-                                            class="w-full text-xs border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
-                                    </div>
-                                    <div>
-                                        <input type="text" name="nature_charge"
-                                            placeholder="Nature charge (Ex: Fournitures, MO)"
-                                            class="w-full text-xs border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
-                                    </div>
-                                    <div>
-                                        <input type="number" step="0.01" name="montant_ht" id="montant_ht" required
-                                            placeholder="Montant HT (€)"
-                                            class="w-full text-xs border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
-                                    </div>
-                                    <div>
-                                        <input type="number" step="0.01" name="montant_tva" id="montant_tva" required
-                                            placeholder="Montant TVA (€)"
-                                            class="w-full text-xs border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
-                                    </div>
-                                    <div>
-                                        <input type="number" step="0.01" name="montant_ttc" id="montant_ttc" required
-                                            placeholder="Montant TTC (€)"
-                                            class="w-full text-xs border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
-                                    </div>
-
-                                    <div class="sm:col-span-2">
-                                        <select name="id_budget" required
-                                            class="w-full text-xs border border-slate-300 rounded-lg px-3 py-2 bg-white focus:ring-2 focus:ring-blue-500">
-                                            <option value="">-- Enveloppe Budgétaire d'affectation * --</option>
-                                            @foreach($budgets as $b)
-                                                <option value="{{ $b->id_budget }}">Exercice {{ $b->annee_exercice }} — Enveloppe
-                                                    #{{ $b->id_budget }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <select name="id_operation"
-                                            class="w-full text-xs border border-slate-300 rounded-lg px-3 py-2 bg-white focus:ring-2 focus:ring-blue-500">
-                                            <option value="">-- Opération comptable --</option>
-                                            @foreach($operations as $o)
-                                                <option value="{{ $o->id_operation }}">{{ $o->numero_operation }} -
-                                                    {{ $o->libelle_operation }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="flex justify-end pt-2">
-                                    <button type="submit"
-                                        class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-4 py-2 rounded-lg shadow transition">
-                                        Ventiler le montant
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    @endif
                 </div>
             </div>
 
+            <!-- SECTION DROITE : TOTALS, TIERS ET FORMULAIRE D'IMPUTATION -->
             <div class="space-y-6">
-                <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                    <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider mb-4 border-b pb-2">💶 Totalisation
-                    </h3>
-                    <div class="space-y-3">
-                        <div class="p-3 bg-slate-50 rounded-lg flex justify-between text-sm">
-                            <span class="text-slate-500">Total HT</span>
-                            <span class="font-semibold text-slate-800">{{ number_format($totalHT, 2, ',', ' ') }} €</span>
+
+                <!-- Bloc de calcul des montants cumulés -->
+                <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                    <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider border-b pb-2">💵 Totalisation</h3>
+                    <div class="space-y-2 text-xs">
+                        <div class="p-2.5 bg-slate-50 rounded-lg flex justify-between font-medium">
+                            <span class="text-slate-400">Total net HT</span>
+                            <span class="text-slate-800 font-bold">{{ number_format($totalHT, 2, ',', ' ') }} €</span>
                         </div>
-                        <div class="p-4 bg-blue-50 border border-blue-100 rounded-lg flex justify-between items-center">
-                            <span class="text-xs font-bold text-blue-700 uppercase">Total TTC</span>
-                            <span class="text-xl font-extrabold text-blue-900">{{ number_format($totalTTC, 2, ',', ' ') }}
+                        <div
+                            class="p-3 bg-blue-50 border border-blue-100 rounded-lg flex justify-between items-center font-bold">
+                            <span class="text-blue-700 uppercase tracking-wider text-[10px]">Total TTC engagé</span>
+                            <span class="text-xl text-blue-900 font-black">{{ number_format($totalTTC, 2, ',', ' ') }}
                                 €</span>
                         </div>
                     </div>
                 </div>
 
-                <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                    <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider mb-4 border-b pb-2">📋 Références
-                        Administratif</h3>
+                <!-- Formulaire d'ajout (uniquement si droit d'écriture sur le module) -->
+                @can('check-permission', ['Finances & Achats', 'ecriture'])
+                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                        <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider border-b pb-2">➕ Imputer une ligne
+                            comptable</h3>
+                        <form action="{{ route('dossiers-financiers.lignes.store', $dossier->id_dossier_f) }}" method="POST"
+                            class="space-y-3 text-xs">
+                            @csrf
+                            <div>
+                                <label class="block font-bold text-slate-600 mb-1">Désignation de l'article *</label>
+                                <input type="text" name="designation_ligne" required
+                                    placeholder="Ex: Matériel de voirie ou prestation"
+                                    class="w-full border rounded-lg p-2 bg-slate-50 focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500/20">
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block font-bold text-slate-600 mb-1">Montant HT (€) *</label>
+                                    <input type="number" step="0.01" name="montant_ht" id="montant_ht" required
+                                        placeholder="0.00"
+                                        class="w-full border rounded-lg p-2 bg-slate-50 focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500/20">
+                                </div>
+                                <div>
+                                    <label class="block font-bold text-slate-600 mb-1">Montant TVA (€) *</label>
+                                    <input type="number" step="0.01" name="montant_tva" id="montant_tva" required
+                                        placeholder="0.00"
+                                        class="w-full border rounded-lg p-2 bg-slate-50 focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500/20">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block font-bold text-slate-600 mb-1">Montant TTC calculé (€)</label>
+                                <input type="number" step="0.01" name="montant_ttc" id="montant_ttc" required readonly
+                                    placeholder="0.00"
+                                    class="w-full border rounded-lg p-2 bg-slate-100 font-bold text-slate-700 outline-none cursor-not-allowed">
+                            </div>
+
+                            <div>
+                                <label class="block font-bold text-slate-600 mb-1">Nature de charge / Compte court</label>
+                                <input type="text" name="nature_charge" placeholder="Ex: Fournitures, Maintenance"
+                                    class="w-full border rounded-lg p-2 bg-slate-50 focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500/20">
+                            </div>
+
+                            <div>
+                                <label class="block font-bold text-slate-600 mb-1">Enveloppe Budgétaire Affectée *</label>
+                                <select name="id_budget" required
+                                    class="w-full border rounded-lg p-2 bg-white outline-none focus:ring-2 focus:ring-blue-500/20">
+                                    <option value="">-- Choisir une enveloppe annuelle --</option>
+                                    @foreach($budgets as $b)
+                                        <option value="{{ $b->id_budget }}">Exercice {{ $b->annee_exercice }} — Enveloppe
+                                            #{{ $b->id_budget }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block font-bold text-slate-600 mb-1">Opération Comptable du Journal</label>
+                                <select name="id_operation"
+                                    class="w-full border rounded-lg p-2 bg-white outline-none focus:ring-2 focus:ring-blue-500/20">
+                                    <option value="">-- Optionnel : Ligne d'opération --</option>
+                                    @foreach($operations as $o)
+                                        <option value="{{ $o->id_operation }}">{{ $o->numero_operation }} -
+                                            {{ $o->libelle_operation }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <button type="submit"
+                                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg shadow-sm transition mt-2">
+                                💾 Valider l'imputation
+                            </button>
+                        </form>
+                    </div>
+                @endcan
+
+                <!-- Identifiants administratifs de la pièce -->
+                <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                    <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider border-b pb-2">📋 Suivi &
+                        Références</h3>
                     <ul class="text-xs space-y-3 font-mono text-slate-700">
-                        <li><span class="text-slate-400 block font-sans text-[10px] uppercase">Titulaire (Tiers)</span>
-                            <span
-                                class="font-sans font-bold text-sm text-slate-800">{{ $dossier->tiers->nom_affiche ?? 'N/A' }}</span>
+                        <li>
+                            <span class="text-slate-400 block font-sans text-[10px] font-bold uppercase">Créancier
+                                (Tiers)</span>
+                            <span class="font-sans font-black text-sm text-slate-800">
+                                @if($dossier->tiers)
+                                    👤
+                                    {{ $dossier->tiers->type_tiers === 'Physique' ? $dossier->tiers->physique?->prenom_tiers . ' ' . $dossier->tiers->physique?->nom_tiers : $dossier->tiers->morale?->raison_sociale }}
+                                @else
+                                    <span class="text-slate-400 italic font-normal font-sans">Aucun tiers associé</span>
+                                @endif
+                            </span>
                         </li>
-                        <li class="border-t pt-2"><span class="text-slate-400 block font-sans">N° Devis :</span>
-                            {{ $dossier->numero_devis ?? '-' }}</li>
-                        <li><span class="text-slate-400 block font-sans">N° Bon de commande :</span>
-                            {{ $dossier->numero_bon_commande ?? '-' }}</li>
-                        <li><span class="text-slate-400 block font-sans">N° Bon de livraison :</span>
-                            {{ $dossier->numero_bon_livraison ?? '-' }}</li>
-                        <li><span class="text-slate-400 block font-sans">N° Facture :</span>
-                            {{ $dossier->numero_facture ?? '-' }}</li>
+                        <li class="border-t pt-2"><span class="text-slate-400 block font-sans font-medium text-[11px]">N°
+                                Devis :</span> {{ $dossier->numero_devis ?? '—' }}</li>
+                        <li><span class="text-slate-400 block font-sans font-medium text-[11px]">N° Bon de commande :</span>
+                            {{ $dossier->numero_bon_commande ?? '—' }}</li>
+                        <li><span class="text-slate-400 block font-sans font-medium text-[11px]">N° Bon de livraison
+                                :</span> {{ $dossier->numero_bon_livraison ?? '—' }}</li>
+                        <li><span class="text-slate-400 block font-sans font-medium text-[11px]">N° Facture :</span>
+                            {{ $dossier->numero_facture ?? '—' }}</li>
+                        @if($dossier->numero_titre_recette)
+                            <li class="border-t pt-2 text-emerald-700 font-bold">
+                                <span class="text-slate-400 block font-sans font-medium text-[11px]">N° Titre de recette
+                                    :</span> {{ $dossier->numero_titre_recette }}
+                            </li>
+                        @endif
                     </ul>
                 </div>
+
             </div>
         </div>
     </div>
 
-    {{-- Script d'aide pour pré-calculer le TTC automatiquement (TTC = HT + TVA) --}}
+    <!-- Script de calcul temps-réel du TTC pour éviter les erreurs de saisie -->
     <script>
-        const ht = document.getElementById('montant_ht');
-        const tva = document.getElementById('montant_tva');
-        const ttc = document.getElementById('montant_ttc');
+        document.addEventListener('DOMContentLoaded', function () {
+            const ht = document.getElementById('montant_ht');
+            const tva = document.getElementById('montant_tva');
+            const ttc = document.getElementById('montant_ttc');
 
-        if (ht && tva && ttc) {
-            const calcTtc = () => {
-                const valHt = parseFloat(ht.value) || 0;
-                const valTva = parseFloat(tva.value) || 0;
-                ttc.value = (valHt + valTva).toFixed(2);
-            };
-            ht.addEventListener('input', calcTtc);
-            tva.addEventListener('input', calcTtc);
-        }
+            if (ht && tva && ttc) {
+                const calcTtc = () => {
+                    const valHt = parseFloat(ht.value) || 0;
+                    const valTva = parseFloat(tva.value) || 0;
+                    ttc.value = (valHt + valTva).toFixed(2);
+                };
+                ht.addEventListener('input', calcTtc);
+                tva.addEventListener('input', calcTtc);
+            }
+        });
     </script>
 @endsection

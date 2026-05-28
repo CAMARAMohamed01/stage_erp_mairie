@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\DossierFinancier;
 use App\Models\Contrat;
+use App\Models\LigneFinanciereFacture;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -12,13 +13,18 @@ class DossierFinancierController extends Controller
     // Liste des dossiers comptables
     public function index(Request $request)
     {
+        // Correction de la clé : id_dossier_f
         $query = DossierFinancier::with(['tiers', 'contrat']);
 
         if ($request->filled('statut')) {
             $query->where('statut_actuel', $request->statut);
         }
 
-        $dossiers = $query->orderBy('id_dossier', 'desc')->paginate(15);
+        if ($request->filled('search')) {
+            $query->where('objet_dossier', 'ilike', '%' . $request->search . '%');
+        }
+
+        $dossiers = $query->orderBy('id_dossier_f', 'desc')->paginate(15);
         $statuts = DossierFinancier::select('statut_actuel')->distinct()->pluck('statut_actuel');
 
         return view('finances.dossiers.index', compact('dossiers', 'statuts'));
@@ -29,7 +35,6 @@ class DossierFinancierController extends Controller
     {
         $contrats = Contrat::orderBy('numero_contrat')->get();
 
-        // Récupération des tiers avec l'héritage moral/physique
         $tiers = DB::table('tiers')
             ->leftJoin('tiers_physique', 'tiers.id_tiers', '=', 'tiers_physique.id_tiers')
             ->leftJoin('tiers_morale', 'tiers.id_tiers', '=', 'tiers_morale.id_tiers')
@@ -71,57 +76,59 @@ class DossierFinancierController extends Controller
             ->with('success', 'Le dossier financier a été initialisé avec succès.');
     }
 
-    // AFFICHER LES DÉTAILS D'UN DOSSIER
+    // Afficher les détails d'un dossier
     public function show($id)
     {
-        $dossier = DossierFinancier::with(['tiers', 'contrat'])->findOrFail($id);
+        // On charge le dossier et ses lignes ventilées en une seule fois
+        $dossier = DossierFinancier::with(['tiers', 'contrat', 'lignes.operationComptable', 'lignes.enveloppeBudgetaire'])->findOrFail($id);
 
-        // Récupération des lignes financières associées
-        $lignes = DB::table('ligne_financiere_facture_')
-            ->where('id_dossier', $id)
-            ->get();
+        $budgets = DB::table('enveloppe_budgetaire')->orderBy('annee_exercice', 'desc')->get();
+        $operations = DB::table('operation_comptable')->orderBy('numero_operation')->get();
 
-        // Récupération des budgets disponibles pour le formulaire d'ajout
-        $budgets = DB::table('enveloppe_budgetaire')
-            ->orderBy('annee_exercice', 'desc')
-            ->get();
-
-        // Récupération des opérations comptables
-        $operations = DB::table('operation_comptable')
-            ->orderBy('numero_operation')
-            ->get();
-
-        return view('finances.dossiers.show', compact('dossier', 'lignes', 'budgets', 'operations'));
+        return view('finances.dossiers.show', compact('dossier', 'budgets', 'operations'));
     }
 
-    // AJOUTER UNE LIGNE FINANCIÈRE DE FACTURE
+    // Ajouter une ligne financière de facture via le modèle
     public function ajouterLigne(Request $request, $id)
     {
-        $dossier = DossierFinancier::findOrFail($id);
-
-        $validated = $request->validate([
+        $request->validate([
             'designation_ligne' => 'required|string|max:255',
             'montant_ht' => 'required|numeric|min:0',
             'montant_tva' => 'required|numeric|min:0',
             'montant_ttc' => 'required|numeric|min:0',
             'nature_charge' => 'nullable|string|max:30',
-            'id_budget' => 'required',
-            'id_operation' => 'nullable',
+            'id_budget' => 'required|exists:enveloppe_budgetaire,id_budget',
+            'id_operation' => 'nullable|exists:operation_comptable,id_operation',
         ]);
 
-        DB::table('ligne_financiere_facture_')->insert([
+        LigneFinanciereFacture::create([
             'date_comptable' => now()->format('Y-m-d'),
-            'designation_ligne' => $validated['designation_ligne'],
-            'montant_ht' => $validated['montant_ht'],
-            'montant_tva' => $validated['montant_tva'],
-            'montant_ttc' => $validated['montant_ttc'],
-            'nature_charge' => $validated['nature_charge'],
-            'id_dossier' => $dossier->id_dossier,
-            'id_budget' => $validated['id_budget'],
-            'id_operation' => $validated['id_operation'] ?? $dossier->id_operation,
+            'designation_ligne' => $request->designation_ligne,
+            'montant_ht' => $request->montant_ht,
+            'montant_tva' => $request->montant_tva,
+            'montant_ttc' => $request->montant_ttc,
+            'nature_charge' => $request->nature_charge,
+            'id_dossier_f' => $id, // 🌟 Correction de la colonne de liaison
+            'id_budget' => $request->id_budget,
+            'id_operation' => $request->id_operation,
         ]);
 
         return redirect()->route('dossiers-financiers.show', $id)
-            ->with('success', 'Ligne financière ajoutée avec succès.');
+            ->with('success', 'La ligne financière a été imputée avec succès.');
+    }
+
+    // ➕ PERTINENT : Supprimer une ligne de facture en direct
+    public function supprimerLigne($idDossier, $idLigne)
+    {
+        LigneFinanciereFacture::where('id_dossier_f', $idDossier)->findOrFail($idLigne)->delete();
+        return redirect()->back()->with('success', 'Ligne comptable retirée.');
+    }
+
+    // ➕ PERTINENT : Changer le statut budgétaire (Visé, Payé, Bloqué...) depuis la fiche
+    public function updateStatut(Request $request, $id)
+    {
+        $request->validate(['statut_actuel' => 'required|string|max:50']);
+        DossierFinancier::findOrFail($id)->update(['statut_actuel' => $request->statut_actuel]);
+        return redirect()->back()->with('success', 'Statut comptable mis à jour.');
     }
 }

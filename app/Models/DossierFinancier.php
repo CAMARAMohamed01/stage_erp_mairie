@@ -10,7 +10,7 @@ class DossierFinancier extends Model
     use HasFactory;
 
     protected $table = 'dossier_financier';
-    protected $primaryKey = 'id_dossier';
+    protected $primaryKey = 'id_dossier_f';
     public $timestamps = false;
     protected $guarded = [];
 
@@ -46,8 +46,8 @@ class DossierFinancier extends Model
     /**
      * Les lignes budgétaires ou de factures associées.
      */
-    public function lignesFinancieres()
+    public function lignes()
     {
-        return $this->hasMany(LigneFinanciereFacture::class, 'id_dossier');
+        return $this->hasMany(LigneFinanciereFacture::class, 'id_dossier_f', 'id_dossier_f');
     }
 }

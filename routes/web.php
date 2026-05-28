@@ -423,12 +423,25 @@ Route::middleware('auth')->group(function () {
     // 💳 SECURISE : MODULE DOSSIERS FINANCIERS (COMPTABILITE)
     // ========================================================
 
-    Route::get('/finances/dossiers', [DossierFinancierController::class, 'index'])->middleware('can:check-permission,"Finances & Achats","lecture"')->name('dossiers-financiers.index');
-    Route::get('/finances/dossiers/create', [DossierFinancierController::class, 'create'])->middleware('can:check-permission,"Finances & Achats","ecriture"')->name('dossiers-financiers.create');
-    Route::post('/finances/dossiers', [DossierFinancierController::class, 'store'])->middleware('can:check-permission,"Finances & Achats","ecriture"')->name('dossiers-financiers.store');
-    Route::get('/finances/dossiers/{id}', [DossierFinancierController::class, 'show'])->middleware('can:check-permission,"Finances & Achats","lecture"')->name('dossiers-financiers.show');
-    Route::post('/finances/dossiers/{id}/ligne', [DossierFinancierController::class, 'ajouterLigne'])->middleware('can:check-permission,"Finances & Achats","ecriture"')->name('dossiers-financiers.ligne.store');
+    // Route::get('/finances/dossiers', [DossierFinancierController::class, 'index'])->middleware('can:check-permission,"Finances & Achats","lecture"')->name('dossiers-financiers.index');
+    // Route::get('/finances/dossiers/create', [DossierFinancierController::class, 'create'])->middleware('can:check-permission,"Finances & Achats","ecriture"')->name('dossiers-financiers.create');
+    // Route::post('/finances/dossiers', [DossierFinancierController::class, 'store'])->middleware('can:check-permission,"Finances & Achats","ecriture"')->name('dossiers-financiers.store');
+    // Route::get('/finances/dossiers/{id}', [DossierFinancierController::class, 'show'])->middleware('can:check-permission,"Finances & Achats","lecture"')->name('dossiers-financiers.show');
+    // Route::post('/finances/dossiers/{id}/ligne', [DossierFinancierController::class, 'ajouterLigne'])->middleware('can:check-permission,"Finances & Achats","ecriture"')->name('dossiers-financiers.ligne.store');
+    Route::resource('dossiers-financiers', DossierFinancierController::class)
+        ->middleware('can:check-permission,"Finances & Achats","lecture"');
 
+    // Enregistrer une imputation de charge
+    Route::post('/dossiers-financiers/{id}/lignes', [DossierFinancierController::class, 'ajouterLigne'])
+        ->middleware('can:check-permission,"Finances & Achats","ecriture"')->name('dossiers-financiers.lignes.store');
+
+    // Supprimer une imputation
+    Route::delete('/dossiers-financiers/{id}/lignes/{idLigne}', [DossierFinancierController::class, 'supprimerLigne'])
+        ->middleware('can:check-permission,"Finances & Achats","suppression"')->name('dossiers-financiers.lignes.destroy');
+
+    // Changer le statut budgétaire à la volée
+    Route::patch('/dossiers-financiers/{id}/statut', [DossierFinancierController::class, 'updateStatut'])
+        ->middleware('can:check-permission,"Finances & Achats","ecriture"')->name('dossiers-financiers.statut.update');
     // ========================================================
     // 🚧 MODULE VOIES & RÉSEAUX DIVERS (VRD) / TRONÇONS / OUVRAGES
     // ========================================================
