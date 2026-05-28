@@ -104,33 +104,48 @@
 
             <div>
                 <button onclick="toggleMenu('menu-batiments')"
-                    class="w-full flex items-center justify-between px-4 py-2.5 rounded-lg transition-colors font-medium hover:bg-slate-800 hover:text-white {{ request()->routeIs('batiments.*', 'lieux.*', 'locaux.*', 'equipements.*', 'compteurs.*') ? 'text-white' : '' }}">
+                    class="w-full flex items-center justify-between px-4 py-2.5 rounded-lg transition-colors font-medium hover:bg-slate-800 hover:text-white {{ request()->routeIs('batiments.*', 'lieux.*', 'locaux.*', 'equipements.*', 'compteurs.*', 'supports-acces.*', 'types-erp.*', 'controles.*') ? 'bg-slate-800 text-white' : 'text-slate-400' }}">
                     <div class="flex items-center">
                         <span class="text-xl mr-3 opacity-80">🏢</span> Bâtiments & Locaux
                     </div>
                     <svg id="arrow-menu-batiments"
-                        class="w-4 h-4 arrow-icon {{ request()->routeIs('batiments.*', 'lieux.*', 'locaux.*', 'equipements.*', 'compteurs.*') ? 'rotate-90' : '' }}"
+                        class="w-4 h-4 arrow-icon transition-transform {{ request()->routeIs('batiments.*', 'lieux.*', 'locaux.*', 'equipements.*', 'compteurs.*', 'supports-acces.*', 'types-erp.*', 'controles.*') ? 'rotate-90' : '' }}"
                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                     </svg>
                 </button>
+
                 <div id="menu-batiments"
-                    class="flex flex-col pl-12 pr-4 py-1 space-y-1 {{ request()->routeIs('batiments.*', 'lieux.*', 'locaux.*', 'equipements.*', 'compteurs.*') ? '' : 'hidden' }}">
+                    class="flex flex-col pl-12 pr-4 py-1 space-y-1 {{ request()->routeIs('batiments.*', 'lieux.*', 'locaux.*', 'equipements.*', 'compteurs.*', 'supports-acces.*', 'types-erp.*', 'controles.*') ? '' : 'hidden' }}">
+
                     <a href="{{ route('batiments.index') }}"
                         class="text-sm py-2 transition-colors {{ request()->routeIs('batiments.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Bâtiments</a>
+
                     <a href="{{ route('lieux.index') }}"
                         class="text-sm py-2 transition-colors {{ request()->routeIs('lieux.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Lieux
                         publics</a>
+
                     <a href="{{ route('types-erp.index') }}"
-                        class="text-sm py-2 transition-colors {{ request()->routeIs('types_erp.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Types
-                        Erp</a>
+                        class="text-sm py-2 transition-colors {{ request()->routeIs('types-erp.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Types
+                        ERP</a>
+
+                    <a href="{{ route('controles.index') }}"
+                        class="text-sm py-2 transition-colors {{ request()->routeIs('controles.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Contrôles
+                        réglementaires</a>
+
                     <a href="{{ route('locaux.index') }}"
                         class="text-sm py-2 transition-colors {{ request()->routeIs('locaux.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Locaux
                         & Pièces</a>
+
                     <a href="{{ route('equipements.index') }}"
                         class="text-sm py-2 transition-colors {{ request()->routeIs('equipements.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Équipements</a>
+
                     <a href="{{ route('compteurs.index') }}"
                         class="text-sm py-2 transition-colors {{ request()->routeIs('compteurs.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Compteurs</a>
+
+                    <a href="{{ route('supports-acces.index') }}"
+                        class="text-sm py-2 transition-colors {{ request()->routeIs('supports-acces.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Supports
+                        & Clés</a>
                 </div>
             </div>
 

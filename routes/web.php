@@ -210,7 +210,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/equipements/{id}/edit', [EquipementController::class, 'edit'])->middleware('can:check-permission,"Patrimoine & Equipements","ecriture"')->name('equipements.edit');
     Route::put('/equipements/{id}', [EquipementController::class, 'update'])->middleware('can:check-permission,"Patrimoine & Equipements","ecriture"')->name('equipements.update');
     Route::delete('/equipements/{id}', [EquipementController::class, 'destroy'])->middleware('can:check-permission,"Patrimoine & Equipements","suppression"')->name('equipements.destroy');
-
+    Route::post('/equipements/{idEquipement}/documents', [EquipementController::class, 'uploadDocument'])
+        ->middleware('can:check-permission,"Patrimoine & Equipements","ecriture"')
+        ->name('equipements.documents.store');
 
     // --- GESTION DES SUPPORTS D'ACCÈS / CLÉS ---
     Route::get('/supports-acces', [SupportAccesController::class, 'index'])
@@ -233,10 +235,19 @@ Route::middleware('auth')->group(function () {
 
     Route::delete('/supports-acces/{id}', [SupportAccesController::class, 'destroy'])
         ->middleware('can:check-permission,"Patrimoine & Equipements","suppression"')->name('supports-acces.destroy');
-    // Remplace ton ancienne ligne par celle-ci :
-    Route::post('/equipements/{idEquipement}/documents', [EquipementController::class, 'uploadDocument'])
-        ->middleware('can:check-permission,"Patrimoine & Equipements","ecriture"')
-        ->name('equipements.documents.store');
+
+    // --- ACTIONS SUR LES SUPPORTS D'ACCÈS (AFFECTATIONS & OUVERTURES) ---
+    Route::post('/supports-acces/{id}/affecter', [SupportAccesController::class, 'affecter'])
+        ->middleware('can:check-permission,"Patrimoine & Equipements","ecriture"')->name('supports-acces.affecter');
+
+    Route::put('/supports-acces/{id}/restituer/{userId}', [SupportAccesController::class, 'restituer'])
+        ->middleware('can:check-permission,"Patrimoine & Equipements","ecriture"')->name('supports-acces.restituer');
+
+    Route::post('/supports-acces/{id}/ouvertures', [SupportAccesController::class, 'ajouterOuverture'])
+        ->middleware('can:check-permission,"Patrimoine & Equipements","ecriture"')->name('supports-acces.ouvertures.store');
+
+    Route::delete('/supports-acces/{id}/ouvertures/{type}/{targetId}', [SupportAccesController::class, 'supprimerOuverture'])
+        ->middleware('can:check-permission,"Patrimoine & Equipements","suppression"')->name('supports-acces.ouvertures.destroy');
     // =========================================================
     // MODULE : TYPES ERP
     // =========================================================
