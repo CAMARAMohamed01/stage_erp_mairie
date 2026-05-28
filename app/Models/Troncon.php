@@ -37,4 +37,11 @@ class Troncon extends Model
     {
         return $this->hasMany(Intervention::class, 'id_troncon', 'id_troncon');
     }
+    /**
+     * Obtenir toutes les pièces jointes et documents liés à ce tronçon de voie
+     */
+    public function documents()
+    {
+        return $this->hasMany(Document::class, 'id_troncon', 'id_troncon');
+    }
 }

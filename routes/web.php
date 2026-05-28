@@ -427,48 +427,74 @@ Route::middleware('auth')->group(function () {
     Route::post('/finances/dossiers/{id}/ligne', [DossierFinancierController::class, 'ajouterLigne'])->middleware('can:check-permission,"Finances & Achats","ecriture"')->name('dossiers-financiers.ligne.store');
 
     // ========================================================
-    // 🚧 MODULE VOIES & RÉSEAUX DIVERS (VRD) -
+    // 🚧 MODULE VOIES & RÉSEAUX DIVERS (VRD) / TRONÇONS / OUVRAGES
     // ========================================================
-    // Les routes statiques d'abord
-    Route::get('/voies', [VoieController::class, 'index'])->middleware('can:check-permission,"Voiries","lecture"')->name('voies.index');
-    Route::get('/voies/create', [VoieController::class, 'create'])->middleware('can:check-permission,"Voiries","ecriture"')->name('voies.create');
-    Route::post('/voies', [VoieController::class, 'store'])->middleware('can:check-permission,"Voiries","ecriture"')->name('voies.store');
 
-    // Les routes dynamiques avec {id} ensuite
-    Route::get('/voies/{id}', [VoieController::class, 'show'])->middleware('can:check-permission,"Voiries","lecture"')->middleware('can:check-permission,"Voiries","lecture"')->name('voies.show');
-    Route::get('/voies/{id}/edit', [VoieController::class, 'edit'])->middleware('can:check-permission,"Voiries","ecriture"')->name('voies.edit');
-    Route::put('/voies/{id}', [VoieController::class, 'update'])->middleware('can:check-permission,"Voiries","ecriture"')->name('voies.update');
-    Route::delete('/voies/{id}', [VoieController::class, 'destroy'])->middleware('can:check-permission,"Voiries","suppression"')->name('voies.destroy');
-    // ========================================================
-    // 🚧 MODULE TRONÇONS (PARTIE GESTION DES VOIES)
+    // --- GESTION DES VOIES ---
+    Route::get('/voies', [VoieController::class, 'index'])
+        ->middleware('can:check-permission,"Voirie","lecture"')->name('voies.index');
+    Route::get('/voies/create', [VoieController::class, 'create'])
+        ->middleware('can:check-permission,"Voirie","ecriture"')->name('voies.create');
+    Route::post('/voies', [VoieController::class, 'store'])
+        ->middleware('can:check-permission,"Voirie","ecriture"')->name('voies.store');
+    Route::get('/voies/{id}', [VoieController::class, 'show'])
+        ->middleware('can:check-permission,"Voirie","lecture"')->name('voies.show');
+    Route::get('/voies/{id}/edit', [VoieController::class, 'edit'])
+        ->middleware('can:check-permission,"Voirie","ecriture"')->name('voies.edit');
+    Route::put('/voies/{id}', [VoieController::class, 'update'])
+        ->middleware('can:check-permission,"Voirie","ecriture"')->name('voies.update');
+    Route::delete('/voies/{id}', [VoieController::class, 'destroy'])
+        ->middleware('can:check-permission,"Voirie","suppression"')->name('voies.destroy');
 
-    Route::get('/troncons/create', [TronconController::class, 'create'])->name('troncons.create');
-    Route::post('/troncons', [TronconController::class, 'store'])->name('troncons.store');
-    Route::post('/troncons/{idTroncon}/documents', [TronconController::class, 'uploadDocument'])
-        ->name('troncons.documents.store');
-    Route::get('/troncons/{id}', [TronconController::class, 'show'])->name('troncons.show');
-    Route::get('/troncons/{id}/edit', [TronconController::class, 'edit'])->name('troncons.edit');
-    Route::put('/troncons/{id}', [TronconController::class, 'update'])->name('troncons.update');
-    Route::delete('/troncons/{id}', [TronconController::class, 'destroy'])->name('troncons.destroy');
+    // --- GESTION DES TRONÇONS DE VOIE ---
+    Route::get('/troncons/create', [TronconController::class, 'create'])
+        ->middleware('can:check-permission,"Voirie","ecriture"')->name('troncons.create');
+    Route::post('/troncons', [TronconController::class, 'store'])
+        ->middleware('can:check-permission,"Voirie","ecriture"')->name('troncons.store');
+    Route::get('/troncons/{id}', [TronconController::class, 'show'])
+        ->middleware('can:check-permission,"Voirie","lecture"')->name('troncons.show');
+    Route::get('/troncons/{id}/edit', [TronconController::class, 'edit'])
+        ->middleware('can:check-permission,"Voirie","ecriture"')->name('troncons.edit');
+    Route::put('/troncons/{id}', [TronconController::class, 'update'])
+        ->middleware('can:check-permission,"Voirie","ecriture"')->name('troncons.update');
+    Route::delete('/troncons/{id}', [TronconController::class, 'destroy'])
+        ->middleware('can:check-permission,"Voirie","suppression"')->name('troncons.destroy');
 
-    //Ouvrages d'art
-    Route::get('/ouvrages', [OuvrageController::class, 'index'])->name('ouvrages.index');
-    Route::get('/ouvrages/create', [OuvrageController::class, 'create'])->name('ouvrages.create');
-    Route::post('/ouvrages', [OuvrageController::class, 'store'])->name('ouvrages.store');
-    Route::get('/ouvrages/{id}', [OuvrageController::class, 'show'])->name('ouvrages.show');
-    Route::get('/ouvrages/{id}/edit', [OuvrageController::class, 'edit'])->name('ouvrages.edit');
-    Route::put('/ouvrages/{id}', [OuvrageController::class, 'update'])->name('ouvrages.update');
-    Route::delete('/ouvrages/{id}', [OuvrageController::class, 'destroy'])->name('ouvrages.destroy');
+    // Pièces jointes rattachées aux Tronçons
+    Route::post('/troncons/{id}/documents', [TronconController::class, 'uploadDocument'])
+        ->middleware('can:check-permission,"Voirie","ecriture"')->name('troncons.documents.store');
+    Route::delete('/troncons/documents/{id}', [TronconController::class, 'destroyDocument'])
+        ->middleware('can:check-permission,"Voirie","suppression"')->name('troncons.documents.destroy');
 
-    // Gestion des communes partenaires pour un ouvrage
-    Route::post('/ouvrages/{ouvrage}/communes', [OuvrageController::class, 'addCommune'])->name('ouvrages.communes.store');
-    Route::delete('/ouvrages/{ouvrage}/communes/{commune}', [OuvrageController::class, 'removeCommune'])->name('ouvrages.communes.destroy');
+    // --- GESTION DES OUVRAGES D'ART ---
+    Route::get('/ouvrages', [OuvrageController::class, 'index'])
+        ->middleware('can:check-permission,"Voirie","lecture"')->name('ouvrages.index');
+    Route::get('/ouvrages/create', [OuvrageController::class, 'create'])
+        ->middleware('can:check-permission,"Voirie","ecriture"')->name('ouvrages.create');
+    Route::post('/ouvrages', [OuvrageController::class, 'store'])
+        ->middleware('can:check-permission,"Voirie","ecriture"')->name('ouvrages.store');
+    Route::get('/ouvrages/{id}', [OuvrageController::class, 'show'])
+        ->middleware('can:check-permission,"Voirie","lecture"')->name('ouvrages.show');
+    Route::get('/ouvrages/{id}/edit', [OuvrageController::class, 'edit'])
+        ->middleware('can:check-permission,"Voirie","ecriture"')->name('ouvrages.edit');
+    Route::put('/ouvrages/{id}', [OuvrageController::class, 'update'])
+        ->middleware('can:check-permission,"Voirie","ecriture"')->name('ouvrages.update');
+    Route::delete('/ouvrages/{id}', [OuvrageController::class, 'destroy'])
+        ->middleware('can:check-permission,"Voirie","suppression"')->name('ouvrages.destroy');
 
-    // Référentiel des Communes Partenaires
-    Route::get('/communes', [\App\Http\Controllers\CommunePartenaireController::class, 'index'])->name('communes.index');
-    Route::get('/communes/create', [\App\Http\Controllers\CommunePartenaireController::class, 'create'])->name('communes.create');
-    Route::post('/communes', [\App\Http\Controllers\CommunePartenaireController::class, 'store'])->name('communes.store');
+    // Partage intercommunal des ouvrages d'art
+    Route::post('/ouvrages/{ouvrage}/communes', [OuvrageController::class, 'addCommune'])
+        ->middleware('can:check-permission,"Voirie","ecriture"')->name('ouvrages.communes.store');
+    Route::delete('/ouvrages/{ouvrage}/communes/{commune}', [OuvrageController::class, 'removeCommune'])
+        ->middleware('can:check-permission,"Voirie","suppression"')->name('ouvrages.communes.destroy');
 
+    // --- RÉFÉRENTIEL DES COMMUNES PARTENAIRES ---
+    Route::get('/communes', [\App\Http\Controllers\CommunePartenaireController::class, 'index'])
+        ->middleware('can:check-permission,"Voirie","lecture"')->name('communes.index');
+    Route::get('/communes/create', [\App\Http\Controllers\CommunePartenaireController::class, 'create'])
+        ->middleware('can:check-permission,"Voirie","ecriture"')->name('communes.create');
+    Route::post('/communes', [\App\Http\Controllers\CommunePartenaireController::class, 'store'])
+        ->middleware('can:check-permission,"Voirie","ecriture"')->name('communes.store');
     // Secteurs
     Route::get('/secteurs', [SecteurController::class, 'index'])->name('secteurs.index');
     Route::get('/secteurs/create', [SecteurController::class, 'create'])->name('secteurs.create');

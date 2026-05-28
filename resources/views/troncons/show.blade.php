@@ -22,11 +22,18 @@
                         </span>
                     @endif
                 </div>
-                <p class="text-sm text-slate-500 mt-2 flex items-center gap-2">
+                <p class="text-sm text-slate-500 mt-2 flex flex-wrap items-center gap-3">
                     <span class="bg-slate-50 border border-slate-100 px-2 py-0.5 rounded">
                         Voie parente : <a href="{{ route('voies.show', $troncon->id_voie ?? 0) }}"
                             class="font-bold text-blue-600 hover:underline">{{ $troncon->nom_voie ?? 'Non définie' }}</a>
                     </span>
+
+                    @if(isset($troncon->pk_debut) && isset($troncon->pk_fin))
+                        <span
+                            class="bg-indigo-50 text-indigo-700 border border-indigo-100 px-2 py-0.5 rounded font-semibold text-xs">
+                            📏 Longueur : {{ number_format(abs($troncon->pk_fin - $troncon->pk_debut), 2, ',', ' ') }} km
+                        </span>
+                    @endif
                 </p>
             </div>
 
@@ -35,13 +42,15 @@
                     class="px-4 py-2 border border-slate-300 text-slate-700 text-sm font-bold rounded-lg hover:bg-slate-50 transition w-full md:w-auto">
                     ← Retour
                 </button>
-                @can('check-permission', ['Patrimoine & Equipements', 'ecriture'])
+
+                @can('check-permission', ['Voirie', 'ecriture'])
                     <a href="{{ route('troncons.edit', $troncon->id_troncon) }}"
                         class="px-4 py-2 bg-amber-500 text-white text-sm font-bold rounded-lg hover:bg-amber-600 transition shadow-sm flex-1 md:flex-none text-center">
                         ✏️ Modifier
                     </a>
                 @endcan
-                @can('check-permission', ['Patrimoine & Equipements', 'suppression'])
+
+                @can('check-permission', ['Voirie', 'suppression'])
                     <form action="{{ route('troncons.destroy', $troncon->id_troncon) }}" method="POST"
                         onsubmit="return confirm('Attention, la suppression de ce tronçon est définitive. Confirmer ?');"
                         class="flex-1 md:flex-none">
@@ -49,7 +58,7 @@
                         @method('DELETE')
                         <button type="submit"
                             class="w-full px-4 py-2 bg-red-50 text-red-600 border border-red-200 text-sm font-bold rounded-lg hover:bg-red-100 transition">
-                            🗑️Supprimer
+                            🗑️ Supprimer
                         </button>
                     </form>
                 @endcan
@@ -154,19 +163,16 @@
                     <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider mb-5 flex items-center gap-2">
                         <span>🔗</span> Liaisons & Dépendances
                     </h3>
-
                     <div class="space-y-4 text-sm">
                         <div>
                             <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Secteur / Zone</p>
                             <p class="font-bold text-indigo-700">{{ $troncon->nom_zone ?? 'Aucune zone' }}</p>
                         </div>
-
                         <div class="border-t border-slate-100 pt-3">
                             <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Ouvrage Lié
                                 (Principal)</p>
                             <p class="font-semibold text-slate-800">{{ $troncon->nom_ouvrage_lie ?? '-' }}</p>
                         </div>
-
                         <div class="grid grid-cols-2 gap-3 border-t border-slate-100 pt-3">
                             <div>
                                 <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Ouvrage Début
@@ -187,7 +193,7 @@
                             <span>🪑</span> Équipements sur ce tronçon
                         </h3>
 
-                        @can('check-permission', ['Patrimoine & Equipements', 'ecriture'])
+                        @can('check-permission', ['Voirie', 'ecriture'])
                             <a href="{{ route('equipements.create', ['id_troncon' => $troncon->id_troncon]) }}"
                                 class="text-xs font-bold text-blue-600 hover:underline bg-blue-50 px-3 py-1.5 rounded-lg transition hover:bg-blue-100">
                                 + Ajouter un équipement
@@ -214,6 +220,7 @@
                         @endforelse
                     </ul>
                 </div>
+
                 <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden p-1">
                     <div class="p-3 bg-slate-50 border-b border-slate-100 flex justify-between items-center rounded-t-lg">
                         <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider">🗺️ Tracé Géographique</h3>
@@ -248,9 +255,11 @@
                                             class="text-blue-600 hover:text-blue-800 text-xs font-bold bg-blue-50 px-2 py-1 rounded border border-blue-100">
                                             Voir
                                         </a>
-                                        @can('check-permission', ['Patrimoine & Equipements', 'suppression'])
-                                            <form action="{{ route('documents.global.destroy', $doc->id_document) }}" method="POST"
-                                                class="inline" onsubmit="return confirm('Supprimer ce document du tronçon ?');">
+
+                                        @can('check-permission', ['Voirie', 'suppression'])
+                                            <form action="{{ route('troncons.documents.destroy', $doc->id_document) }}"
+                                                method="POST" class="inline"
+                                                onsubmit="return confirm('Supprimer ce document du tronçon ?');">
                                                 @csrf @method('DELETE')
                                                 <button type="submit"
                                                     class="text-red-600 hover:text-red-800 text-xs font-bold bg-red-50 px-2 py-1 rounded border border-red-100">🗑️</button>
@@ -265,7 +274,7 @@
                         </ul>
                     </div>
 
-                    @can('check-permission', ['Patrimoine & Equipements', 'ecriture'])
+                    @can('check-permission', ['Voirie', 'ecriture'])
                         <form action="{{ route('troncons.documents.store', $troncon->id_troncon) }}" method="POST"
                             enctype="multipart/form-data"
                             class="bg-slate-50 p-4 rounded-lg border border-slate-200 border-dashed mt-auto">
@@ -294,36 +303,32 @@
         </div>
     </div>
 @endsection
+
 @section('scripts')
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-            // Initialisation de la carte (Centrée par défaut vers Annecy / Dingy-Saint-Clair)
             var map = L.map('map').setView([45.928, 6.223], 13);
 
-            // Ajout du fond de carte OpenStreetMap
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '© OpenStreetMap',
                 maxZoom: 19
             }).addTo(map);
 
-            // Récupération de la donnée GeoJSON envoyée par le contrôleur
             var geojsonStr = `{!! $troncon->geojson ?? 'null' !!}`;
 
             if (geojsonStr !== 'null') {
                 try {
                     var geoData = JSON.parse(geojsonStr);
 
-                    // Dessiner le tronçon (Ligne bleue)
                     var layer = L.geoJSON(geoData, {
                         style: {
-                            color: "#2563eb", // blue-600
+                            color: "#2563eb",
                             weight: 5,
                             opacity: 0.8
                         }
                     }).addTo(map);
 
-                    // Zoomer automatiquement pour que le tronçon prenne tout le cadre
                     map.fitBounds(layer.getBounds(), {
                         padding: [20, 20]
                     });
