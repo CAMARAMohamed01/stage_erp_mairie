@@ -75,7 +75,6 @@
                         Cadastrales</a>
                 </div>
             </div>
-            <!-- BLOC URBANISME -->
             <div>
                 <button onclick="toggleMenu('menu-urbanisme')"
                     class="w-full flex items-center justify-between px-4 py-2.5 rounded-lg transition-colors font-medium hover:bg-slate-800 hover:text-white {{ request()->routeIs('dossiers-urba.*') ? 'text-white' : '' }}">
@@ -213,14 +212,30 @@
                         d'interventions</a>
                     <a href="{{ route('projets.index') }}"
                         class="text-sm py-2 transition-colors {{ request()->routeIs('projets.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Projets</a>
-                    <a href="{{ route('controles.index') }}"
-                        class="text-sm py-2 transition-colors {{ request()->routeIs('controles.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Contrôles
-                        Réglèmentaires</a>
-
                 </div>
             </div>
 
             <div class="px-4 pb-2 pt-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Administration
+            </div>
+
+            <div>
+                <button onclick="toggleMenu('menu-decisions')"
+                    class="w-full flex items-center justify-between px-4 py-2.5 rounded-lg transition-colors font-medium hover:bg-slate-800 hover:text-white {{ request()->routeIs('decisions-admin.*') ? 'text-white' : '' }}">
+                    <div class="flex items-center">
+                        <span class="text-xl mr-3 opacity-80">📜</span> Actes & Décisions
+                    </div>
+                    <svg id="arrow-menu-decisions"
+                        class="w-4 h-4 arrow-icon {{ request()->routeIs('decisions-admin.*') ? 'rotate-90' : '' }}"
+                        fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                </button>
+                <div id="menu-decisions"
+                    class="flex flex-col pl-12 pr-4 py-1 space-y-1 {{ request()->routeIs('decisions-admin.*') ? '' : 'hidden' }}">
+                    <a href="{{ route('decisions-admin.index') }}"
+                        class="text-sm py-2 transition-colors {{ request()->routeIs('decisions-admin.index', 'decisions-admin.show') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Registre
+                        des Actes</a>
+                </div>
             </div>
 
             <div>

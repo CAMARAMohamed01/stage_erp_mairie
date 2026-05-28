@@ -30,6 +30,9 @@ use App\Http\Controllers\TypeErpController;
 use App\Http\Controllers\SupportAccesController;
 use App\Http\Controllers\DossierUrbaController;
 
+use App\Http\Controllers\DecisionAdministratifController;
+
+
 Route::get('/', function () {
     return view('welcome');
 });
@@ -559,6 +562,17 @@ Route::middleware('auth')->group(function () {
         ->middleware('can:check-permission,"Urbanisme","ecriture"')->name('dossiers-urba.documents.store');
     Route::delete('/dossiers-urba/documents/{id}', [DossierUrbaController::class, 'destroyDocument'])
         ->middleware('can:check-permission,"Urbanisme","suppression"')->name('dossiers-urba.documents.destroy');
+
+    // --- GESTION DES DÉCISIONS ADMINISTRATIVES ---
+    Route::resource('decisions-admin', DecisionAdministratifController::class)
+        ->middleware('can:check-permission,"Administration","lecture"');
+
+    // --- LIAISON ACTE ➔ OPÉRATION COMPTABLE (PIVOT) ---
+    Route::post('/decisions-admin/{id}/operations', [DecisionAdministratifController::class, 'lierOperation'])
+        ->middleware('can:check-permission,"Administration","ecriture"')->name('decisions-admin.operations.store');
+
+    Route::delete('/decisions-admin/{id}/operations/{idOp}', [DecisionAdministratifController::class, 'delierOperation'])
+        ->middleware('can:check-permission,"Administration","suppression"')->name('decisions-admin.operations.destroy');
     // ========================================================
     // RESTRICTION CRITIQUE : GESTION DES HABILITATIONS (ADMIN SYSTEME ONLY)
     // ========================================================

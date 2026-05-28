@@ -18,4 +18,8 @@ class OperationComptable extends Model
     {
         return $this->belongsTo(Projet::class, 'id_projet', 'id_projet');
     }
+    public function decisions()
+    {
+        return $this->belongsToMany(DecisionAdministratif::class, 'acte_operation', 'id_operation', 'id_decision');
+    }
 }
