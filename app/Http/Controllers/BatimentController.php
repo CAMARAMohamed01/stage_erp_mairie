@@ -83,13 +83,17 @@ class BatimentController extends Controller
             ->get();
 
         // 4. Les contrôles réglementaires (via les lieux publics rattachés)
-        $controles = DB::table('controle_reglementaire')
-            ->join('lieux_publics', 'controle_reglementaire.id_lieu', '=', 'lieux_publics.id_lieu')
-            ->where('lieux_publics.id_batiment', $id)
-            ->select('controle_reglementaire.*')
-            ->orderBy('designation')
-            ->get();
+        $controles = collect(); // On initialise une collection vide par défaut
 
+        // On vérifie que le bâtiment a bien le champ id_type_erp (qui a dû être récupéré plus haut dans le $batiment)
+        if (isset($batiment->id_type_erp) && $batiment->id_type_erp) {
+            $controles = DB::table('controle_reglementaire')
+                ->join('type_erp_controle', 'controle_reglementaire.id_controle', '=', 'type_erp_controle.id_controle')
+                ->where('type_erp_controle.id_type_erp', $batiment->id_type_erp)
+                ->select('controle_reglementaire.*')
+                ->orderBy('controle_reglementaire.designation')
+                ->get();
+        }
         // 5. Les interventions récentes : liées à l'adresse du bâtiment
         $interventions = DB::table('intervention')
             ->where('id_adresse', $batiment->id_adresse)

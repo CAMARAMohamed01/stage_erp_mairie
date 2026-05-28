@@ -2,18 +2,38 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class ControleReglementaire extends Model
 {
-    use HasFactory;
-
-    // C'est cette ligne qui corrige votre erreur :
     protected $table = 'controle_reglementaire';
-
-    // Et n'oubliez pas la clé primaire si ce n'est pas "id"
     protected $primaryKey = 'id_controle';
+    public $timestamps = false;
 
-    protected $guarded = [];
+    protected $fillable = [
+        'designation',
+        'domaine_technique',
+        'est_legalement_obligatoire',
+        'frequence_mois',
+        'type_controle',
+        'type_document_attendu',
+        'intervenant_prevu'
+    ];
+
+    // La relation Many-to-Many vers les types ERP
+    public function typesErp()
+    {
+        return $this->belongsToMany(TypeErp::class, 'type_erp_controle', 'id_controle', 'id_type_erp');
+    }
+
+    // La relation Many-to-Many vers les Équipements
+    public function equipements()
+    {
+        return $this->belongsToMany(
+            Equipement::class,
+            'soumis_a_controle',
+            'id_controle',       // Clé étrangère du modèle actuel
+            'id_equipement'      // Clé étrangère du modèle cible
+        )->withPivot('date_controle'); // On récupère la date du dernier contrôle
+    }
 }

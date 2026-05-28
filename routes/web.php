@@ -25,6 +25,10 @@ use App\Http\Controllers\secteurController;
 use App\Http\Controllers\ZoneController;
 use App\Http\Controllers\ParcelleController;
 use App\Http\Controllers\CartographieController;
+use App\Http\Controllers\ControleReglementaireController;
+use App\Http\Controllers\TypeErpController;
+use App\Http\Controllers\SupportAccesController;
+
 
 Route::get('/', function () {
     return view('welcome');
@@ -207,10 +211,78 @@ Route::middleware('auth')->group(function () {
     Route::put('/equipements/{id}', [EquipementController::class, 'update'])->middleware('can:check-permission,"Patrimoine & Equipements","ecriture"')->name('equipements.update');
     Route::delete('/equipements/{id}', [EquipementController::class, 'destroy'])->middleware('can:check-permission,"Patrimoine & Equipements","suppression"')->name('equipements.destroy');
 
+
+    // --- GESTION DES SUPPORTS D'ACCÈS / CLÉS ---
+    Route::get('/supports-acces', [SupportAccesController::class, 'index'])
+        ->middleware('can:check-permission,"Patrimoine & Equipements","lecture"')->name('supports-acces.index');
+
+    Route::get('/supports-acces/create', [SupportAccesController::class, 'create'])
+        ->middleware('can:check-permission,"Patrimoine & Equipements","ecriture"')->name('supports-acces.create');
+
+    Route::post('/supports-acces', [SupportAccesController::class, 'store'])
+        ->middleware('can:check-permission,"Patrimoine & Equipements","ecriture"')->name('supports-acces.store');
+
+    Route::get('/supports-acces/{id}', [SupportAccesController::class, 'show'])
+        ->middleware('can:check-permission,"Patrimoine & Equipements","lecture"')->name('supports-acces.show');
+
+    Route::get('/supports-acces/{id}/edit', [SupportAccesController::class, 'edit'])
+        ->middleware('can:check-permission,"Patrimoine & Equipements","ecriture"')->name('supports-acces.edit');
+
+    Route::put('/supports-acces/{id}', [SupportAccesController::class, 'update'])
+        ->middleware('can:check-permission,"Patrimoine & Equipements","ecriture"')->name('supports-acces.update');
+
+    Route::delete('/supports-acces/{id}', [SupportAccesController::class, 'destroy'])
+        ->middleware('can:check-permission,"Patrimoine & Equipements","suppression"')->name('supports-acces.destroy');
     // Remplace ton ancienne ligne par celle-ci :
     Route::post('/equipements/{idEquipement}/documents', [EquipementController::class, 'uploadDocument'])
         ->middleware('can:check-permission,"Patrimoine & Equipements","ecriture"')
         ->name('equipements.documents.store');
+    // =========================================================
+    // MODULE : TYPES ERP
+    // =========================================================
+
+    Route::get('/types-erp', [TypeErpController::class, 'index'])
+        ->middleware('can:check-permission,"Patrimoine & Equipements","lecture"')->name('types-erp.index');
+
+    Route::get('/types-erp/create', [TypeErpController::class, 'create'])
+        ->middleware('can:check-permission,"Patrimoine & Equipements","ecriture"')->name('types-erp.create');
+
+    Route::post('/types-erp', [TypeErpController::class, 'store'])
+        ->middleware('can:check-permission,"Patrimoine & Equipements","ecriture"')->name('types-erp.store');
+
+    Route::get('/types-erp/{id}', [TypeErpController::class, 'show'])
+        ->middleware('can:check-permission,"Patrimoine & Equipements","lecture"')->name('types-erp.show');
+
+    Route::get('/types-erp/{id}/edit', [TypeErpController::class, 'edit'])
+        ->middleware('can:check-permission,"Patrimoine & Equipements","ecriture"')->name('types-erp.edit');
+
+    Route::put('/types-erp/{id}', [TypeErpController::class, 'update'])
+        ->middleware('can:check-permission,"Patrimoine & Equipements","ecriture"')->name('types-erp.update');
+
+    Route::delete('/types-erp/{id}', [TypeErpController::class, 'destroy'])
+        ->middleware('can:check-permission,"Patrimoine & Equipements","suppression"')->name('types-erp.destroy');
+
+    // --- CONTRÔLES RÉGLEMENTAIRES ---
+    Route::get('/controles', [ControleReglementaireController::class, 'index'])
+        ->middleware('can:check-permission,"Patrimoine & Equipements","lecture"')->name('controles.index');
+
+    Route::get('/controles/create', [ControleReglementaireController::class, 'create'])
+        ->middleware('can:check-permission,"Patrimoine & Equipements","ecriture"')->name('controles.create');
+
+    Route::post('/controles', [ControleReglementaireController::class, 'store'])
+        ->middleware('can:check-permission,"Patrimoine & Equipements","ecriture"')->name('controles.store');
+
+    Route::get('/controles/{id}', [ControleReglementaireController::class, 'show'])
+        ->middleware('can:check-permission,"Patrimoine & Equipements","lecture"')->name('controles.show');
+
+    Route::get('/controles/{id}/edit', [ControleReglementaireController::class, 'edit'])
+        ->middleware('can:check-permission,"Patrimoine & Equipements","ecriture"')->name('controles.edit');
+
+    Route::put('/controles/{id}', [ControleReglementaireController::class, 'update'])
+        ->middleware('can:check-permission,"Patrimoine & Equipements","ecriture"')->name('controles.update');
+
+    Route::delete('/controles/{id}', [ControleReglementaireController::class, 'destroy'])
+        ->middleware('can:check-permission,"Patrimoine & Equipements","suppression"')->name('controles.destroy');
     // ==========================================
 // MODULE : GESTION DES CIMETIÈRES
 // ==========================================
@@ -347,15 +419,15 @@ Route::middleware('auth')->group(function () {
     // 🚧 MODULE VOIES & RÉSEAUX DIVERS (VRD) -
     // ========================================================
     // Les routes statiques d'abord
-    Route::get('/voies', [VoieController::class, 'index'])->name('voies.index');
-    Route::get('/voies/create', [VoieController::class, 'create'])->name('voies.create');
-    Route::post('/voies', [VoieController::class, 'store'])->name('voies.store');
+    Route::get('/voies', [VoieController::class, 'index'])->middleware('can:check-permission,"Voiries","lecture"')->name('voies.index');
+    Route::get('/voies/create', [VoieController::class, 'create'])->middleware('can:check-permission,"Voiries","ecriture"')->name('voies.create');
+    Route::post('/voies', [VoieController::class, 'store'])->middleware('can:check-permission,"Voiries","ecriture"')->name('voies.store');
 
     // Les routes dynamiques avec {id} ensuite
-    Route::get('/voies/{id}', [VoieController::class, 'show'])->name('voies.show');
-    Route::get('/voies/{id}/edit', [VoieController::class, 'edit'])->name('voies.edit');
-    Route::put('/voies/{id}', [VoieController::class, 'update'])->name('voies.update');
-    Route::delete('/voies/{id}', [VoieController::class, 'destroy'])->name('voies.destroy');
+    Route::get('/voies/{id}', [VoieController::class, 'show'])->middleware('can:check-permission,"Voiries","lecture"')->middleware('can:check-permission,"Voiries","lecture"')->name('voies.show');
+    Route::get('/voies/{id}/edit', [VoieController::class, 'edit'])->middleware('can:check-permission,"Voiries","ecriture"')->name('voies.edit');
+    Route::put('/voies/{id}', [VoieController::class, 'update'])->middleware('can:check-permission,"Voiries","ecriture"')->name('voies.update');
+    Route::delete('/voies/{id}', [VoieController::class, 'destroy'])->middleware('can:check-permission,"Voiries","suppression"')->name('voies.destroy');
     // ========================================================
     // 🚧 MODULE TRONÇONS (PARTIE GESTION DES VOIES)
 

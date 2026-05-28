@@ -53,7 +53,7 @@ class LieuController extends Controller
         $batiments = DB::table('batiment')->orderBy('nom_bat')->get();
         $types_erp = DB::table('type_erp')->get();
 
-        $contrats = \App\Models\Contrat::orderBy('numero_contrat')->get();
+        $contrats = Contrat::orderBy('numero_contrat')->get();
 
         // Pour les lieux publics, on veut afficher les parcelles avec leur adresse pour que ce soit lisible
         $parcelles = DB::table('parcelle')
@@ -125,7 +125,7 @@ class LieuController extends Controller
     // --- FORMULAIRE DE MODIFICATION ---
     public function edit($id)
     {
-        // 🟢 CORRECTION : Ajout du selectRaw pour récupérer le GeoJSON du point GPS
+        //  Ajout du selectRaw pour récupérer le GeoJSON du point GPS
         $lieu = LieuPublic::with('contratsAdministratifs')
             ->select('*', DB::raw('ST_AsGeoJSON(geom_lieu) as geojson_lieu'))
             ->findOrFail($id);
@@ -264,10 +264,15 @@ class LieuController extends Controller
         // 5. Emplacements funéraires (si c'est un cimetière)
         $emplacements = DB::table('emplacement_funeraire')->where('id_lieu', $id)->get();
 
-        $controles = DB::table('controle_reglementaire')
-            ->where('id_lieu', $id)
-            ->orderBy('designation')
-            ->get();
+        $controles = collect(); // Par défaut une collection vide
+        if ($lieu->id_type_erp) {
+            $controles = DB::table('controle_reglementaire')
+                ->join('type_erp_controle', 'controle_reglementaire.id_controle', '=', 'type_erp_controle.id_controle')
+                ->where('type_erp_controle.id_type_erp', $lieu->id_type_erp)
+                ->orderBy('controle_reglementaire.designation')
+                ->select('controle_reglementaire.*')
+                ->get();
+        }
 
         // Ajout de 'controles' dans le compact :
         return view('lieux.show', compact('lieu', 'locaux', 'equipements', 'vegetaux', 'plans_entretien', 'emplacements', 'controles', 'compteurs', 'documents'));
@@ -293,8 +298,8 @@ class LieuController extends Controller
                 // S'il y avait d'autres choses rattachées au local (ex: equipements de local), il faudrait les ajouter ici
             }
 
-            // 3. Nettoyage de toutes les tables liées directement à id_lieu
-            DB::table('controle_reglementaire')->where('id_lieu', $id)->delete(); // <-- C'est elle qui manquait !
+            // Nettoyage de toutes les tables liées directement à id_lieu
+            //DB::table('controle_reglementaire')->where('id_lieu', $id)->delete(); 
             DB::table('document')->where('id_lieu', $id)->delete();
             DB::table('equipement')->where('id_lieu', $id)->update(['id_lieu' => null]);
             DB::table('patrimoine_vegetal')->where('id_lieu', $id)->delete();

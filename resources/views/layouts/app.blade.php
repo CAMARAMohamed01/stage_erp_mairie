@@ -121,6 +121,9 @@
                     <a href="{{ route('lieux.index') }}"
                         class="text-sm py-2 transition-colors {{ request()->routeIs('lieux.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Lieux
                         publics</a>
+                    <a href="{{ route('types-erp.index') }}"
+                        class="text-sm py-2 transition-colors {{ request()->routeIs('types_erp.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Types
+                        Erp</a>
                     <a href="{{ route('locaux.index') }}"
                         class="text-sm py-2 transition-colors {{ request()->routeIs('locaux.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Locaux
                         & Pièces</a>
@@ -175,6 +178,10 @@
                         d'interventions</a>
                     <a href="{{ route('projets.index') }}"
                         class="text-sm py-2 transition-colors {{ request()->routeIs('projets.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Projets</a>
+                    <a href="{{ route('controles.index') }}"
+                        class="text-sm py-2 transition-colors {{ request()->routeIs('controles.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Contrôles
+                        Réglèmentaires</a>
+
                 </div>
             </div>
 
