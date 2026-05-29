@@ -18,4 +18,8 @@ class ArticleCompta extends Model
     {
         return $this->belongsToMany(Chapitre::class, 'article_chapitre', 'id_article', 'id_chapitre');
     }
+    public function enveloppes()
+    {
+        return $this->belongsToMany(EnveloppeBudgetaire::class, 'article_budget', 'id_article', 'id_budget');
+    }
 }

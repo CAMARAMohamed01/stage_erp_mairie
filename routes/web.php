@@ -32,7 +32,8 @@ use App\Http\Controllers\DossierUrbaController;
 use App\Http\Controllers\OperationComptableController;
 use App\Http\Controllers\EnveloppeBudgetaireController;
 use App\Http\Controllers\DecisionAdministratifController;
-
+use App\Http\Controllers\ChapitreController;
+use App\Http\Controllers\ArticleComptaController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -462,6 +463,15 @@ Route::middleware('auth')->group(function () {
     Route::get('/enveloppes-budgetaires/{id}/edit', [EnveloppeBudgetaireController::class, 'edit'])->middleware('can:check-permission,"Finances & Achats","ecriture"')->name('enveloppes-budgetaires.edit');
     Route::put('/enveloppes-budgetaires/{id}', [EnveloppeBudgetaireController::class, 'update'])->middleware('can:check-permission,"Finances & Achats","ecriture"')->name('enveloppes-budgetaires.update');
     Route::delete('/enveloppes-budgetaires/{id}', [EnveloppeBudgetaireController::class, 'destroy'])->middleware('can:check-permission,"Finances & Achats","suppression"')->name('enveloppes-budgetaires.destroy');
+
+    // --- GESTION DES CHAPITRES ---
+    Route::resource('chapitres', ChapitreController::class)
+        ->middleware('can:check-permission,"Finances & Achats","lecture"');
+
+    // --- GESTION DES ARTICLES COMPTABLES ---
+    Route::resource('articles-compta', ArticleComptaController::class)
+        ->middleware('can:check-permission,"Finances & Achats","lecture"');
+
     // ========================================================
     // 🚧 MODULE VOIES & RÉSEAUX DIVERS (VRD) / TRONÇONS / OUVRAGES
     // ========================================================

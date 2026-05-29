@@ -22,6 +22,7 @@
                 <tr class="bg-slate-50 border-b font-bold text-slate-500 text-xs uppercase tracking-wider">
                     <th class="p-4 w-32">Exercice</th>
                     <th class="p-4">Service Consommateur</th>
+                    <th class="p-4">Articles Ouverts</th>
                     <th class="p-4 text-right">Crédit voté TTC</th>
                     <th class="p-4 text-center w-24">Actions</th>
                 </tr>
@@ -31,6 +32,20 @@
                 <tr class="hover:bg-slate-50/80 transition">
                     <td class="p-4 font-mono font-black text-slate-900">📅 {{ $env->annee_exercice }}</td>
                     <td class="p-4">🏛️ {{ $env->nom_service ?? 'Budget Général Commune' }}</td>
+
+                    <td class="p-4">
+                        <div class="flex flex-wrap gap-1 max-w-xs">
+                            @forelse($env->articles as $art)
+                            <span class="text-[10px] bg-slate-100 border text-slate-600 px-1.5 py-0.5 rounded font-mono"
+                                title="{{ $art->libelle_article }}">
+                                {{ $art->numero_article }}
+                            </span>
+                            @empty
+                            <span class="text-xs text-slate-400 italic font-normal">Aucun compte lié</span>
+                            @endforelse
+                        </div>
+                    </td>
+
                     <td class="p-4 text-right font-bold text-emerald-600">
                         {{ number_format($env->montant_vote_ttc, 2, ',', ' ') }} €
                     </td>
