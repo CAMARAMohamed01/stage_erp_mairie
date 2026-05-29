@@ -447,7 +447,7 @@ Route::middleware('auth')->group(function () {
 
     // --- GESTION DES OPÉRATIONS COMPTABLES ---
     Route::get('/operations-comptables', [OperationComptableController::class, 'index'])->middleware('can:check-permission,"Finances & Achats","lecture"')->name('operations-comptables.index');
-    Route::get('/operations-comptables/create', [OperationComptableController::class, 'create'])->middleware('can:check-permission holiday","Finances & Achats","ecriture"')->name('operations-comptables.create');
+    Route::get('/operations-comptables/create', [OperationComptableController::class, 'create'])->middleware('can:check-permission,"Finances & Achats","ecriture"')->name('operations-comptables.create');
     Route::post('/operations-comptables', [OperationComptableController::class, 'store'])->middleware('can:check-permission,"Finances & Achats","ecriture"')->name('operations-comptables.store');
     Route::get('/operations-comptables/{id}', [OperationComptableController::class, 'show'])->middleware('can:check-permission,"Finances & Achats","lecture"')->name('operations-comptables.show');
     Route::get('/operations-comptables/{id}/edit', [OperationComptableController::class, 'edit'])->middleware('can:check-permission,"Finances & Achats","ecriture"')->name('operations-comptables.edit');

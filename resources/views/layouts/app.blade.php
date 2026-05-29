@@ -9,14 +9,14 @@
 
     @yield('styles')
     <style>
-        /* Petite transition pour la flèche des menus */
-        .arrow-icon {
-            transition: transform 0.2s ease-in-out;
-        }
+    /* Petite transition pour la flèche des menus */
+    .arrow-icon {
+        transition: transform 0.2s ease-in-out;
+    }
 
-        .rotate-90 {
-            transform: rotate(90deg);
-        }
+    .rotate-90 {
+        transform: rotate(90deg);
+    }
     </style>
 </head>
 
@@ -240,27 +240,39 @@
 
             <div>
                 <button onclick="toggleMenu('menu-admin')"
-                    class="w-full flex items-center justify-between px-4 py-2.5 rounded-lg transition-colors font-medium hover:bg-slate-800 hover:text-white {{ request()->routeIs('tiers.*', 'contrats.*', 'dossiers-financiers.*') ? 'text-white' : '' }}">
+                    class="w-full flex items-center justify-between px-4 py-2.5 rounded-lg transition-colors font-medium hover:bg-slate-800 hover:text-white {{ request()->routeIs('tiers.*', 'contrats.*', 'dossiers-financiers.*', 'enveloppes-budgetaires.*', 'operations-comptables.*') ? 'text-white' : '' }}">
                     <div class="flex items-center">
                         <span class="text-xl mr-3 opacity-80">📂</span> Finances & Tiers
                     </div>
                     <svg id="arrow-menu-admin"
-                        class="w-4 h-4 arrow-icon {{ request()->routeIs('tiers.*', 'contrats.*', 'dossiers-financiers.*') ? 'rotate-90' : '' }}"
+                        class="w-4 h-4 arrow-icon {{ request()->routeIs('tiers.*', 'contrats.*', 'dossiers-financiers.*', 'enveloppes-budgetaires.*', 'operations-comptables.*') ? 'rotate-90' : '' }}"
                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                     </svg>
                 </button>
                 <div id="menu-admin"
-                    class="flex flex-col pl-12 pr-4 py-1 space-y-1 {{ request()->routeIs('tiers.*', 'contrats.*', 'dossiers-financiers.*') ? '' : 'hidden' }}">
+                    class="flex flex-col pl-12 pr-4 py-1 space-y-1 {{ request()->routeIs('tiers.*', 'contrats.*', 'dossiers-financiers.*', 'enveloppes-budgetaires.*', 'operations-comptables.*') ? '' : 'hidden' }}">
+
                     <a href="{{ route('tiers.index') }}"
-                        class="text-sm py-2 transition-colors {{ request()->routeIs('tiers.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Annuaire
+                        class="text-sm py-2 transition-colors {{ request()->routeIs('tiers.*') && !request()->routeIs('tiers.entreprises') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Annuaire
                         Citoyens</a>
+
                     <a href="{{ route('tiers.entreprises') }}"
-                        class="text-sm py-2 transition-colors {{ request()->routeIs('entreprises.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Annuaire
+                        class="text-sm py-2 transition-colors {{ request()->routeIs('entreprises.*') || request()->routeIs('tiers.entreprises') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Annuaire
                         Entreprises</a>
+
                     <a href="{{ route('contrats.index') }}"
                         class="text-sm py-2 transition-colors {{ request()->routeIs('contrats.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Contrats
                         & Engagements</a>
+
+                    <a href="{{ route('enveloppes-budgetaires.index') }}"
+                        class="text-sm py-2 transition-colors {{ request()->routeIs('enveloppes-budgetaires.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Enveloppes
+                        Budgétaires</a>
+
+                    <a href="{{ route('operations-comptables.index') }}"
+                        class="text-sm py-2 transition-colors {{ request()->routeIs('operations-comptables.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Opérations
+                        Comptables</a>
+
                     <a href="{{ route('dossiers-financiers.index') }}"
                         class="text-sm py-2 transition-colors {{ request()->routeIs('dossiers-financiers.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Dossiers
                         Financiers</a>
@@ -268,13 +280,13 @@
             </div>
 
             @if(Auth::user()->role_appli === 'Administrateur')
-                <div class="pt-2">
-                    <a href="{{ route('admin.habilitations.index') }}"
-                        class="flex items-center px-4 py-3 rounded-lg transition-colors font-medium {{ request()->routeIs('admin.habilitations.*') ? 'bg-blue-600 text-white shadow-md' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
-                        <span class="text-xl mr-3 opacity-80">🔐</span>
-                        Paramètres d'accès
-                    </a>
-                </div>
+            <div class="pt-2">
+                <a href="{{ route('admin.habilitations.index') }}"
+                    class="flex items-center px-4 py-3 rounded-lg transition-colors font-medium {{ request()->routeIs('admin.habilitations.*') ? 'bg-blue-600 text-white shadow-md' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                    <span class="text-xl mr-3 opacity-80">🔐</span>
+                    Paramètres d'accès
+                </a>
+            </div>
             @endif
 
         </nav>
@@ -337,15 +349,15 @@
     </main>
 
     <script>
-        function toggleMenu(menuId) {
-            // Récupérer le menu et la flèche
-            const menu = document.getElementById(menuId);
-            const arrow = document.getElementById('arrow-' + menuId);
+    function toggleMenu(menuId) {
+        // Récupérer le menu et la flèche
+        const menu = document.getElementById(menuId);
+        const arrow = document.getElementById('arrow-' + menuId);
 
-            // Basculer la visibilité et la rotation
-            menu.classList.toggle('hidden');
-            arrow.classList.toggle('rotate-90');
-        }
+        // Basculer la visibilité et la rotation
+        menu.classList.toggle('hidden');
+        arrow.classList.toggle('rotate-90');
+    }
     </script>
     @yield('scripts')
 </body>
