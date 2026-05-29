@@ -29,7 +29,8 @@ use App\Http\Controllers\ControleReglementaireController;
 use App\Http\Controllers\TypeErpController;
 use App\Http\Controllers\SupportAccesController;
 use App\Http\Controllers\DossierUrbaController;
-
+use App\Http\Controllers\OperationComptableController;
+use App\Http\Controllers\EnveloppeBudgetaireController;
 use App\Http\Controllers\DecisionAdministratifController;
 
 
@@ -442,6 +443,25 @@ Route::middleware('auth')->group(function () {
     // Changer le statut budgétaire à la volée
     Route::patch('/dossiers-financiers/{id}/statut', [DossierFinancierController::class, 'updateStatut'])
         ->middleware('can:check-permission,"Finances & Achats","ecriture"')->name('dossiers-financiers.statut.update');
+
+
+    // --- GESTION DES OPÉRATIONS COMPTABLES ---
+    Route::get('/operations-comptables', [OperationComptableController::class, 'index'])->middleware('can:check-permission,"Finances & Achats","lecture"')->name('operations-comptables.index');
+    Route::get('/operations-comptables/create', [OperationComptableController::class, 'create'])->middleware('can:check-permission holiday","Finances & Achats","ecriture"')->name('operations-comptables.create');
+    Route::post('/operations-comptables', [OperationComptableController::class, 'store'])->middleware('can:check-permission,"Finances & Achats","ecriture"')->name('operations-comptables.store');
+    Route::get('/operations-comptables/{id}', [OperationComptableController::class, 'show'])->middleware('can:check-permission,"Finances & Achats","lecture"')->name('operations-comptables.show');
+    Route::get('/operations-comptables/{id}/edit', [OperationComptableController::class, 'edit'])->middleware('can:check-permission,"Finances & Achats","ecriture"')->name('operations-comptables.edit');
+    Route::put('/operations-comptables/{id}', [OperationComptableController::class, 'update'])->middleware('can:check-permission,"Finances & Achats","ecriture"')->name('operations-comptables.update');
+    Route::delete('/operations-comptables/{id}', [OperationComptableController::class, 'destroy'])->middleware('can:check-permission,"Finances & Achats","suppression"')->name('operations-comptables.destroy');
+
+    // --- GESTION DES ENVELOPPES BUDGÉTAIRES ---
+    Route::get('/enveloppes-budgetaires', [EnveloppeBudgetaireController::class, 'index'])->middleware('can:check-permission,"Finances & Achats","lecture"')->name('enveloppes-budgetaires.index');
+    Route::get('/enveloppes-budgetaires/create', [EnveloppeBudgetaireController::class, 'create'])->middleware('can:check-permission,"Finances & Achats","ecriture"')->name('enveloppes-budgetaires.create');
+    Route::post('/enveloppes-budgetaires', [EnveloppeBudgetaireController::class, 'store'])->middleware('can:check-permission,"Finances & Achats","ecriture"')->name('enveloppes-budgetaires.store');
+    Route::get('/enveloppes-budgetaires/{id}', [EnveloppeBudgetaireController::class, 'show'])->middleware('can:check-permission,"Finances & Achats","lecture"')->name('enveloppes-budgetaires.show');
+    Route::get('/enveloppes-budgetaires/{id}/edit', [EnveloppeBudgetaireController::class, 'edit'])->middleware('can:check-permission,"Finances & Achats","ecriture"')->name('enveloppes-budgetaires.edit');
+    Route::put('/enveloppes-budgetaires/{id}', [EnveloppeBudgetaireController::class, 'update'])->middleware('can:check-permission,"Finances & Achats","ecriture"')->name('enveloppes-budgetaires.update');
+    Route::delete('/enveloppes-budgetaires/{id}', [EnveloppeBudgetaireController::class, 'destroy'])->middleware('can:check-permission,"Finances & Achats","suppression"')->name('enveloppes-budgetaires.destroy');
     // ========================================================
     // 🚧 MODULE VOIES & RÉSEAUX DIVERS (VRD) / TRONÇONS / OUVRAGES
     // ========================================================

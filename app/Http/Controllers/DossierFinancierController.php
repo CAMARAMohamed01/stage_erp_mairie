@@ -31,8 +31,16 @@ class DossierFinancierController extends Controller
     }
 
     // Formulaire de création
-    public function create()
+    // Formulaire de création (Avec aiguillage Dépense / Recette)
+    public function create(Request $request)
     {
+        $type = $request->query('type');
+
+        // Si le type n'est pas bon ou absent, on affiche la page de choix intermédiaire
+        if (!$type || !in_array($type, ['depense', 'recette'])) {
+            return view('finances.dossiers.choice');
+        }
+
         $contrats = Contrat::orderBy('numero_contrat')->get();
 
         $tiers = DB::table('tiers')
@@ -42,9 +50,8 @@ class DossierFinancierController extends Controller
             ->orderByRaw('COALESCE(tiers_morale.raison_sociale, tiers_physique.nom_tiers) ASC')
             ->get();
 
-        return view('finances.dossiers.create', compact('contrats', 'tiers'));
+        return view('finances.dossiers.create', compact('contrats', 'tiers', 'type'));
     }
-
     // Enregistrement en base
     public function store(Request $request)
     {
@@ -115,6 +122,73 @@ class DossierFinancierController extends Controller
 
         return redirect()->route('dossiers-financiers.show', $id)
             ->with('success', 'La ligne financière a été imputée avec succès.');
+    }
+    // Formulaire d'édition du dossier
+    public function edit($id)
+    {
+        $dossier = DossierFinancier::findOrFail($id);
+        $contrats = \App\Models\Contrat::orderBy('numero_contrat')->get();
+
+        $tiers = DB::table('tiers')
+            ->leftJoin('tiers_physique', 'tiers.id_tiers', '=', 'tiers_physique.id_tiers')
+            ->leftJoin('tiers_morale', 'tiers.id_tiers', '=', 'tiers_morale.id_tiers')
+            ->select('tiers.id_tiers', 'tiers_physique.nom_tiers', 'tiers_physique.prenom_tiers', 'tiers_morale.raison_sociale')
+            ->orderByRaw('COALESCE(tiers_morale.raison_sociale, tiers_physique.nom_tiers) ASC')
+            ->get();
+
+        return view('finances.dossiers.edit', compact('dossier', 'contrats', 'tiers'));
+    }
+
+    // Sauvegarde de la modification
+    public function update(Request $request, $id)
+    {
+        $dossier = DossierFinancier::findOrFail($id);
+
+        $validated = $request->validate([
+            'objet_dossier' => 'nullable|string|max:255',
+            'numero_titre_recette' => 'nullable|string|max:50',
+            'numero_devis' => 'nullable|string|max:50',
+            'numero_engagement' => 'nullable|string|max:50',
+            'numero_bon_commande' => 'nullable|string|max:50',
+            'numero_bon_livraison' => 'nullable|string|max:50',
+            'numero_facture' => 'nullable|string|max:50',
+            'statut_actuel' => 'required|string|max:50',
+            'id_contrat' => 'nullable|exists:contrat,id_contrat',
+            'id_tiers' => 'nullable|exists:tiers,id_tiers',
+        ]);
+
+        $dossier->update($validated);
+
+        return redirect()->route('dossiers-financiers.show', $id)
+            ->with('success', '✏️ Le dossier financier a été mis à jour.');
+    }
+
+    // Suppression sécurisée en cascade
+    public function destroy($id)
+    {
+        $dossier = DossierFinancier::findOrFail($id);
+
+        try {
+            DB::beginTransaction();
+
+            // 1. Suppression forcée de toutes les lignes de ventilation comptable
+            $dossier->lignes()->delete();
+
+            // 2. Dissociation des documents liés au dossier financier pour éviter les blocages
+            DB::table('document')->where('id_dossier_f', $id)->update(['id_dossier_f' => null]);
+
+            // 3. Suppression de la fiche principale
+            $dossier->delete();
+
+            DB::commit();
+
+            return redirect()->route('dossiers-financiers.index')
+                ->with('success', '🗑️ Le dossier financier et son historique d\'imputations ont été définitivement supprimés.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Erreur lors du nettoyage de la pièce : ' . $e->getMessage());
+        }
     }
 
     // ➕ PERTINENT : Supprimer une ligne de facture en direct
