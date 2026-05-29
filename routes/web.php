@@ -444,7 +444,14 @@ Route::middleware('auth')->group(function () {
     // Changer le statut budgétaire à la volée
     Route::patch('/dossiers-financiers/{id}/statut', [DossierFinancierController::class, 'updateStatut'])
         ->middleware('can:check-permission,"Finances & Achats","ecriture"')->name('dossiers-financiers.statut.update');
+    // --- GESTION DES DOCUMENTS DU DOSSIER FINANCIER ---
+    Route::post('/dossiers-financiers/{id}/documents', [DossierFinancierController::class, 'uploadDocument'])
+        ->middleware('can:check-permission,"Finances & Achats","ecriture"')
+        ->name('dossiers-financiers.documents.store');
 
+    Route::delete('/dossiers-financiers/{id}/documents/{documentId}', [DossierFinancierController::class, 'destroyDocument'])
+        ->middleware('can:check-permission,"Finances & Achats","suppression"')
+        ->name('dossiers-financiers.documents.destroy');
 
     // --- GESTION DES OPÉRATIONS COMPTABLES ---
     Route::get('/operations-comptables', [OperationComptableController::class, 'index'])->middleware('can:check-permission,"Finances & Achats","lecture"')->name('operations-comptables.index');
@@ -471,6 +478,16 @@ Route::middleware('auth')->group(function () {
     // --- GESTION DES ARTICLES COMPTABLES ---
     Route::resource('articles-compta', ArticleComptaController::class)
         ->middleware('can:check-permission,"Finances & Achats","lecture"');
+    // --- GESTION DES DÉCISIONS ADMINISTRATIVES ---
+    Route::resource('decisions-admin', DecisionAdministratifController::class)
+        ->middleware('can:check-permission,"Administration","lecture"');
+
+    // --- LIAISON ACTE ➔ OPÉRATION COMPTABLE (PIVOT) ---
+    Route::post('/decisions-admin/{id}/operations', [DecisionAdministratifController::class, 'lierOperation'])
+        ->middleware('can:check-permission,"Administration","ecriture"')->name('decisions-admin.operations.store');
+
+    Route::delete('/decisions-admin/{id}/operations/{idOp}', [DecisionAdministratifController::class, 'delierOperation'])
+        ->middleware('can:check-permission,"Administration","suppression"')->name('decisions-admin.operations.destroy');
 
     // ========================================================
     // 🚧 MODULE VOIES & RÉSEAUX DIVERS (VRD) / TRONÇONS / OUVRAGES
@@ -606,16 +623,6 @@ Route::middleware('auth')->group(function () {
     Route::delete('/dossiers-urba/documents/{id}', [DossierUrbaController::class, 'destroyDocument'])
         ->middleware('can:check-permission,"Urbanisme","suppression"')->name('dossiers-urba.documents.destroy');
 
-    // --- GESTION DES DÉCISIONS ADMINISTRATIVES ---
-    Route::resource('decisions-admin', DecisionAdministratifController::class)
-        ->middleware('can:check-permission,"Administration","lecture"');
-
-    // --- LIAISON ACTE ➔ OPÉRATION COMPTABLE (PIVOT) ---
-    Route::post('/decisions-admin/{id}/operations', [DecisionAdministratifController::class, 'lierOperation'])
-        ->middleware('can:check-permission,"Administration","ecriture"')->name('decisions-admin.operations.store');
-
-    Route::delete('/decisions-admin/{id}/operations/{idOp}', [DecisionAdministratifController::class, 'delierOperation'])
-        ->middleware('can:check-permission,"Administration","suppression"')->name('decisions-admin.operations.destroy');
     // ========================================================
     // RESTRICTION CRITIQUE : GESTION DES HABILITATIONS (ADMIN SYSTEME ONLY)
     // ========================================================

@@ -7,6 +7,8 @@ use App\Models\Contrat;
 use App\Models\LigneFinanciereFacture;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use App\Models\Document;
 
 class DossierFinancierController extends Controller
 {
@@ -87,7 +89,13 @@ class DossierFinancierController extends Controller
     public function show($id)
     {
         // On charge le dossier et ses lignes ventilées en une seule fois
-        $dossier = DossierFinancier::with(['tiers', 'contrat', 'lignes.operationComptable', 'lignes.enveloppeBudgetaire'])->findOrFail($id);
+        $dossier = DossierFinancier::with([
+            'tiers',
+            'contrat',
+            'lignes.operationComptable',
+            'lignes.enveloppeBudgetaire',
+            'documents'
+        ])->findOrFail($id);
 
         $budgets = DB::table('enveloppe_budgetaire')->orderBy('annee_exercice', 'desc')->get();
         $operations = DB::table('operation_comptable')->orderBy('numero_operation')->get();
@@ -127,7 +135,7 @@ class DossierFinancierController extends Controller
     public function edit($id)
     {
         $dossier = DossierFinancier::findOrFail($id);
-        $contrats = \App\Models\Contrat::orderBy('numero_contrat')->get();
+        $contrats = Contrat::orderBy('numero_contrat')->get();
 
         $tiers = DB::table('tiers')
             ->leftJoin('tiers_physique', 'tiers.id_tiers', '=', 'tiers_physique.id_tiers')
@@ -204,5 +212,59 @@ class DossierFinancierController extends Controller
         $request->validate(['statut_actuel' => 'required|string|max:50']);
         DossierFinancier::findOrFail($id)->update(['statut_actuel' => $request->statut_actuel]);
         return redirect()->back()->with('success', 'Statut comptable mis à jour.');
+    }
+    public function uploadDocument(Request $request, $id)
+    {
+        $request->validate([
+            'fichier' => 'required|file|mimes:pdf,png,jpg,jpeg,docx,xlsx|max:4096',
+        ]);
+
+        $dossier = DossierFinancier::findOrFail($id);
+
+        if ($request->hasFile('fichier')) {
+            $file = $request->file('fichier');
+            $originalName = $file->getClientOriginalName();
+
+            $tailleKo = round($file->getSize() / 1024, 2);
+            $extension = $file->getClientOriginalExtension();
+
+            $path = $file->storeAs('finances', time() . '_' . \Str::slug(pathinfo($originalName, PATHINFO_FILENAME)) . '.' . $extension, 'public');
+
+
+            DB::table('document')->insert([
+                'nom_fichier' => \Str::limit($originalName, 80, ''),
+                'type_doc' => \Str::limit($extension, 50, ''),
+                'chemin_stockage' => $path,
+                'taille_ko' => $tailleKo,
+                'date_upload' => now()->format('Y-m-d'),
+                'id_dossier_f' => $dossier->id_dossier_f,
+            ]);
+
+            return redirect()->back()->with('success', '📁 Le justificatif a bien été téléversé et rattaché au dossier.');
+        }
+
+        return redirect()->back()->with('error', 'Erreur lors de la réception du fichier.');
+    }
+
+
+    // Suppression physique et logique du document
+    public function destroyDocument($id, $documentId) // 🌟 CORRECTION : On récupère les deux variables de la route
+    {
+        // Recherche du document avec le VRAI ID du document
+        $document = DB::table('document')->where('id_document', $documentId)->first();
+
+        if ($document) {
+            // 1. Suppression du fichier sur le stockage de l'application
+            if (Storage::disk('public')->exists($document->chemin_stockage)) {
+                Storage::disk('public')->delete($document->chemin_stockage);
+            }
+
+            // 2. Suppression de la ligne dans la table PostgreSQL
+            DB::table('document')->where('id_document', $documentId)->delete();
+
+            return redirect()->back()->with('success', '🗑️ Le justificatif a été définitivement supprimé du serveur.');
+        }
+
+        return redirect()->back()->with('error', 'Fichier introuvable ou déjà supprimé.');
     }
 }

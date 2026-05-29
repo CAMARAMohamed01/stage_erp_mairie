@@ -3,6 +3,19 @@
 @section('title', 'Dossier Financier DOS-' . str_pad($dossier->id_dossier_f, 4, '0', STR_PAD_LEFT))
 
 @section('content')
+@if(session('success'))
+<div
+    class="max-w-6xl mx-auto mb-4 p-4 bg-green-50 border border-green-200 text-green-800 rounded-xl text-sm font-bold shadow-sm">
+    {{ session('success') }}
+</div>
+@endif
+
+@if(session('error'))
+<div
+    class="max-w-6xl mx-auto mb-4 p-4 bg-red-50 border border-red-200 text-red-800 rounded-xl text-sm font-bold shadow-sm">
+    {{ session('error') }}
+</div>
+@endif
 @php
 // Détermination de la nature du dossier pour l'affichage conditionnel des dates et pièces
 $isRecette = $dossier->numero_titre_recette || $dossier->date_constatation_recette;
@@ -28,15 +41,16 @@ $isRecette = $dossier->numero_titre_recette || $dossier->date_constatation_recet
                         class="text-xs bg-slate-100 border border-slate-200 font-bold text-slate-700 px-2.5 py-1 rounded-full cursor-pointer focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500/20 transition">
                         @if(!$isRecette)
                         <option value="Devis demandé"
-                            {{ $dossier->statut_actuel == 'Devis demandé' ? 'selected' : '' }}>Devis demandé</option>
+                            {{ $dossier->statut_actuel == 'Devis demandé' ? 'selected' : '' }}>
+                            Devis demandé</option>
                         <option value="Devis reçu" {{ $dossier->statut_actuel == 'Devis reçu' ? 'selected' : '' }}>Devis
                             reçu</option>
                         <option value="Bon de commande émis"
                             {{ $dossier->statut_actuel == 'Bon de commande émis' ? 'selected' : '' }}>Bon de commande
                             émis</option>
                         <option value="Facture reçue"
-                            {{ $dossier->statut_actuel == 'Facture reçue' ? 'selected' : '' }}>Facture reçue / En
-                            attente</option>
+                            {{ $dossier->statut_actuel == 'Facture reçue' ? 'selected' : '' }}>
+                            Facture reçue / En attente</option>
                         <option value="Transmis Trésorerie"
                             {{ $dossier->statut_actuel == 'Transmis Trésorerie' ? 'selected' : '' }}>Transmis Trésorerie
                         </option>
@@ -104,6 +118,7 @@ $isRecette = $dossier->numero_titre_recette || $dossier->date_constatation_recet
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
         <div class="lg:col-span-2 space-y-6">
+
             <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
                 <div class="p-4 bg-slate-50 border-b border-slate-200">
                     <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider">📄 Articles comptables imputés
@@ -135,7 +150,8 @@ $isRecette = $dossier->numero_titre_recette || $dossier->date_constatation_recet
                                     class="font-bold text-slate-900 block">{{ number_format($ligne->montant_ttc, 2, ',', ' ') }}
                                     € TTC</span>
                                 <p class="text-xs text-slate-400 font-normal">HT :
-                                    {{ number_format($ligne->montant_ht, 2, ',', ' ') }} €</p>
+                                    {{ number_format($ligne->montant_ht, 2, ',', ' ') }} €
+                                </p>
                             </div>
 
                             @can('check-permission', ['Finances & Achats', 'suppression'])
@@ -160,6 +176,70 @@ $isRecette = $dossier->numero_titre_recette || $dossier->date_constatation_recet
                     @endforelse
                 </div>
             </div>
+
+            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider border-b pb-2">📄 Justificatifs &
+                    Pièces comptables numérisées</h3>
+
+                @forelse($dossier->documents as $doc)
+                <div class="flex justify-between items-center p-2.5 bg-slate-50 border rounded-lg text-sm group">
+                    <div class="flex items-center gap-2">
+                        <span class="text-lg">
+                            @if(Str::endsWith(strtolower($doc->nom_fichier), ['.pdf'])) 📄
+                            @elseif(Str::endsWith(strtolower($doc->nom_fichier), ['.jpg', '.jpeg', '.png'])) 🖼️
+                            @else 📁
+                            @endif
+                        </span>
+                        <div>
+                            <p class="font-semibold text-slate-800">{{ $doc->nom_fichier }}</p>
+                            <p class="text-[10px] text-slate-400">Ajouté le
+                                {{ \Carbon\Carbon::parse($doc->date_upload)->format('d/m/Y') }}
+                                @if($doc->taille_ko) | {{ number_format($doc->taille_ko / 1024, 2) }} Mo @endif
+                            </p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <a href="{{ asset('storage/' . $doc->chemin_stockage) }}" target="_blank"
+                            class="text-xs bg-white hover:bg-slate-100 text-slate-700 font-bold py-1 px-3 border rounded shadow-sm transition">
+                            Visualiser
+                        </a>
+
+                        @can('check-permission', ['Finances & Achats', 'suppression'])
+                        <form
+                            action="{{ route('dossiers-financiers.documents.destroy', [$dossier->id_dossier_f, $doc->id_document]) }}"
+                            method="POST"
+                            onsubmit="return confirm('⚠️ Confirmer la suppression définitive de ce justificatif comptable ? Le fichier sera effacé du serveur.');"
+                            class="inline">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit"
+                                class="text-red-500 hover:text-red-700 font-bold p-1 text-sm transition"
+                                title="Supprimer définitivement">
+                                🗑️
+                            </button>
+                        </form>
+                        @endcan
+                    </div>
+                </div>
+                @empty
+                <p class="text-xs text-slate-400 italic text-center py-2">Aucun justificatif (facture, devis, bon de
+                    commande) téléversé.</p>
+                @endforelse
+
+                @can('check-permission', ['Finances & Achats', 'ecriture'])
+                <form action="{{ route('dossiers-financiers.documents.store', $dossier->id_dossier_f) }}" method="POST"
+                    enctype="multipart/form-data" class="pt-4 border-t border-dashed flex gap-3 items-center">
+                    @csrf
+                    <input type="file" name="fichier" required
+                        class="text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 file:cursor-pointer hover:file:bg-blue-100 w-full flex-1">
+                    <button type="submit"
+                        class="px-4 py-1.5 bg-slate-900 text-white text-xs font-bold rounded-lg hover:bg-slate-800 transition whitespace-nowrap">
+                        Téléverser la pièce
+                    </button>
+                </form>
+                @endcan
+            </div>
+
         </div>
 
         <div class="space-y-6">
@@ -241,7 +321,8 @@ $isRecette = $dossier->numero_titre_recette || $dossier->date_constatation_recet
                             <option value="">-- Optionnel : Choix écriture --</option>
                             @foreach($operations as $o)
                             <option value="{{ $o->id_operation }}">{{ $o->numero_operation }} -
-                                {{ $o->libelle_operation }}</option>
+                                {{ $o->libelle_operation }}
+                            </option>
                             @endforeach
                         </select>
                     </div>

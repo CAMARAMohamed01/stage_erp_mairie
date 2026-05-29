@@ -50,4 +50,8 @@ class DossierFinancier extends Model
     {
         return $this->hasMany(LigneFinanciereFacture::class, 'id_dossier_f', 'id_dossier_f');
     }
+    public function documents()
+    {
+        return $this->hasMany(\App\Models\Document::class, 'id_dossier_f', 'id_dossier_f');
+    }
 }
