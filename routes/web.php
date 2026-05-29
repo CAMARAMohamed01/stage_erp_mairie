@@ -35,6 +35,7 @@ use App\Http\Controllers\DecisionAdministratifController;
 use App\Http\Controllers\ChapitreController;
 use App\Http\Controllers\ArticleComptaController;
 use App\Http\Controllers\DecisionCommissionController;
+use App\Http\Controllers\ImmobilisationController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -502,6 +503,11 @@ Route::middleware('auth')->group(function () {
 
     Route::resource('decisions-commission', DecisionCommissionController::class)
         ->middleware('can:check-permission,"Conseil & Commissions","lecture"');
+
+    Route::resource('immobilisations', ImmobilisationController::class)
+        ->middleware('can:check-permission,"Finances & Achats","lecture"');
+    // --- MAILLAGE DIRECT DE L'INVENTAIRE COMPTABLE ---
+    Route::post('/immobilisations/{id}/rattacher-bien', [ImmobilisationController::class, 'rattacherBien'])->name('immobilisations.rattacher');
     // ========================================================
     // 🚧 MODULE VOIES & RÉSEAUX DIVERS (VRD) / TRONÇONS / OUVRAGES
     // ========================================================

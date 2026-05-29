@@ -238,18 +238,18 @@
 
             <div>
                 <button onclick="toggleMenu('menu-admin')"
-                    class="w-full flex items-center justify-between px-4 py-2.5 rounded-lg transition-colors font-medium hover:bg-slate-800 hover:text-white {{ request()->routeIs('tiers.*', 'contrats.*', 'dossiers-financiers.*', 'enveloppes-budgetaires.*', 'operations-comptables.*', 'chapitres.*', 'articles-compta.*') ? 'text-white' : '' }}">
+                    class="w-full flex items-center justify-between px-4 py-2.5 rounded-lg transition-colors font-medium hover:bg-slate-800 hover:text-white {{ request()->routeIs('tiers.*', 'contrats.*', 'immobilisations.*', 'dossiers-financiers.*', 'enveloppes-budgetaires.*', 'operations-comptables.*', 'chapitres.*', 'articles-compta.*') ? 'text-white' : '' }}">
                     <div class="flex items-center">
                         <span class="text-xl mr-3 opacity-80">📂</span> Finances & Tiers
                     </div>
                     <svg id="arrow-menu-admin"
-                        class="w-4 h-4 arrow-icon {{ request()->routeIs('tiers.*', 'contrats.*', 'dossiers-financiers.*', 'enveloppes-budgetaires.*', 'operations-comptables.*', 'chapitres.*', 'articles-compta.*') ? 'rotate-90' : '' }}"
+                        class="w-4 h-4 arrow-icon {{ request()->routeIs('tiers.*', 'contrats.*', 'immobilisations.*', 'dossiers-financiers.*', 'enveloppes-budgetaires.*', 'operations-comptables.*', 'chapitres.*', 'articles-compta.*') ? 'rotate-90' : '' }}"
                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                     </svg>
                 </button>
                 <div id="menu-admin"
-                    class="flex flex-col pl-12 pr-4 py-1 space-y-1 {{ request()->routeIs('tiers.*', 'contrats.*', 'dossiers-financiers.*', 'enveloppes-budgetaires.*', 'operations-comptables.*', 'chapitres.*', 'articles-compta.*') ? '' : 'hidden' }}">
+                    class="flex flex-col pl-12 pr-4 py-1 space-y-1 {{ request()->routeIs('tiers.*', 'contrats.*', 'immobilisations.*', 'dossiers-financiers.*', 'enveloppes-budgetaires.*', 'operations-comptables.*', 'chapitres.*', 'articles-compta.*') ? '' : 'hidden' }}">
 
                     <a href="{{ route('tiers.index') }}"
                         class="text-sm py-2 transition-colors {{ request()->routeIs('tiers.*') && !request()->routeIs('tiers.entreprises') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Annuaire
@@ -262,6 +262,10 @@
                     <a href="{{ route('contrats.index') }}"
                         class="text-sm py-2 transition-colors {{ request()->routeIs('contrats.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Contrats
                         & Engagements</a>
+
+                    <a href="{{ route('immobilisations.index') }}"
+                        class="text-sm py-2 transition-colors {{ request()->routeIs('immobilisations.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Inventaire
+                        & Immobilisations</a>
 
                     <a href="{{ route('chapitres.index') }}"
                         class="text-sm py-2 transition-colors {{ request()->routeIs('chapitres.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Nomenclature
