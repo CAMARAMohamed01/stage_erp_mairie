@@ -34,6 +34,7 @@ use App\Http\Controllers\EnveloppeBudgetaireController;
 use App\Http\Controllers\DecisionAdministratifController;
 use App\Http\Controllers\ChapitreController;
 use App\Http\Controllers\ArticleComptaController;
+use App\Http\Controllers\DecisionCommissionController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -421,6 +422,10 @@ Route::middleware('auth')->group(function () {
     // Suppression
     Route::delete('/contrats/{id}', [ContratController::class, 'destroy'])->middleware('can:check-permission,"Finances & Achats","suppression"')->name('contrats.destroy');
     Route::post('/contrats/{id}/ajouter-location', [ContratController::class, 'ajouterLocation'])->middleware('can:check-permission,"Finances & Achats","ecriture"')->name('contrats.location.store');
+
+    // Enregistrement des occupations de patrimoine
+    Route::post('/contrats/{id}/ajouter-local', [ContratController::class, 'ajouterLocal'])->name('contrats.local.store');
+    Route::post('/contrats/{id}/ajouter-lieu', [ContratController::class, 'ajouterLieu'])->name('contrats.lieu.store');
     // ========================================================
     // 💳 SECURISE : MODULE DOSSIERS FINANCIERS (COMPTABILITE)
     // ========================================================
@@ -489,6 +494,8 @@ Route::middleware('auth')->group(function () {
     Route::delete('/decisions-admin/{id}/operations/{idOp}', [DecisionAdministratifController::class, 'delierOperation'])
         ->middleware('can:check-permission,"Administration","suppression"')->name('decisions-admin.operations.destroy');
 
+    Route::resource('decisions-commission', DecisionCommissionController::class)
+        ->middleware('can:check-permission,"Conseil & Commissions","lecture"');
     // ========================================================
     // 🚧 MODULE VOIES & RÉSEAUX DIVERS (VRD) / TRONÇONS / OUVRAGES
     // ========================================================

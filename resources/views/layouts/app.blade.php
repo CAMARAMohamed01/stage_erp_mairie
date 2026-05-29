@@ -52,6 +52,7 @@
 
             <div class="px-4 pb-2 pt-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Patrimoine &
                 Interventions</div>
+
             <div>
                 <button onclick="toggleMenu('menu-territoire')"
                     class="w-full flex items-center justify-between px-4 py-2.5 rounded-lg transition-colors font-medium hover:bg-slate-800 hover:text-white {{ request()->routeIs('secteurs.*', 'zones.*', 'parcelles.*') ? 'text-white' : '' }}">
@@ -75,6 +76,7 @@
                         Cadastrales</a>
                 </div>
             </div>
+
             <div>
                 <button onclick="toggleMenu('menu-urbanisme')"
                     class="w-full flex items-center justify-between px-4 py-2.5 rounded-lg transition-colors font-medium hover:bg-slate-800 hover:text-white {{ request()->routeIs('dossiers-urba.*') ? 'text-white' : '' }}">
@@ -136,32 +138,24 @@
 
                 <div id="menu-batiments"
                     class="flex flex-col pl-12 pr-4 py-1 space-y-1 {{ request()->routeIs('batiments.*', 'lieux.*', 'locaux.*', 'equipements.*', 'compteurs.*', 'supports-acces.*', 'types-erp.*', 'controles.*') ? '' : 'hidden' }}">
-
                     <a href="{{ route('batiments.index') }}"
                         class="text-sm py-2 transition-colors {{ request()->routeIs('batiments.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Bâtiments</a>
-
                     <a href="{{ route('lieux.index') }}"
                         class="text-sm py-2 transition-colors {{ request()->routeIs('lieux.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Lieux
                         publics</a>
-
                     <a href="{{ route('types-erp.index') }}"
                         class="text-sm py-2 transition-colors {{ request()->routeIs('types-erp.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Types
                         ERP</a>
-
                     <a href="{{ route('controles.index') }}"
                         class="text-sm py-2 transition-colors {{ request()->routeIs('controles.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Contrôles
                         réglementaires</a>
-
                     <a href="{{ route('locaux.index') }}"
                         class="text-sm py-2 transition-colors {{ request()->routeIs('locaux.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Locaux
                         & Pièces</a>
-
                     <a href="{{ route('equipements.index') }}"
                         class="text-sm py-2 transition-colors {{ request()->routeIs('equipements.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Équipements</a>
-
                     <a href="{{ route('compteurs.index') }}"
                         class="text-sm py-2 transition-colors {{ request()->routeIs('compteurs.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Compteurs</a>
-
                     <a href="{{ route('supports-acces.index') }}"
                         class="text-sm py-2 transition-colors {{ request()->routeIs('supports-acces.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Supports
                         & Clés</a>
@@ -192,12 +186,12 @@
 
             <div>
                 <button onclick="toggleMenu('menu-interventions')"
-                    class="w-full flex items-center justify-between px-4 py-2.5 rounded-lg transition-colors font-medium hover:bg-slate-800 hover:text-white {{ request()->routeIs('actions.*', 'interventions.*') ? 'text-white' : '' }}">
+                    class="w-full flex items-center justify-between px-4 py-2.5 rounded-lg transition-colors font-medium hover:bg-slate-800 hover:text-white {{ request()->routeIs('actions.*', 'interventions.*', 'projets.*') ? 'text-white' : '' }}">
                     <div class="flex items-center">
                         <span class="text-xl mr-3 opacity-80">🛠️</span> Suivi & Travaux
                     </div>
                     <svg id="arrow-menu-interventions"
-                        class="w-4 h-4 arrow-icon {{ request()->routeIs('actions.*', 'interventions.*') ? 'rotate-90' : '' }}"
+                        class="w-4 h-4 arrow-icon {{ request()->routeIs('actions.*', 'interventions.*', 'projets.*') ? 'rotate-90' : '' }}"
                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                     </svg>
@@ -220,21 +214,25 @@
 
             <div>
                 <button onclick="toggleMenu('menu-decisions')"
-                    class="w-full flex items-center justify-between px-4 py-2.5 rounded-lg transition-colors font-medium hover:bg-slate-800 hover:text-white {{ request()->routeIs('decisions-admin.*') ? 'text-white' : '' }}">
+                    class="w-full flex items-center justify-between px-4 py-2.5 rounded-lg transition-colors font-medium hover:bg-slate-800 hover:text-white {{ request()->routeIs('decisions-admin.*', 'decisions-commission.*') ? 'text-white' : '' }}">
                     <div class="flex items-center">
                         <span class="text-xl mr-3 opacity-80">📜</span> Actes & Décisions
                     </div>
                     <svg id="arrow-menu-decisions"
-                        class="w-4 h-4 arrow-icon {{ request()->routeIs('decisions-admin.*') ? 'rotate-90' : '' }}"
+                        class="w-4 h-4 arrow-icon {{ request()->routeIs('decisions-admin.*', 'decisions-commission.*') ? 'rotate-90' : '' }}"
                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                     </svg>
                 </button>
                 <div id="menu-decisions"
-                    class="flex flex-col pl-12 pr-4 py-1 space-y-1 {{ request()->routeIs('decisions-admin.*') ? '' : 'hidden' }}">
+                    class="flex flex-col pl-12 pr-4 py-1 space-y-1 {{ request()->routeIs('decisions-admin.*', 'decisions-commission.*') ? '' : 'hidden' }}">
                     <a href="{{ route('decisions-admin.index') }}"
-                        class="text-sm py-2 transition-colors {{ request()->routeIs('decisions-admin.index', 'decisions-admin.show') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Registre
+                        class="text-sm py-2 transition-colors {{ request()->routeIs('decisions-admin.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Registre
                         des Actes</a>
+
+                    <a href="{{ route('decisions-commission.index') }}"
+                        class="text-sm py-2 transition-colors {{ request()->routeIs('decisions-commission.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Arbitrages
+                        Commissions</a>
                 </div>
             </div>
 
@@ -271,8 +269,7 @@
 
                     <a href="{{ route('articles-compta.index') }}"
                         class="text-sm py-2 transition-colors {{ request()->routeIs('articles-compta.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Plan
-                        de Comptes
-                        (Articles)</a>
+                        de Comptes (Articles)</a>
 
                     <a href="{{ route('enveloppes-budgetaires.index') }}"
                         class="text-sm py-2 transition-colors {{ request()->routeIs('enveloppes-budgetaires.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Enveloppes
@@ -286,15 +283,13 @@
                         class="text-sm py-2 transition-colors {{ request()->routeIs('dossiers-financiers.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Dossiers
                         Financiers</a>
                 </div>
-
             </div>
 
             @if(Auth::user()->role_appli === 'Administrateur')
             <div class="pt-2">
                 <a href="{{ route('admin.habilitations.index') }}"
                     class="flex items-center px-4 py-3 rounded-lg transition-colors font-medium {{ request()->routeIs('admin.habilitations.*') ? 'bg-blue-600 text-white shadow-md' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
-                    <span class="text-xl mr-3 opacity-80">🔐</span>
-                    Paramètres d'accès
+                    <span class="text-xl mr-3 opacity-80">🔐</span> Paramètres d'accès
                 </a>
             </div>
             @endif
@@ -360,11 +355,9 @@
 
     <script>
     function toggleMenu(menuId) {
-        // Récupérer le menu et la flèche
         const menu = document.getElementById(menuId);
         const arrow = document.getElementById('arrow-' + menuId);
 
-        // Basculer la visibilité et la rotation
         menu.classList.toggle('hidden');
         arrow.classList.toggle('rotate-90');
     }

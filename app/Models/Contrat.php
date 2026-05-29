@@ -85,6 +85,11 @@ class Contrat extends Model
                 'caution_retenue'
             ]);
     }
+    // Un contrat de maintenance peut couvrir plusieurs interventions (pannes, révisions)
+    public function interventions()
+    {
+        return $this->hasMany(Intervention::class, 'id_contrat', 'id_contrat');
+    }
     public function lieuxCouverts()
     {
         return $this->belongsToMany(LieuPublic::class, 'contrat_lieu', 'id_contrat', 'id_lieu')

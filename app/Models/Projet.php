@@ -21,8 +21,11 @@ class Projet extends Model
         'id_user',
         'type_projet' // Le nouveau champ que nous avons ajouté
     ];
-    // app/Models/Projet.php
-
+    // Un projet peut recevoir plusieurs arbitrages de commission
+    public function decisions()
+    {
+        return $this->hasMany(DecisionCommission::class, 'id_projet', 'id_projet');
+    }
     public function interventions()
     {
         return $this->hasMany(Intervention::class, 'id_projet');

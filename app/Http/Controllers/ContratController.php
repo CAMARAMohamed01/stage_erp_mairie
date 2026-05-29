@@ -81,33 +81,32 @@ class ContratController extends Controller
 
     public function show($id)
     {
-        // 1. Infos de base + Jointures pour le Tiers (Prestataire)
         $contrat = Contrat::leftJoin('tiers', 'contrat.id_tiers', '=', 'tiers.id_tiers')
             ->leftJoin('tiers_physique', 'tiers.id_tiers', '=', 'tiers_physique.id_tiers')
             ->leftJoin('tiers_morale', 'tiers.id_tiers', '=', 'tiers_morale.id_tiers')
             ->select('contrat.*', 'tiers_physique.nom_tiers', 'tiers_physique.prenom_tiers', 'tiers_morale.raison_sociale')
             ->findOrFail($id);
 
-        // 2. Périmètre d'application (Les liaisons N:M via Eloquent avec les infos "Location")
-        // Grâce à ton modèle, ça remplace les 3 grosses requêtes manuelles !
         $equipementsLies = $contrat->equipementsCouverts;
         $locauxLies = $contrat->locauxCouverts;
         $lieuxLies = $contrat->lieuxCouverts;
 
-        // 3. Spécifique aux formulaires d'ajout (pour les listes déroulantes)
+        // Récupération des interventions déclenchées sous ce contrat
+        $interventionsTriggered = $contrat->interventions()->orderByDesc('date_ouverture')->get();
+
         $equipementsDisponibles = DB::table('equipement')->orderBy('nom_equipement')->get();
         $decisions = DB::table('decision_administratif')->orderBy('numero_decision', 'desc')->get();
-
-        // 4. On supprime $locations qui est maintenant obsolète (intégré dans $equipementsLies)
 
         return view('contrats.show', compact(
             'contrat',
             'equipementsLies',
             'locauxLies',
             'lieuxLies',
+            'interventionsTriggered',
             'equipementsDisponibles',
             'decisions'
         ));
+
     }
     // ENREGISTRER UNE LIGNE DE LOCATION DE MATÉRIEL
     public function ajouterLocation(Request $request, $id_contrat)
