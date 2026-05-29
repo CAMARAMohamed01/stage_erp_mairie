@@ -426,6 +426,12 @@ Route::middleware('auth')->group(function () {
     // Enregistrement des occupations de patrimoine
     Route::post('/contrats/{id}/ajouter-local', [ContratController::class, 'ajouterLocal'])->name('contrats.local.store');
     Route::post('/contrats/{id}/ajouter-lieu', [ContratController::class, 'ajouterLieu'])->name('contrats.lieu.store');
+    Route::post('/contrats/{id}/ajouter-batiment', [ContratController::class, 'ajouterBatiment'])->name('contrats.batiment.store');
+    // --- DÉSAFFECTATION DES BIENS D'UN CONTRAT ---
+    Route::delete('/contrats/{id_contrat}/materiel/{id_equipement}/{id_decision?}', [ContratController::class, 'retirerMateriel'])->name('contrats.materiel.destroy');
+    Route::delete('/contrats/{id_contrat}/batiment/{id_batiment}', [ContratController::class, 'retirerBatiment'])->name('contrats.batiment.destroy');
+    Route::delete('/contrats/{id_contrat}/local/{id_local}/{id_decision?}', [ContratController::class, 'retirerLocal'])->name('contrats.local.destroy');
+    Route::delete('/contrats/{id_contrat}/lieu/{id_lieu}/{id_decision?}', [ContratController::class, 'retirerLieu'])->name('contrats.lieu.destroy');
     // ========================================================
     // 💳 SECURISE : MODULE DOSSIERS FINANCIERS (COMPTABILITE)
     // ========================================================

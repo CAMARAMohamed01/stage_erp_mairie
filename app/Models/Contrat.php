@@ -79,29 +79,31 @@ class Contrat extends Model
     {
         return $this->belongsToMany(Local::class, 'contrat_local', 'id_contrat', 'id_local')
             ->withPivot([
+                'id_decision', // 🌟 Indispensable pour la suppression composite
                 'date_debut_utilisation',
                 'date_fin_utilisation',
                 'etat_lieux_entree',
                 'caution_retenue'
             ]);
     }
-    // Un contrat de maintenance peut couvrir plusieurs interventions (pannes, révisions)
-    public function interventions()
-    {
-        return $this->hasMany(Intervention::class, 'id_contrat', 'id_contrat');
-    }
+
     public function lieuxCouverts()
     {
         return $this->belongsToMany(LieuPublic::class, 'contrat_lieu', 'id_contrat', 'id_lieu')
             ->withPivot([
+                'id_decision', // 🌟 Indispensable pour la suppression composite
                 'date_debut_occupation',
                 'date_fin_occupation',
                 'surface_occupee_m2',
                 'usage_specifique',
                 'etat_lieux_avant',
                 'etat_lieux_apres',
-                //'date_modification', 
                 'statut_ligne'
             ]);
+    }
+    // Un contrat de maintenance peut couvrir plusieurs interventions (pannes, révisions)
+    public function interventions()
+    {
+        return $this->hasMany(Intervention::class, 'id_contrat', 'id_contrat');
     }
 }
