@@ -25,4 +25,8 @@ class LigneFinanciereFacture extends Model
     {
         return $this->belongsTo(EnveloppeBudgetaire::class, 'id_budget', 'id_budget');
     }
+    public function dossierFinancier()
+    {
+        return $this->belongsTo(DossierFinancier::class, 'id_dossier_f', 'id_dossier_f');
+    }
 }

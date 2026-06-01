@@ -99,8 +99,8 @@ class DossierFinancierController extends Controller
 
         $budgets = DB::table('enveloppe_budgetaire')->orderBy('annee_exercice', 'desc')->get();
         $operations = DB::table('operation_comptable')->orderBy('numero_operation')->get();
-
-        return view('finances.dossiers.show', compact('dossier', 'budgets', 'operations'));
+        $codesAnalytiques = DB::table('code_analytique')->orderBy('libelle_analytique')->get();
+        return view('finances.dossiers.show', compact('dossier', 'budgets', 'operations', 'codesAnalytiques'));
     }
 
     // Ajouter une ligne financière de facture via le modèle
@@ -111,25 +111,59 @@ class DossierFinancierController extends Controller
             'montant_ht' => 'required|numeric|min:0',
             'montant_tva' => 'required|numeric|min:0',
             'montant_ttc' => 'required|numeric|min:0',
-            'nature_charge' => 'nullable|string|max:30',
+            'nature_charge' => 'required|string|in:Fixe,Variable',
+            'periodicite' => 'required|string|max:50',
             'id_budget' => 'required|exists:enveloppe_budgetaire,id_budget',
             'id_operation' => 'nullable|exists:operation_comptable,id_operation',
+            'analytiques' => 'required|array|min:1',
+            'analytiques.*.libelle' => 'required|string|max:255',
+            'analytiques.*.pourcentage' => 'required|numeric|min:0|max:100',
         ]);
 
-        LigneFinanciereFacture::create([
+        // 🌟 On retire le try/catch pour forcer Laravel à afficher le bug s'il y en a un
+        DB::beginTransaction();
+
+        // 1. Sauvegarde de la ligne principale
+        $ligne = LigneFinanciereFacture::create([
             'date_comptable' => now()->format('Y-m-d'),
             'designation_ligne' => $request->designation_ligne,
             'montant_ht' => $request->montant_ht,
             'montant_tva' => $request->montant_tva,
             'montant_ttc' => $request->montant_ttc,
             'nature_charge' => $request->nature_charge,
-            'id_dossier_f' => $id, // 🌟 Correction de la colonne de liaison
+            'periodicite' => $request->periodicite,
+            'id_dossier_f' => $id,
             'id_budget' => $request->id_budget,
             'id_operation' => $request->id_operation,
         ]);
 
+        // 2. Sauvegarde des ventilations analytiques libres
+        foreach ($request->input('analytiques', []) as $item) {
+            $libelleNettoye = trim($item['libelle']);
+
+            $codeBDD = DB::table('code_analytique')
+                ->where('libelle_analytique', $libelleNettoye)
+                ->first();
+
+            if ($codeBDD) {
+                $idFinal = $codeBDD->id_code;
+            } else {
+                $idFinal = DB::table('code_analytique')->insertGetId([
+                    'libelle_analytique' => $libelleNettoye
+                ], 'id_code');
+            }
+
+            DB::table('repartition_analytique')->insert([
+                'id_ligne' => $ligne->id_ligne,
+                'id_code' => $idFinal,
+                'pourcentage_repartition' => $item['pourcentage']
+            ]);
+        }
+
+        DB::commit();
+
         return redirect()->route('dossiers-financiers.show', $id)
-            ->with('success', 'La ligne financière a été imputée avec succès.');
+            ->with('success', '🏷️ La ligne financière et sa ventilation analytique ont été sauvegardées.');
     }
     // Formulaire d'édition du dossier
     public function edit($id)
@@ -199,14 +233,32 @@ class DossierFinancierController extends Controller
         }
     }
 
-    // ➕ PERTINENT : Supprimer une ligne de facture en direct
     public function supprimerLigne($idDossier, $idLigne)
     {
-        LigneFinanciereFacture::where('id_dossier_f', $idDossier)->findOrFail($idLigne)->delete();
-        return redirect()->back()->with('success', 'Ligne comptable retirée.');
-    }
+        try {
+            DB::beginTransaction();
 
-    // ➕ PERTINENT : Changer le statut budgétaire (Visé, Payé, Bloqué...) depuis la fiche
+            // 1. On cherche la ligne pour s'assurer qu'elle existe bien sous ce dossier
+            $ligne = LigneFinanciereFacture::where('id_dossier_f', $idDossier)->findOrFail($idLigne);
+
+            DB::table('repartition_analytique')->where('id_ligne', $idLigne)->delete();
+
+            // 3. Si des immobilisations pointaient sur cette ligne d'achat, on les détache (passage à NULL)
+            DB::table('immobilisation_inventaire_')->where('id_ligne_achat', $idLigne)->update(['id_ligne_achat' => null]);
+            DB::table('immobilisation_inventaire_')->where('id_ligne_vente', $idLigne)->update(['id_ligne_vente' => null]);
+
+            // 4. Suppression finale de la ligne de facture principale
+            $ligne->delete();
+
+            DB::commit();
+            return redirect()->back()->with('success', 'La ligne comptable et ses ventilations analytiques ont été retirées.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Erreur lors de la suppression : ' . $e->getMessage());
+        }
+    }
+    //Changer le statut budgétaire (Visé, Payé, Bloqué...) depuis la fiche
     public function updateStatut(Request $request, $id)
     {
         $request->validate(['statut_actuel' => 'required|string|max:50']);

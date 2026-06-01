@@ -50,4 +50,8 @@ class ImmobilisationInventaire extends Model
     {
         return $this->hasMany(Equipement::class, 'id_immo', 'id_immo');
     }
+    public function articleCompta()
+    {
+        return $this->belongsTo(ArticleCompta::class, 'id_article', 'id_article');
+    }
 }

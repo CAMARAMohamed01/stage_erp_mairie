@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ImmobilisationInventaire;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Models\LigneFinanciereFacture;
 
 class ImmobilisationController extends Controller
 {
@@ -40,12 +41,12 @@ class ImmobilisationController extends Controller
             ->orderByDesc('date_comptable')
             ->take(50)
             ->get();
-
-        return view('finances.immobilisations.create', compact('lignesDisponibles'));
+        $articlesComptables = \App\Models\ArticleCompta::orderBy('numero_article')->get();
+        return view('finances.immobilisations.create', compact('lignesDisponibles', 'articlesComptables'));
     }
-
     public function store(Request $request)
     {
+        // 1. Validation stricte des données du formulaire
         $validated = $request->validate([
             'num_inventaire' => 'required|string|max:50|unique:immobilisation_inventaire_,num_inventaire',
             'libelle_comptable' => 'required|string|max:255',
@@ -54,12 +55,26 @@ class ImmobilisationController extends Controller
             'id_ligne_achat' => 'nullable|exists:ligne_financiere_facture_,id_ligne',
         ]);
 
+        // 2. Traitement du booléen pour la case à cocher
         $validated['est_amortissable'] = $request->has('est_amortissable');
 
+        // 3. 🛡️ Sécurité Comptable : Si la valeur d'achat est vide mais qu'une facture est liée
+        if (empty($validated['valeur_achat']) && !empty($validated['id_ligne_achat'])) {
+            $ligneFacture = DB::table('ligne_financiere_facture_')
+                ->where('id_ligne', $validated['id_ligne_achat'])
+                ->first();
+
+            if ($ligneFacture) {
+                $validated['valeur_achat'] = $ligneFacture->montant_ttc;
+            }
+        }
+
+        // 4. Insertion en base via le modèle Eloquent
         ImmobilisationInventaire::create($validated);
 
+        // 5. Redirection avec message de confirmation
         return redirect()->route('immobilisations.index')
-            ->with('success', '📦 Bien immobilisé et inscrit à l\'inventaire.');
+            ->with('success', '📦 Le bien a été immobilisé et inscrit avec succès au grand registre de la commune.');
     }
 
     public function show($id)
