@@ -53,10 +53,133 @@ class TiersController extends Controller
                 $query->orderBy('date_creation', 'desc');
             }
         ])
-            ->where('type_tiers', 'Physique') // ⚠️ AJOUT CRUCIAL ICI
+            ->where('type_tiers', 'Physique')
             ->findOrFail($id);
 
-        return view('tiers.show', compact('citoyen'));
+        // 1. Récupération du conjoint / mariage en cours ou passé
+        $union = DB::table('union_civile')
+            ->join('tiers_physique', function ($join) use ($id) {
+                $join->on('union_civile.id_tiers_id_partenaire1', '=', 'tiers_physique.id_tiers')
+                    ->where('union_civile.id_tiers_id_partenaire2', '=', $id)
+                    ->orOn('union_civile.id_tiers_id_partenaire2', '=', 'tiers_physique.id_tiers')
+                    ->where('union_civile.id_tiers_id_partenaire1', '=', $id);
+            })
+            ->where('tiers_physique.id_tiers', '!=', $id)
+            ->select('union_civile.*', 'tiers_physique.nom_tiers', 'tiers_physique.prenom_tiers', 'tiers_physique.id_tiers as id_conjoint')
+            ->first();
+
+        // 2. Récupération des parents (filiation ascendante)
+        $parents = DB::table('lien_filiation')
+            ->join('tiers_physique', 'lien_filiation.id_tiers_id_parent', '=', 'tiers_physique.id_tiers')
+            ->where('lien_filiation.id_tiers_id_enfant', $id)
+            ->select('tiers_physique.id_tiers', 'tiers_physique.nom_tiers', 'tiers_physique.prenom_tiers', 'lien_filiation.type_filiation')
+            ->get();
+
+        // 3. Récupération des enfants (filiation descendante)
+        $enfants = DB::table('lien_filiation')
+            ->join('tiers_physique', 'lien_filiation.id_tiers_id_enfant', '=', 'tiers_physique.id_tiers')
+            ->where('lien_filiation.id_tiers_id_parent', $id)
+            ->select('tiers_physique.id_tiers', 'tiers_physique.nom_tiers', 'tiers_physique.prenom_tiers', 'lien_filiation.type_filiation')
+            ->get();
+
+        // 4. Référentiel complet de la commune pour associer de nouveaux liens
+        $tousLesCitoyens = DB::table('tiers_physique')
+            ->where('id_tiers', '!=', $id)
+            ->orderBy('nom_tiers')
+            ->get();
+
+        return view('tiers.show', compact('citoyen', 'union', 'parents', 'enfants', 'tousLesCitoyens'));
+    }
+
+    // ENREGISTRER UN MARIAGE / UNION CIVILE
+    public function storeUnion(Request $request, $id)
+    {
+        $request->validate([
+            'id_partenaire2' => 'required|integer|exists:tiers_physique,id_tiers',
+            'type_union' => 'required|string|max:50',
+            'date_union' => 'nullable|date',
+            'id_decision' => 'nullable|exists:decision_administratif,id_decision'
+        ]);
+
+        // Sécurité : Éviter l'auto-union
+        if ($id == $request->id_partenaire2) {
+            return redirect()->back()->with('error', 'Un citoyen ne peut pas s\'unir à lui-même.');
+        }
+
+        // Pour respecter la contrainte de clé, on trie les IDs (le plus petit en partenaire1)
+        $p1 = min($id, $request->id_partenaire2);
+        $p2 = max($id, $request->id_partenaire2);
+
+        DB::table('union_civile')->updateOrInsert(
+            ['id_tiers_id_partenaire1' => $p1, 'id_tiers_id_partenaire2' => $p2],
+            [
+                'type_union' => $request->type_union,
+                'date_union' => $request->date_union,
+                'lieu_union' => 'Dingy-Saint-Clair'
+            ]
+        );
+
+        // Si un arrêté de mariage est sélectionné, on l'adosse au document d'union
+        if ($request->filled('id_decision')) {
+            DB::table('acte_contrat')->insertOrIgnore([
+                'id_decision' => $request->id_decision,
+                'id_contrat' => $id // On utilise l'ID pour le chaînage d'acte
+            ]);
+        }
+
+        return redirect()->back()->with('success', '💍 L\'union civile a été enregistrée à l\'état civil.');
+    }
+
+    //ENREGISTRER UN LIEN DE PARENTÉ / FILIATION
+    public function storeFiliation(Request $request, $id)
+    {
+        $request->validate([
+            'id_relatif' => 'required|integer|exists:tiers_physique,id_tiers',
+            'role_relatif' => 'required|in:parent,enfant',
+            'type_filiation' => 'nullable|string|max:50'
+        ]);
+
+        if ($id == $request->id_relatif) {
+            return redirect()->back()->with('error', 'Lien de parenté invalide.');
+        }
+
+        if ($request->role_relatif === 'parent') {
+            // Le relatif choisi est le parent, le citoyen actuel est l'enfant
+            DB::table('lien_filiation')->updateOrInsert(
+                ['id_tiers_id_enfant' => $id, 'id_tiers_id_parent' => $request->id_relatif],
+                ['type_filiation' => $request->type_filiation ?? 'Naturelle']
+            );
+        } else {
+            // Le relatif choisi est l'enfant, le citoyen actuel est le parent
+            DB::table('lien_filiation')->updateOrInsert(
+                ['id_tiers_id_enfant' => $request->id_relatif, 'id_tiers_id_parent' => $id],
+                ['type_filiation' => $request->type_filiation ?? 'Naturelle']
+            );
+        }
+
+        return redirect()->back()->with('success', '🧬 Le lien de filiation a été mis à jour.');
+    }
+
+    //DISSOUDRE UNE UNION (DIVORCE)
+    public function dissoudreUnion($p1, $p2)
+    {
+        DB::table('union_civile')
+            ->where('id_tiers_id_partenaire1', min($p1, $p2))
+            ->where('id_tiers_id_partenaire2', max($p1, $p2))
+            ->update(['date_dissolution' => now()->format('Y-m-d')]);
+
+        return redirect()->back()->with('success', '💔 L\'union a été marquée comme dissoute à l\'état civil.');
+    }
+
+    //  SUPPRIMER UN LIEN DE FILIATION
+    public function supprimerFiliation($enfantId, $parentId)
+    {
+        DB::table('lien_filiation')
+            ->where('id_tiers_id_enfant', $enfantId)
+            ->where('id_tiers_id_parent', $parentId)
+            ->delete();
+
+        return redirect()->back()->with('success', '🗑️ Le lien de filiation a été retiré.');
     }
     // --- CRÉATION D'UN CITOYEN ---
     public function create()

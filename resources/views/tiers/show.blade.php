@@ -5,6 +5,7 @@
 @section('content')
     <div class="max-w-5xl mx-auto space-y-6">
 
+        <!-- ACTION ACTIONS -->
         <div class="flex justify-between items-center">
             <a href="{{ route('tiers.index') }}"
                 class="text-slate-500 hover:text-slate-800 text-sm flex items-center font-medium transition">
@@ -32,6 +33,7 @@
             </div>
         </div>
 
+        <!-- EN-TÊTE ET PROFIL -->
         <div
             class="bg-white rounded-xl border border-slate-200 shadow-sm p-8 flex flex-wrap gap-8 justify-between items-start">
             <div class="flex items-center gap-5">
@@ -103,6 +105,196 @@
             </div>
         </div>
 
+        <!-- 👨‍👩‍👧‍👦 FICHE ÉTAT CIVIL & FILIATIONS -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="px-8 py-5 border-b border-slate-200 bg-slate-50">
+                <h2 class="text-lg font-bold text-slate-800 flex items-center">
+                    <span>👨‍👩‍👧‍👦 Fiche d'État Civil & Filiations</span>
+                </h2>
+            </div>
+
+            <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
+
+                <div class="space-y-4">
+                    <!-- Conjoint & Statut Marital -->
+                    <div class="p-4 bg-slate-50 border rounded-xl space-y-2">
+                        <div class="flex justify-between items-center border-b pb-1">
+                            <span class="font-bold text-slate-700 uppercase tracking-wider text-[10px]">💍 Conjoint & Statut
+                                Marital</span>
+                        </div>
+                        @if($union)
+                            <div class="flex justify-between items-center pt-1">
+                                <div>
+                                    <a href="{{ route('tiers.show', $union->id_conjoint) }}"
+                                        class="text-sm font-bold text-blue-600 hover:underline">
+                                        {{ $union->nom_tiers }} {{ $union->prenom_tiers }}
+                                    </a>
+                                    <p class="text-[11px] text-slate-400 mt-0.5">Type : {{ $union->type_union }}
+                                        @if($union->date_union) le
+                                        {{ \Carbon\Carbon::parse($union->date_union)->format('d/m/Y') }} @endif
+                                    </p>
+                                    @if($union->date_dissolution)
+                                        <p class="text-[10px] text-red-600 font-bold mt-0.5">💔 Dissout le
+                                            {{ \Carbon\Carbon::parse($union->date_dissolution)->format('d/m/Y') }}
+                                        </p>
+                                    @endif
+                                </div>
+                                @if(!$union->date_dissolution)
+                                    <form
+                                        action="{{ route('tiers.union.dissoudre', [$citoyen->id_tiers, $union->id_tiers_id_partenaire1, $union->id_tiers_id_partenaire2]) }}"
+                                        method="POST" onsubmit="return confirm('Enregistrer la dissolution de cette union ?');">
+                                        @csrf
+                                        <button type="submit"
+                                            class="px-2 py-1 bg-red-50 text-red-700 border border-red-200 rounded font-bold hover:bg-red-100 transition">Dissoudre</button>
+                                    </form>
+                                @endif
+                            </div>
+                        @else
+                            <p class="text-slate-400 italic py-1">Célibataire ou aucune union enregistrée en commune.</p>
+                        @endif
+                    </div>
+
+                    <!-- Ascendance (Parents) -->
+                    <div class="p-4 bg-slate-50 border rounded-xl space-y-2">
+                        <span class="font-bold text-slate-700 block uppercase tracking-wider text-[10px] border-b pb-1">🔺
+                            Ascendance (Parents)</span>
+                        <div class="divide-y divide-slate-200">
+                            @forelse($parents as $parent)
+                                <div class="flex justify-between items-center py-2">
+                                    <a href="{{ route('tiers.show', $parent->id_tiers) }}"
+                                        class="font-bold text-slate-800 hover:text-blue-600">{{ $parent->nom_tiers }}
+                                        {{ $parent->prenom_tiers }}</a>
+                                    <div class="flex items-center gap-2">
+                                        <span
+                                            class="px-2 py-0.5 bg-slate-200 text-slate-600 rounded text-[10px] font-medium">{{ $parent->type_filiation }}</span>
+                                        <form
+                                            action="{{ route('tiers.filiation.destroy', [$citoyen->id_tiers, $parent->id_tiers]) }}"
+                                            method="POST" onsubmit="return confirm('Retirer ce lien de parenté ?');">
+                                            @csrf @method('DELETE')
+                                            <button type="submit" class="text-slate-300 hover:text-red-500 font-bold">✕</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            @empty
+                                <p class="text-slate-400 italic pt-1">Aucun parent renseigné au dossier.</p>
+                            @endforelse
+                        </div>
+                    </div>
+
+                    <!-- Descendance (Enfants) -->
+                    <div class="p-4 bg-slate-50 border rounded-xl space-y-2">
+                        <span class="font-bold text-slate-700 block uppercase tracking-wider text-[10px] border-b pb-1">🔻
+                            Descendance (Enfants)</span>
+                        <div class="divide-y divide-slate-200">
+                            @forelse($enfants as $enfant)
+                                <div class="flex justify-between items-center py-2">
+                                    <a href="{{ route('tiers.show', $enfant->id_tiers) }}"
+                                        class="font-bold text-slate-800 hover:text-blue-600">{{ $enfant->nom_tiers }}
+                                        {{ $enfant->prenom_tiers }}</a>
+                                    <div class="flex items-center gap-2">
+                                        <span
+                                            class="px-2 py-0.5 bg-blue-50 text-blue-700 border rounded text-[10px] font-medium">{{ $enfant->type_filiation }}</span>
+                                        <form
+                                            action="{{ route('tiers.filiation.destroy', [$enfant->id_tiers, $citoyen->id_tiers]) }}"
+                                            method="POST" onsubmit="return confirm('Retirer ce lien de filiation ?');">
+                                            @csrf @method('DELETE')
+                                            <button type="submit" class="text-slate-300 hover:text-red-500 font-bold">✕</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            @empty
+                                <p class="text-slate-400 italic pt-1">Aucun enfant enregistré au livret de famille.</p>
+                            @endforelse
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Formulaires d'imputation rapide -->
+                <div class="space-y-4 border-t md:border-t-0 md:border-l pt-4 md:pt-0 md:pl-6 border-slate-200">
+                    <form action="{{ route('tiers.union.store', $citoyen->id_tiers) }}" method="POST"
+                        class="p-4 border rounded-xl space-y-2 bg-white shadow-sm">
+                        @csrf
+                        <span class="font-bold text-blue-600 block uppercase tracking-wider text-[10px]">✍️ Enregistrer un
+                            Mariage / PACS</span>
+                        <div class="space-y-2 pt-1">
+                            <div>
+                                <label class="block text-slate-500 mb-0.5">Sélectionner le Conjoint *</label>
+                                <select name="id_partenaire2" required
+                                    class="w-full border rounded-lg p-2 bg-white font-medium">
+                                    <option value="">-- Choisir le citoyen --</option>
+                                    @foreach($tousLesCitoyens as $tc)
+                                        <option value="{{ $tc->id_tiers }}">{{ $tc->nom_tiers }} {{ $tc->prenom_tiers }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-slate-500 mb-0.5">Type d'union *</label>
+                                    <select name="type_union" required
+                                        class="w-full border rounded-lg p-2 bg-white font-medium">
+                                        <option value="Mariage Civil">Mariage Civil</option>
+                                        <option value="PACS">PACS</option>
+                                        <option value="Union Libre">Union Libre</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-slate-500 mb-0.5">Date de célébration</label>
+                                    <input type="date" name="date_union"
+                                        class="w-full border rounded-lg p-1.5 bg-white font-mono">
+                                </div>
+                            </div>
+                            <button type="submit"
+                                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg transition mt-1">Célébrer
+                                l'acte d'union</button>
+                        </div>
+                    </form>
+
+                    <form action="{{ route('tiers.filiation.store', $citoyen->id_tiers) }}" method="POST"
+                        class="p-4 border rounded-xl space-y-2 bg-white shadow-sm">
+                        @csrf
+                        <span class="font-bold text-emerald-600 block uppercase tracking-wider text-[10px]">✍️ Déclarer une
+                            Filiation (Ascendant/Descendant)</span>
+                        <div class="space-y-2 pt-1">
+                            <div>
+                                <label class="block text-slate-500 mb-0.5">Sélectionner le Parent ou l'Enfant *</label>
+                                <select name="id_relatif" required
+                                    class="w-full border rounded-lg p-2 bg-white font-medium">
+                                    <option value="">-- Choisir le citoyen --</option>
+                                    @foreach($tousLesCitoyens as $tc)
+                                        <option value="{{ $tc->id_tiers }}">{{ $tc->nom_tiers }} {{ $tc->prenom_tiers }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-slate-500 mb-0.5">Le citoyen choisi est mon : *</label>
+                                    <select name="role_relatif" required
+                                        class="w-full border rounded-lg p-2 bg-white font-bold text-slate-700">
+                                        <option value="enfant">Enfant</option>
+                                        <option value="parent">Parent</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-slate-500 mb-0.5">Nature du lien</label>
+                                    <select name="type_filiation" class="w-full border rounded-lg p-2 bg-white font-medium">
+                                        <option value="Naturelle">Lien Naturel</option>
+                                        <option value="Adoption Légitime">Adoption</option>
+                                        <option value="Reconnaissance Anticipée">Reconnaissance</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <button type="submit"
+                                class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-lg transition mt-1">Inscrire
+                                le lien au registre</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- COMPTES BANCAIRES -->
         <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
             <div class="px-8 py-5 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
                 <h2 class="text-lg font-bold text-slate-800 flex items-center">
@@ -128,7 +320,6 @@
                                 <div class="relative z-10">
                                     <div class="flex justify-between items-start mb-1">
                                         <p class="text-xs font-bold uppercase text-slate-500">Titulaire</p>
-
                                         <form action="{{ route('tiers.comptes.destroy', $compte->id_compte) }}" method="POST"
                                             class="inline-block" onsubmit="return confirm('Supprimer ce compte bancaire ?');">
                                             @csrf
@@ -181,6 +372,7 @@
             </div>
         </div>
 
+        <!-- DOCUMENTS RATTACHÉS -->
         <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
             <div class="px-8 py-5 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
                 <h2 class="text-lg font-bold text-slate-800 flex items-center">
@@ -230,7 +422,6 @@
                                             class="text-blue-600 hover:text-blue-800 font-bold text-xs uppercase tracking-wider">
                                             Voir ↓
                                         </a>
-
                                         <form action="{{ route('documents.global.destroy', $doc->id_document) }}" method="POST"
                                             onsubmit="return confirm('Voulez-vous vraiment supprimer ce document ?');">
                                             @csrf
@@ -253,6 +444,7 @@
             @endif
         </div>
 
+        <!-- HISTORIQUE DES REQUÊTES -->
         <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
             <div class="px-8 py-5 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
                 <h2 class="text-lg font-bold text-slate-800 flex items-center">

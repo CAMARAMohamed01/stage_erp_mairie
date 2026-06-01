@@ -79,7 +79,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/tiers/{id_tiers}/comptes/create', [TiersController::class, 'createCompte'])->name('tiers.comptes.create');
     Route::post('/tiers/{id_tiers}/comptes', [TiersController::class, 'storeCompte'])->name('tiers.comptes.store');
     Route::delete('/comptes/{id}', [TiersController::class, 'destroyCompte'])->name('tiers.comptes.destroy');
+    // Routes pour l'État Civil
+    Route::post('/tiers/{id}/union', [TiersController::class, 'storeUnion'])->name('tiers.union.store');
+    Route::post('/tiers/{id}/union/dissoudre/{p1}/{p2}', [TiersController::class, 'dissoudreUnion'])->name('tiers.union.dissoudre');
 
+    Route::post('/tiers/{id}/filiation', [TiersController::class, 'storeFiliation'])->name('tiers.filiation.store');
+    Route::delete('/tiers/filiation/retirer/{enfant}/{parent}', [TiersController::class, 'supprimerFiliation'])->name('tiers.filiation.destroy');
     // ======================================================== suppression de la route globale de suppression de document (sécurisée via la matrice de droits)
     Route::delete('/documents/global/{id}', function ($id) {
         $document = \App\Models\Document::findOrFail($id);
