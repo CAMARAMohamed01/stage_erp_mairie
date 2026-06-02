@@ -24,12 +24,10 @@ return new class extends Migration {
 
             $table->unsignedBigInteger('id_lieu')->nullable();
             $table->unsignedBigInteger('id_contrat_assurance')->nullable();
-            $table->unsignedBigInteger('id_usage')->nullable();
             $table->unsignedBigInteger('id_batiment')->nullable();
 
             $table->foreign('id_lieu')->references('id_lieu')->on('lieux_publics');
             $table->foreign('id_contrat_assurance')->references('id_contrat')->on('contrat');
-            $table->foreign('id_usage')->references('id_usage')->on('type_usage');
             $table->foreign('id_batiment')->references('id_batiment')->on('batiment');
             $table->timestamps();
         });

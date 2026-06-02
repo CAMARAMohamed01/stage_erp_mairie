@@ -60,7 +60,6 @@
                         @empty
                             <tr>
                                 <td colspan="4" class="px-6 py-12 text-center">
-                                    <span class="text-4xl block mb-2">🤷‍♂️</span>
                                     <p class="text-slate-500 font-medium">Aucune commune partenaire n'est enregistrée pour le
                                         moment.</p>
                                 </td>
