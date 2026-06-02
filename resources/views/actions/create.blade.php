@@ -57,8 +57,8 @@
 
                     <div class="grid grid-cols-1 gap-6">
                         <div>
-                            <label for="id_tiers" class="block text-xs font-bold text-slate-500 uppercase mb-1">Citoyen
-                                répertorié (Base Tiers)</label>
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Citoyen répertorié (Base
+                                Tiers)</label>
                             <select name="id_tiers" id="id_tiers"
                                 class="w-full border-slate-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
                                 <option value="">-- Rechercher un habitant --</option>
@@ -72,8 +72,9 @@
                             <div class="absolute inset-0 flex items-center">
                                 <div class="w-full border-t border-slate-200"></div>
                             </div>
-                            <div class="relative flex justify-center text-xs uppercase"><span
-                                    class="bg-blue-50 px-3 text-slate-400 font-bold">Ou nouveau contact</span></div>
+                            <div class="relative flex justify-center text-xs uppercase">
+                                <span class="bg-blue-50 px-3 text-slate-400 font-bold">Ou nouveau contact</span>
+                            </div>
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -180,7 +181,7 @@
                     </a>
                     <button type="submit"
                         class="px-8 py-2.5 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 shadow-md transition-all transform hover:-translate-y-0.5">
-                        Enregistrer le action
+                        Enregistrer l'action
                     </button>
                 </div>
             </form>
@@ -196,26 +197,24 @@
 
         selectTiers.addEventListener('change', function () {
             if (this.value !== "") {
-                // Un citoyen de la BDD est sélectionné : on grise la saisie manuelle
                 inputNom.disabled = true;
                 inputPrenom.disabled = true;
                 checkCreerTiers.disabled = true;
-                checkCreerTiers.checked = false; // On décoche par sécurité
+                checkCreerTiers.checked = false;
 
-                inputNom.classList.add('bg-slate-100');
-                inputPrenom.classList.add('bg-slate-100');
+                inputNom.class_list.add('bg-slate-100');
+                inputPrenom.class_list.add('bg-slate-100');
 
                 inputNom.value = "";
                 inputPrenom.value = "";
                 inputContact.placeholder = "Sera récupéré automatiquement";
             } else {
-                // Aucun citoyen sélectionné : on réactive la saisie manuelle
                 inputNom.disabled = false;
                 inputPrenom.disabled = false;
                 checkCreerTiers.disabled = false;
 
-                inputNom.classList.remove('bg-slate-100');
-                inputPrenom.classList.remove('bg-slate-100');
+                inputNom.class_list.remove('bg-slate-100');
+                inputPrenom.class_list.remove('bg-slate-100');
                 inputContact.placeholder = "06 00 00 00 00";
             }
         });

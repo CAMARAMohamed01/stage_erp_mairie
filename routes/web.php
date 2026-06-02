@@ -38,6 +38,7 @@ use App\Http\Controllers\DecisionCommissionController;
 use App\Http\Controllers\ImmobilisationController;
 use App\Http\Controllers\ProfilController;
 use App\Http\Controllers\UtilisateurController;
+use App\Http\Controllers\LieuDitController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -528,7 +529,13 @@ Route::middleware('auth')->group(function () {
     // ========================================================
     // 🚧 MODULE VOIES & RÉSEAUX DIVERS (VRD) / TRONÇONS / OUVRAGES
     // ========================================================
-
+// --- MODULE LIEUX-DITS (TERRITOIRE) ---
+    Route::get('/lieux-dits', [LieuDitController::class, 'index'])->middleware('can:check-permission,"Voirie","lecture"')->name('lieux-dits.index');
+    Route::get('/lieux-dits/creer', [LieuDitController::class, 'create'])->middleware('can:check-permission,"Voirie","ecriture"')->name('lieux-dits.create');
+    Route::post('/lieux-dits', [LieuDitController::class, 'store'])->middleware('can:check-permission,"Voirie","ecriture"')->name('lieux-dits.store');
+    Route::get('/lieux-dits/{id}/modifier', [LieuDitController::class, 'edit'])->middleware('can:check-permission,"Voirie","ecriture"')->name('lieux-dits.edit');
+    Route::put('/lieux-dits/{id}', [LieuDitController::class, 'update'])->middleware('can:check-permission,"Voirie","ecriture"')->name('lieux-dits.update');
+    Route::delete('/lieux-dits/{id}', [LieuDitController::class, 'destroy'])->middleware('can:check-permission,"Voirie","suppression"')->name('lieux-dits.destroy');
     // --- GESTION DES VOIES ---
     Route::get('/voies', [VoieController::class, 'index'])
         ->middleware('can:check-permission,"Voirie","lecture"')->name('voies.index');

@@ -59,7 +59,7 @@
 
             <div>
                 <button onclick="toggleMenu('menu-territoire')"
-                    class="w-full flex items-center justify-between px-4 py-2.5 rounded-lg transition-colors font-medium hover:bg-slate-800 hover:text-white {{ request()->routeIs('secteurs.*', 'zones.*', 'parcelles.*') ? 'text-white' : '' }}">
+                    class="w-full flex items-center justify-between px-4 py-2.5 rounded-lg transition-colors font-medium hover:bg-slate-800 hover:text-white {{ request()->routeIs('lieux-dits.*', 'secteurs.*', 'zones.*', 'parcelles.*') ? 'text-white' : '' }}">
                     <div class="flex items-center">
                         <svg class="w-5 h-5 mr-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -69,13 +69,15 @@
                         Territoire & Cadastre
                     </div>
                     <svg id="arrow-menu-territoire"
-                        class="w-4 h-4 arrow-icon {{ request()->routeIs('secteurs.*', 'zones.*', 'parcelles.*') ? 'rotate-90' : '' }}"
+                        class="w-4 h-4 arrow-icon {{ request()->routeIs('lieux-dits.*', 'secteurs.*', 'zones.*', 'parcelles.*') ? 'rotate-90' : '' }}"
                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                     </svg>
                 </button>
                 <div id="menu-territoire"
-                    class="flex flex-col pl-12 pr-4 py-1 space-y-1 {{ request()->routeIs('secteurs.*', 'zones.*', 'parcelles.*') ? '' : 'hidden' }}">
+                    class="flex flex-col pl-12 pr-4 py-1 space-y-1 {{ request()->routeIs('lieux-dits.*', 'secteurs.*', 'zones.*', 'parcelles.*') ? '' : 'hidden' }}">
+                    <a href="{{ route('lieux-dits.index') }}"
+                        class="text-sm py-2 transition-colors {{ request()->routeIs('lieux-dits.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Lieux-dits</a>
                     <a href="{{ route('secteurs.index') }}"
                         class="text-sm py-2 transition-colors {{ request()->routeIs('secteurs.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Secteurs</a>
                     <a href="{{ route('zones.index') }}"
