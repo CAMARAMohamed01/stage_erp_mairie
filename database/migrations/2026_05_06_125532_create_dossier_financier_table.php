@@ -31,10 +31,10 @@ return new class extends Migration {
             $table->date('date_transmission_compta')->nullable();
 
             $table->unsignedBigInteger('id_contrat')->nullable();
-            $table->unsignedBigInteger('id_tiers')->nullable();
+            // $table->unsignedBigInteger('id_tiers')->nullable();
 
             $table->foreign('id_contrat')->references('id_contrat')->on('contrat');
-            $table->foreign('id_tiers')->references('id_tiers')->on('tiers');
+            // $table->foreign('id_tiers')->references('id_tiers')->on('tiers');
             $table->timestamps();
         });
     }

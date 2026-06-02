@@ -21,9 +21,6 @@ return new class extends Migration {
             $table->unsignedBigInteger('id_service')->nullable();
             $table->foreign('id_service')->references('id_service')->on('service_mairie');
 
-            $table->unsignedBigInteger('id_profil')->nullable();
-            $table->foreign('id_profil')->references('id_profil')->on('profil_acces');
-
             $table->timestamps();
         });
     }

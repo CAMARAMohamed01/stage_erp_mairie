@@ -11,8 +11,7 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::create('habilitation', function (Blueprint $table) {
-            // Pas de $table->id() ici, c'est une table pivot pure !
-            $table->unsignedBigInteger('id_profil');
+            $table->unsignedBigInteger('id_user');
             $table->unsignedBigInteger('id_module');
 
             $table->boolean('droit_lecture');
@@ -22,10 +21,10 @@ return new class extends Migration {
             $table->boolean('droit_validation');
 
             // On déclare la clé primaire composite
-            $table->primary(['id_profil', 'id_module']);
+            $table->primary(['id_user', 'id_module']);
 
             // Les contraintes
-            $table->foreign('id_profil')->references('id_profil')->on('profil_acces');
+            $table->foreign('id_user')->references('id_user')->on('utilisateur');
             $table->foreign('id_module')->references('id_module')->on('module_logiciel');
 
             $table->timestamps();

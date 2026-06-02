@@ -20,11 +20,9 @@ return new class extends Migration {
             $table->string('statut_achat', 50)->nullable();
 
             $table->unsignedBigInteger('id_int')->nullable();
-            $table->unsignedBigInteger('id_operation')->nullable();
             $table->unsignedBigInteger('id_contrat')->nullable();
 
             $table->foreign('id_int')->references('id_int')->on('intervention');
-            $table->foreign('id_operation')->references('id_operation')->on('operation_comptable');
             $table->foreign('id_contrat')->references('id_contrat')->on('contrat');
             $table->timestamps();
         });

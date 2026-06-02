@@ -9,14 +9,14 @@
 
     @yield('styles')
     <style>
-    /* Petite transition pour la flèche des menus */
-    .arrow-icon {
-        transition: transform 0.2s ease-in-out;
-    }
+        /* Petite transition pour la flèche des menus */
+        .arrow-icon {
+            transition: transform 0.2s ease-in-out;
+        }
 
-    .rotate-90 {
-        transform: rotate(90deg);
-    }
+        .rotate-90 {
+            transform: rotate(90deg);
+        }
     </style>
 </head>
 
@@ -46,7 +46,11 @@
             </a>
             <a href="{{ route('cartographie.index') }}"
                 class="flex items-center px-4 py-3 mb-4 rounded-lg transition-colors font-medium {{ request()->routeIs('cartographie.index') ? 'bg-blue-600 text-white shadow-md' : 'hover:bg-slate-800 hover:text-white' }}">
-                <span class="w-5 h-5 mr-3 ">🌍</span>
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
+                    </path>
+                </svg>
                 Cartographie Globale
             </a>
 
@@ -57,7 +61,12 @@
                 <button onclick="toggleMenu('menu-territoire')"
                     class="w-full flex items-center justify-between px-4 py-2.5 rounded-lg transition-colors font-medium hover:bg-slate-800 hover:text-white {{ request()->routeIs('secteurs.*', 'zones.*', 'parcelles.*') ? 'text-white' : '' }}">
                     <div class="flex items-center">
-                        <span class="text-xl mr-3 opacity-80">🗺️</span> Territoire & Cadastre
+                        <svg class="w-5 h-5 mr-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 4ll-6-3">
+                            </path>
+                        </svg>
+                        Territoire & Cadastre
                     </div>
                     <svg id="arrow-menu-territoire"
                         class="w-4 h-4 arrow-icon {{ request()->routeIs('secteurs.*', 'zones.*', 'parcelles.*') ? 'rotate-90' : '' }}"
@@ -81,7 +90,12 @@
                 <button onclick="toggleMenu('menu-urbanisme')"
                     class="w-full flex items-center justify-between px-4 py-2.5 rounded-lg transition-colors font-medium hover:bg-slate-800 hover:text-white {{ request()->routeIs('dossiers-urba.*') ? 'text-white' : '' }}">
                     <div class="flex items-center">
-                        <span class="text-xl mr-3 opacity-80">📐</span> Urbanisme
+                        <svg class="w-5 h-5 mr-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                            </path>
+                        </svg>
+                        Urbanisme
                     </div>
                     <svg id="arrow-menu-urbanisme"
                         class="w-4 h-4 arrow-icon {{ request()->routeIs('dossiers-urba.*') ? 'rotate-90' : '' }}"
@@ -101,7 +115,11 @@
                 <button onclick="toggleMenu('menu-voirie')"
                     class="w-full flex items-center justify-between px-4 py-2.5 rounded-lg transition-colors font-medium hover:bg-slate-800 hover:text-white {{ request()->routeIs('voies.*', 'ouvrages.*', 'communes.*') ? 'text-white' : '' }}">
                     <div class="flex items-center">
-                        <span class="text-xl mr-3 opacity-80">🛣️</span> Voirie & Réseaux
+                        <svg class="w-5 h-5 mr-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                        </svg>
+                        Voirie & Réseaux
                     </div>
                     <svg id="arrow-menu-voirie"
                         class="w-4 h-4 arrow-icon {{ request()->routeIs('voies.*', 'ouvrages.*', 'communes.*') ? 'rotate-90' : '' }}"
@@ -127,7 +145,12 @@
                 <button onclick="toggleMenu('menu-batiments')"
                     class="w-full flex items-center justify-between px-4 py-2.5 rounded-lg transition-colors font-medium hover:bg-slate-800 hover:text-white {{ request()->routeIs('batiments.*', 'lieux.*', 'locaux.*', 'equipements.*', 'compteurs.*', 'supports-acces.*', 'types-erp.*', 'controles.*') ? 'bg-slate-800 text-white' : 'text-slate-400' }}">
                     <div class="flex items-center">
-                        <span class="text-xl mr-3 opacity-80">🏢</span> Bâtiments & Locaux
+                        <svg class="w-5 h-5 mr-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4">
+                            </path>
+                        </svg>
+                        Bâtiments & Locaux
                     </div>
                     <svg id="arrow-menu-batiments"
                         class="w-4 h-4 arrow-icon transition-transform {{ request()->routeIs('batiments.*', 'lieux.*', 'locaux.*', 'equipements.*', 'compteurs.*', 'supports-acces.*', 'types-erp.*', 'controles.*') ? 'rotate-90' : '' }}"
@@ -166,7 +189,12 @@
                 <button onclick="toggleMenu('menu-cimetiere')"
                     class="w-full flex items-center justify-between px-4 py-2.5 rounded-lg transition-colors font-medium hover:bg-slate-800 hover:text-white {{ request()->routeIs('emplacements.*', 'concessions.*') ? 'text-white' : '' }}">
                     <div class="flex items-center">
-                        <span class="text-xl mr-3 opacity-80">🕊️</span> Espaces Funéraires
+                        <svg class="w-5 h-5 mr-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z">
+                            </path>
+                        </svg>
+                        Espaces Funéraires
                     </div>
                     <svg id="arrow-menu-cimetiere"
                         class="w-4 h-4 arrow-icon {{ request()->routeIs('emplacements.*', 'concessions.*') ? 'rotate-90' : '' }}"
@@ -188,7 +216,14 @@
                 <button onclick="toggleMenu('menu-interventions')"
                     class="w-full flex items-center justify-between px-4 py-2.5 rounded-lg transition-colors font-medium hover:bg-slate-800 hover:text-white {{ request()->routeIs('actions.*', 'interventions.*', 'projets.*') ? 'text-white' : '' }}">
                     <div class="flex items-center">
-                        <span class="text-xl mr-3 opacity-80">🛠️</span> Suivi & Travaux
+                        <svg class="w-5 h-5 mr-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z">
+                            </path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                        Suivi & Travaux
                     </div>
                     <svg id="arrow-menu-interventions"
                         class="w-4 h-4 arrow-icon {{ request()->routeIs('actions.*', 'interventions.*', 'projets.*') ? 'rotate-90' : '' }}"
@@ -216,7 +251,12 @@
                 <button onclick="toggleMenu('menu-decisions')"
                     class="w-full flex items-center justify-between px-4 py-2.5 rounded-lg transition-colors font-medium hover:bg-slate-800 hover:text-white {{ request()->routeIs('decisions-admin.*', 'decisions-commission.*') ? 'text-white' : '' }}">
                     <div class="flex items-center">
-                        <span class="text-xl mr-3 opacity-80">📜</span> Actes & Décisions
+                        <svg class="w-5 h-5 mr-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                            </path>
+                        </svg>
+                        Actes & Décisions
                     </div>
                     <svg id="arrow-menu-decisions"
                         class="w-4 h-4 arrow-icon {{ request()->routeIs('decisions-admin.*', 'decisions-commission.*') ? 'rotate-90' : '' }}"
@@ -240,7 +280,12 @@
                 <button onclick="toggleMenu('menu-admin')"
                     class="w-full flex items-center justify-between px-4 py-2.5 rounded-lg transition-colors font-medium hover:bg-slate-800 hover:text-white {{ request()->routeIs('tiers.*', 'contrats.*', 'immobilisations.*', 'dossiers-financiers.*', 'enveloppes-budgetaires.*', 'operations-comptables.*', 'chapitres.*', 'articles-compta.*') ? 'text-white' : '' }}">
                     <div class="flex items-center">
-                        <span class="text-xl mr-3 opacity-80">📂</span> Finances & Tiers
+                        <svg class="w-5 h-5 mr-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
+                            </path>
+                        </svg>
+                        Finances & Tiers
                     </div>
                     <svg id="arrow-menu-admin"
                         class="w-4 h-4 arrow-icon {{ request()->routeIs('tiers.*', 'contrats.*', 'immobilisations.*', 'dossiers-financiers.*', 'enveloppes-budgetaires.*', 'operations-comptables.*', 'chapitres.*', 'articles-compta.*') ? 'rotate-90' : '' }}"
@@ -273,7 +318,7 @@
 
                     <a href="{{ route('articles-compta.index') }}"
                         class="text-sm py-2 transition-colors {{ request()->routeIs('articles-compta.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Plan
-                        de Comptes (Articles)</a>
+                        de Comptes</a>
 
                     <a href="{{ route('enveloppes-budgetaires.index') }}"
                         class="text-sm py-2 transition-colors {{ request()->routeIs('enveloppes-budgetaires.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Enveloppes
@@ -290,31 +335,56 @@
             </div>
 
             @if(Auth::user()->role_appli === 'Administrateur')
-            <div class="pt-2">
-                <a href="{{ route('admin.habilitations.index') }}"
-                    class="flex items-center px-4 py-3 rounded-lg transition-colors font-medium {{ request()->routeIs('admin.habilitations.*') ? 'bg-blue-600 text-white shadow-md' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
-                    <span class="text-xl mr-3 opacity-80">🔐</span> Paramètres d'accès
-                </a>
-            </div>
+                <div>
+                    <button onclick="toggleMenu('menu-agents')"
+                        class="w-full flex items-center justify-between px-4 py-2.5 rounded-lg transition-colors font-medium hover:bg-slate-800 hover:text-white {{ request()->routeIs('utilisateurs.*', 'admin.habilitations.*') ? 'text-white' : '' }}">
+                        <div class="flex items-center">
+                            <svg class="w-5 h-5 mr-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z">
+                                </path>
+                            </svg>
+                            Gestion des Agents
+                        </div>
+                        <svg id="arrow-menu-agents"
+                            class="w-4 h-4 arrow-icon {{ request()->routeIs('utilisateurs.*', 'admin.habilitations.*') ? 'rotate-90' : '' }}"
+                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </button>
+                    <div id="menu-agents"
+                        class="flex flex-col pl-12 pr-4 py-1 space-y-1 {{ request()->routeIs('utilisateurs.*', 'admin.habilitations.*') ? '' : 'hidden' }}">
+                        <a href="{{ route('utilisateurs.index') }}"
+                            class="text-sm py-2 transition-colors {{ request()->routeIs('utilisateurs.index') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Liste
+                            des agents</a>
+                        <a href="{{ route('utilisateurs.create') }}"
+                            class="text-sm py-2 transition-colors {{ request()->routeIs('utilisateurs.create') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Créer
+                            un agent</a>
+                        <a href="{{ route('admin.habilitations.index') }}"
+                            class="text-sm py-2 transition-colors {{ request()->routeIs('admin.habilitations.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Droits
+                            & Accès (Habilitations)</a>
+                    </div>
+                </div>
             @endif
 
         </nav>
 
         <div class="p-4 border-t border-slate-800 bg-slate-900/50 flex justify-between items-center">
-            <div class="flex items-center overflow-hidden">
+            <a href="{{ route('profil.show') }}" class="flex items-center overflow-hidden group flex-1"
+                title="Voir mon profil">
                 <div
-                    class="w-9 h-9 flex-shrink-0 bg-blue-600 rounded-full text-white flex items-center justify-center font-bold mr-3 uppercase shadow-inner">
+                    class="w-9 h-9 flex-shrink-0 bg-blue-600 rounded-full text-white flex items-center justify-center font-bold mr-3 uppercase shadow-inner group-hover:bg-blue-500 transition-colors">
                     {{ substr(Auth::user()->prenom_user ?? 'U', 0, 1) }}
                 </div>
                 <div class="truncate">
-                    <p class="font-bold text-sm text-slate-200 truncate">
-                        {{ Auth::user()->prenom_user ?? 'Non' }} {{ Auth::user()->nom_user ?? 'connecté' }}
+                    <p class="font-bold text-sm text-slate-200 truncate group-hover:text-white transition-colors">
+                        {{ Auth::user()->prenom_user ?? 'User' }} {{ Auth::user()->nom_user ?? '' }}
                     </p>
                     <p class="text-[10px] uppercase tracking-wider text-blue-400 font-semibold truncate">
-                        {{ Auth::user()->role_appli ?? 'Inconnu' }}
+                        {{ Auth::user()->role_appli ?? 'Agent' }} ⚙️
                     </p>
                 </div>
-            </div>
+            </a>
 
             <form method="POST" action="{{ route('logout') }}" class="ml-2 flex-shrink-0">
                 @csrf
@@ -338,6 +408,15 @@
             </h1>
 
             <div class="flex items-center space-x-4">
+                <a href="{{ route('profil.show') }}"
+                    class="flex items-center text-sm font-medium text-slate-600 hover:text-blue-600 transition px-3 py-1.5 rounded-lg hover:bg-slate-50 {{ request()->routeIs('profil.*') ? 'text-blue-600 bg-blue-50/50' : '' }}">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                    </svg>
+                    Mon Compte
+                </a>
+
                 <button
                     class="bg-slate-50 border border-slate-100 p-2 rounded-full text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition relative">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -358,13 +437,13 @@
     </main>
 
     <script>
-    function toggleMenu(menuId) {
-        const menu = document.getElementById(menuId);
-        const arrow = document.getElementById('arrow-' + menuId);
+        function toggleMenu(menuId) {
+            const menu = document.getElementById(menuId);
+            const arrow = document.getElementById('arrow-' + menuId);
 
-        menu.classList.toggle('hidden');
-        arrow.classList.toggle('rotate-90');
-    }
+            menu.classList.toggle('hidden');
+            arrow.classList.toggle('rotate-90');
+        }
     </script>
     @yield('scripts')
 </body>

@@ -12,11 +12,10 @@ return new class extends Migration {
     {
         Schema::create('type_erp', function (Blueprint $table) {
             $table->id('id_type_erp');
-            $table->string('libelle_erp', 100);
             $table->string('reglementation_applicable', 80);
             $table->string('public_cible', 80)->nullable();
             $table->integer('categorie_erp')->nullable();
-            $table->string('type_erp', 2)->nullable();
+            $table->string('type_erp', 5)->nullable();
             $table->timestamps();
         });
     }

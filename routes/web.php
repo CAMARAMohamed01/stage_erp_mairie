@@ -36,6 +36,8 @@ use App\Http\Controllers\ChapitreController;
 use App\Http\Controllers\ArticleComptaController;
 use App\Http\Controllers\DecisionCommissionController;
 use App\Http\Controllers\ImmobilisationController;
+use App\Http\Controllers\ProfilController;
+use App\Http\Controllers\UtilisateurController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -47,6 +49,16 @@ Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 
 // --- ROUTES PRIVÉES (Nécessitent d'être connecté) ---
 Route::middleware('auth')->group(function () {
+
+    Route::get('/profil', [ProfilController::class, 'show'])->name('profil.show');
+    Route::put('/profil', [ProfilController::class, 'update'])->name('profil.update');
+
+    Route::get('/admin/utilisateurs', [UtilisateurController::class, 'index'])->name('utilisateurs.index');
+    Route::get('/admin/utilisateurs/creer', [UtilisateurController::class, 'create'])->name('utilisateurs.create');
+    Route::post('/admin/utilisateurs', [UtilisateurController::class, 'store'])->name('utilisateurs.store');
+    Route::get('/admin/utilisateurs/{id}/modifier', [UtilisateurController::class, 'edit'])->name('utilisateurs.edit');
+    Route::put('/admin/utilisateurs/{id}', [UtilisateurController::class, 'update'])->name('utilisateurs.update');
+    Route::delete('/admin/utilisateurs/{id}', [UtilisateurController::class, 'destroy'])->name('utilisateurs.destroy');
 
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 

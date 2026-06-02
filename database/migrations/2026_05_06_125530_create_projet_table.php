@@ -17,10 +17,8 @@ return new class extends Migration {
             $table->string('annee_mandat', 5);
             $table->string('avis', 100)->nullable();
 
-            $table->unsignedBigInteger('id_axe')->nullable();
             $table->unsignedBigInteger('id_user')->nullable();
 
-            $table->foreign('id_axe')->references('id_axe')->on('axe_strategique');
             $table->foreign('id_user')->references('id_user')->on('utilisateur');
             $table->timestamps();
         });

@@ -24,7 +24,6 @@ return new class extends Migration {
             $table->unsignedBigInteger('id_adresse')->nullable();
             $table->unsignedBigInteger('id_compteur')->nullable();
             $table->unsignedBigInteger('id_troncon')->nullable();
-            $table->unsignedBigInteger('id_axe')->nullable();
             $table->unsignedBigInteger('id_controle')->nullable();
             $table->unsignedBigInteger('id_tiers')->nullable();
             $table->unsignedBigInteger('id_contrat')->nullable();
@@ -38,7 +37,6 @@ return new class extends Migration {
             $table->foreign('id_adresse')->references('id_adresse')->on('Adresse');
             $table->foreign('id_compteur')->references('id_compteur')->on('compteur');
             $table->foreign('id_troncon')->references('id_troncon')->on('troncon');
-            $table->foreign('id_axe')->references('id_axe')->on('axe_strategique');
             $table->foreign('id_controle')->references('id_controle')->on('controle_reglementaire');
             $table->foreign('id_tiers')->references('id_tiers')->on('tiers');
             $table->foreign('id_contrat')->references('id_contrat')->on('contrat');
