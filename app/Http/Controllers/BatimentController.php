@@ -36,13 +36,12 @@ class BatimentController extends Controller
     // Fiche détaillée d'un bâtiment (Le point central de convergence de tes données)
     public function show($id)
     {
-        // 1. Infos du bâtiment, son type ERP ET son Adresse
         // 1. Infos du bâtiment, son type ERP, son Adresse ET sa Parcelle
         $batiment = DB::table('batiment')
             ->leftJoin('type_erp', 'batiment.id_type_erp', '=', 'type_erp.id_type_erp')
             ->leftJoin('Adresse', 'batiment.id_adresse', '=', 'Adresse.id_adresse')
             ->leftJoin('parcelle', 'batiment.id_parcelle', '=', 'parcelle.id_parcelle')
-            ->leftJoin('lieu_dit', 'parcelle.id_lieu_dit', '=', 'lieu_dit.id_lieu_dit') // ← manquant
+            ->leftJoin('lieu_dit', 'parcelle.id_lieu_dit', '=', 'lieu_dit.id_lieu_dit')
             ->select(
                 'batiment.*',
                 'type_erp.categorie_erp',
@@ -63,16 +62,14 @@ class BatimentController extends Controller
             abort(404, 'Bâtiment introuvable');
         }
 
-        // 2. NOUVEAU : Récupérer les locaux/pièces rattachés à ce bâtiment
+        // Récupérer les locaux/pièces rattachés à ce bâtiment (trié proprement sur le nom)
         $locaux = DB::table('local_')
-            ->leftJoin('type_usage', 'local_.id_usage', '=', 'type_usage.id_usage')
-            ->select('local_.*', 'type_usage.libelle_usage')
+            ->select('local_.*')
             ->where('id_batiment', $id)
-            ->orderBy('local_.niveau')
             ->orderBy('local_.nom_local')
             ->get();
 
-        // 3. Les équipements : via l'immobilisation commune ou via les locaux du bâtiment
+        // Équipements rattachés via l'immobilisation commune ou via les locaux du bâtiment
         $equipements = DB::table('equipement')
             ->leftJoin('local_', 'equipement.id_local', '=', 'local_.id_local')
             ->where('equipement.id_immo', $batiment->id_immo)
@@ -82,10 +79,9 @@ class BatimentController extends Controller
             ->orderBy('nom_equipement')
             ->get();
 
-        // 4. Les contrôles réglementaires (via les lieux publics rattachés)
-        $controles = collect(); // On initialise une collection vide par défaut
+        // Les contrôles réglementaires (via la table de correspondance ERP)
+        $controles = collect();
 
-        // On vérifie que le bâtiment a bien le champ id_type_erp (qui a dû être récupéré plus haut dans le $batiment)
         if (isset($batiment->id_type_erp) && $batiment->id_type_erp) {
             $controles = DB::table('controle_reglementaire')
                 ->join('type_erp_controle', 'controle_reglementaire.id_controle', '=', 'type_erp_controle.id_controle')
@@ -94,6 +90,7 @@ class BatimentController extends Controller
                 ->orderBy('controle_reglementaire.designation')
                 ->get();
         }
+
         // 5. Les interventions récentes : liées à l'adresse du bâtiment
         $interventions = DB::table('intervention')
             ->where('id_adresse', $batiment->id_adresse)
@@ -101,6 +98,7 @@ class BatimentController extends Controller
             ->limit(5)
             ->get();
 
+        // Compteurs généraux rattachés au bâtiment
         $compteurs_generaux = DB::table('compteur')
             ->join('local_', 'compteur.id_local', '=', 'local_.id_local')
             ->where('local_.id_batiment', $id)
@@ -108,7 +106,7 @@ class BatimentController extends Controller
             ->select('compteur.*')
             ->get();
 
-        //  Les contrats liés directement à ce bâtiment (via la table pivot contrat_batiment)
+        // Les contrats liés directement à ce bâtiment (via la table pivot contrat_batiment)
         $contrats = DB::table('contrat')
             ->join('contrat_batiment', 'contrat.id_contrat', '=', 'contrat_batiment.id_contrat')
             ->leftJoin('tiers', 'contrat.id_tiers', '=', 'tiers.id_tiers')
@@ -117,32 +115,29 @@ class BatimentController extends Controller
             ->where('contrat_batiment.id_batiment', $id)
             ->select('contrat.*', 'tiers_morale.raison_sociale', 'tiers_physique.nom_tiers', 'tiers_physique.prenom_tiers')
             ->get();
-        //documents liés à ce bâtiment
+
+        // Documents liés à ce bâtiment
         $documents = DB::table('document')
             ->where('id_batiment', $id)
             ->orderByDesc('date_upload')
             ->get();
 
-        // 6. Les actions citoyens : liés à l'adresse du bâtiment
+        // 6. Les actions citoyens : liées à l'adresse du bâtiment
         $actions = DB::table('action')
             ->where('id_adresse', $batiment->id_adresse)
             ->where('statut_action', '!=', 'Clôturé')
             ->get();
 
-        // On ajoute 'locaux' dans le compact
         return view('batiments.show', compact('batiment', 'locaux', 'equipements', 'controles', 'interventions', 'actions', 'compteurs_generaux', 'contrats', 'documents'));
     }
 
     // Afficher le formulaire de création
     public function create()
     {
-        $tiers = DB::table('tiers')
-            ->leftJoin('tiers_morale', 'tiers.id_tiers', '=', 'tiers_morale.id_tiers')
-            ->leftJoin('tiers_physique', 'tiers.id_tiers', '=', 'tiers_physique.id_tiers')
-            ->select('tiers.id_tiers', 'tiers.type_tiers', 'tiers_morale.raison_sociale', 'tiers_physique.nom_tiers', 'tiers_physique.prenom_tiers')
+        $adresses = DB::table('Adresse')
+            ->select('id_adresse', 'num_rue', 'nom_voie', 'ville', 'latitude', 'longitude')
+            ->orderBy('nom_voie')
             ->get();
-
-        $adresses = DB::table('Adresse')->get();
         $parcelles = DB::table('parcelle')->get();
         $types_erp = DB::table('type_erp')->orderBy('categorie_erp')->get();
         $lieu_dits = DB::table('lieu_dit')->orderBy('nom_lieu_dit')->get();
@@ -152,51 +147,50 @@ class BatimentController extends Controller
                 $query->select('id_immo')->from('batiment');
             })->get();
 
-        // NOUVEAU : Récupération des contrats
+        // Récupération des contrats
         $contrats = Contrat::orderBy('numero_contrat')->get();
 
-        return view('batiments.create', compact('tiers', 'adresses', 'parcelles', 'types_erp', 'immos_disponibles', 'lieu_dits', 'contrats'));
+        return view('batiments.create', compact('adresses', 'parcelles', 'types_erp', 'immos_disponibles', 'lieu_dits', 'contrats'));
     }
 
     public function store(Request $request)
     {
+        // ✅ MISE À JOUR : Suppression de la validation requise sur 'id_tiers'
         $request->validate([
             'nom_bat' => 'required|string|max:100',
             'surface_totale_m2' => 'nullable|numeric',
             'date_construction' => 'nullable|date',
-            'id_tiers' => 'required|integer|exists:tiers,id_tiers',
             'id_parcelle' => 'required|integer|exists:parcelle,id_parcelle',
             'id_type_erp' => 'required|integer|exists:type_erp,id_type_erp',
             'id_adresse' => 'required|integer|exists:Adresse,id_adresse',
             'id_immo' => 'required|integer|exists:immobilisation_inventaire_,id_immo|unique:batiment,id_immo',
             'geojson_data' => 'nullable|json',
-            // Validation des contrats
             'id_contrats' => 'nullable|array',
             'id_contrats.*' => 'exists:contrat,id_contrat',
         ]);
 
-        // On utilise Eloquent (Batiment::create) au lieu de DB::table pour pouvoir chaîner la relation
+        // Utilisation d'Eloquent pour chaîner les contrats
         $batiment = Batiment::create([
             'nom_bat' => $request->nom_bat,
             'surface_totale_m2' => $request->surface_totale_m2,
             'date_construction' => $request->date_construction,
-            'id_tiers' => $request->id_tiers,
             'id_parcelle' => $request->id_parcelle,
             'id_type_erp' => $request->id_type_erp,
             'id_adresse' => $request->id_adresse,
             'id_immo' => $request->id_immo,
         ]);
 
-        // NOUVEAU : On attache les contrats dans la table pivot
+        // Liaison dans la table pivot des contrats
         if ($request->has('id_contrats')) {
             $batiment->contratsAdministratifs()->attach($request->id_contrats);
         }
-        // Enregistrement du Point GPS
+
+        // Enregistrement du Point GPS PostGIS
         if ($request->filled('geojson_data')) {
             DB::update(
                 "UPDATE batiment 
-             SET geom_batiment = ST_SetSRID(ST_GeomFromGeoJSON(?), 4326) 
-             WHERE id_batiment = ?",
+                 SET geom_batiment = ST_SetSRID(ST_GeomFromGeoJSON(?), 4326) 
+                 WHERE id_batiment = ?",
                 [$request->geojson_data, $batiment->id_batiment]
             );
         }
@@ -206,16 +200,9 @@ class BatimentController extends Controller
 
     public function edit($id)
     {
-        // On remplace DB::table par Eloquent pour charger les contrats liés
         $batiment = Batiment::with('contratsAdministratifs')
             ->select('*', DB::raw('ST_AsGeoJSON(geom_batiment) as geojson'))
             ->findOrFail($id);
-
-        $tiers = DB::table('tiers')
-            ->leftJoin('tiers_morale', 'tiers.id_tiers', '=', 'tiers_morale.id_tiers')
-            ->leftJoin('tiers_physique', 'tiers.id_tiers', '=', 'tiers_physique.id_tiers')
-            ->select('tiers.id_tiers', 'tiers.type_tiers', 'tiers_morale.raison_sociale', 'tiers_physique.nom_tiers', 'tiers_physique.prenom_tiers')
-            ->get();
 
         $adresses = DB::table('Adresse')->get();
         $parcelles = DB::table('parcelle')->get();
@@ -227,10 +214,9 @@ class BatimentController extends Controller
                 $query->select('id_immo')->from('batiment')->where('id_batiment', '!=', $id);
             })->get();
 
-        // NOUVEAU : Récupération des contrats
         $contrats = Contrat::orderBy('numero_contrat')->get();
 
-        return view('batiments.edit', compact('batiment', 'tiers', 'adresses', 'parcelles', 'types_erp', 'immos', 'lieu_dits', 'contrats'));
+        return view('batiments.edit', compact('batiment', 'adresses', 'parcelles', 'types_erp', 'immos', 'lieu_dits', 'contrats'));
     }
 
     public function update(Request $request, $id)
@@ -239,13 +225,10 @@ class BatimentController extends Controller
             'nom_bat' => 'required|string|max:100',
             'surface_totale_m2' => 'nullable|numeric',
             'date_construction' => 'nullable|date',
-            'id_tiers' => 'required|integer|exists:tiers,id_tiers',
             'id_parcelle' => 'required|integer|exists:parcelle,id_parcelle',
             'id_type_erp' => 'required|integer|exists:type_erp,id_type_erp',
             'id_adresse' => 'required|integer|exists:Adresse,id_adresse',
             'id_immo' => 'required|integer|exists:immobilisation_inventaire_,id_immo|unique:batiment,id_immo,' . $id . ',id_batiment',
-
-            // Validation des contrats
             'id_contrats' => 'nullable|array',
             'id_contrats.*' => 'exists:contrat,id_contrat',
         ]);
@@ -256,18 +239,17 @@ class BatimentController extends Controller
             'nom_bat' => $request->nom_bat,
             'surface_totale_m2' => $request->surface_totale_m2,
             'date_construction' => $request->date_construction,
-            'id_tiers' => $request->id_tiers,
             'id_parcelle' => $request->id_parcelle,
             'id_type_erp' => $request->id_type_erp,
             'id_adresse' => $request->id_adresse,
             'id_immo' => $request->id_immo,
         ]);
-        // Enregistrement du Point GPS
+
         if ($request->filled('geojson_data')) {
             DB::update(
                 "UPDATE batiment 
-             SET geom_batiment = ST_SetSRID(ST_GeomFromGeoJSON(?), 4326) 
-             WHERE id_batiment = ?",
+                 SET geom_batiment = ST_SetSRID(ST_GeomFromGeoJSON(?), 4326) 
+                 WHERE id_batiment = ?",
                 [$request->geojson_data, $batiment->id_batiment]
             );
         }
@@ -283,7 +265,7 @@ class BatimentController extends Controller
         $request->validate(['fichier' => 'required|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:5120']);
 
         $file = $request->file('fichier');
-        $path = $file->store('documents/batiments', 'public'); // Adapte le nom du dossier
+        $path = $file->store('documents/batiments', 'public');
 
         \App\Models\Document::create([
             'nom_fichier' => $file->getClientOriginalName(),
@@ -291,11 +273,12 @@ class BatimentController extends Controller
             'chemin_stockage' => $path,
             'taille_ko' => $file->getSize() / 1024,
             'date_upload' => now(),
-            'id_batiment' => $idBatiment, // <-- C'est LA seule chose qui change selon le contrôleur
+            'id_batiment' => $idBatiment,
         ]);
 
         return back()->with('success', 'Document ajouté au bâtiment.');
     }
+
     // --- ENREGISTREMENTS RAPIDES AJAX ---
 
     public function quickStoreAdresse(Request $request)
@@ -324,46 +307,15 @@ class BatimentController extends Controller
         return response()->json(['id' => $id, 'label' => "Section {$request->section_cadastrale} - N° {$request->num_parcelle}"]);
     }
 
-    public function quickStoreTiers(Request $request)
-    {
-        $id_tiers = DB::table('tiers')->insertGetId([
-            'type_tiers' => $request->type_tiers,
-            'email_tiers' => $request->email_tiers,
-            'id_adresse' => $request->id_adresse ?: null,
-        ], 'id_tiers');
-
-        if ($request->type_tiers === 'Personne Morale') {
-            DB::table('tiers_morale')->insert([
-                'id_tiers' => $id_tiers,
-                'raison_sociale' => $request->raison_sociale,
-                'siret' => $request->siret
-            ]);
-            $label = $request->raison_sociale;
-        } else {
-            DB::table('tiers_physique')->insert([
-                'id_tiers' => $id_tiers,
-                'civilite' => $request->civilite,
-                'nom_tiers' => $request->nom_tiers,
-                'prenom_tiers' => $request->prenom_tiers,
-            ]);
-            $label = $request->nom_tiers . ' ' . $request->prenom_tiers;
-        }
-
-        return response()->json(['id' => $id_tiers, 'label' => $label]);
-    }
-
-
-
     public function destroy($id)
     {
-        // 1. On récupère le bâtiment pour obtenir son id_immo
         $batiment = DB::table('batiment')->where('id_batiment', $id)->first();
 
         if (!$batiment) {
             return redirect()->route('batiments.index')->with('error', 'Bâtiment introuvable.');
         }
 
-        //  Vérification des équipements liés (via l'immobilisation ou via un local)
+        // Vérification des équipements liés (via l'immo commune ou via un local)
         $equipementsLies = DB::table('equipement')
             ->leftJoin('local_', 'equipement.id_local', '=', 'local_.id_local')
             ->where('equipement.id_immo', $batiment->id_immo)
@@ -374,7 +326,7 @@ class BatimentController extends Controller
             return redirect()->back()->with('error', "🛑 Impossible de supprimer : $equipementsLies équipement(s) sont encore rattachés à ce bâtiment.");
         }
 
-        // 3. Vérification des dépendances structurelles (Locaux et Lieux publics)
+        // Structure : Locaux et Lieux publics rattachés
         $locauxLies = DB::table('local_')->where('id_batiment', $id)->count();
         $lieuxLies = DB::table('lieux_publics')->where('id_batiment', $id)->count();
 
@@ -382,7 +334,6 @@ class BatimentController extends Controller
             return redirect()->back()->with('error', "🛑 Impossible de supprimer : Ce bâtiment contient encore $locauxLies local/locaux et $lieuxLies lieu(x) public(s). Vous devez les supprimer ou les réaffecter d'abord.");
         }
 
-        // 4. Si toutes les vérifications sont bonnes, on supprime !
         DB::table('batiment')->where('id_batiment', $id)->delete();
 
         return redirect()->route('batiments.index')

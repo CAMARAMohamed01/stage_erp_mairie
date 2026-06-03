@@ -23,6 +23,7 @@
     <form action="{{ route('batiments.store') }}" method="POST" class="space-y-6">
         @csrf
 
+        {{-- 📋 Informations Générales --}}
         <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
             <h2 class="text-sm font-bold text-slate-800 mb-4 border-b border-slate-100 pb-2">📋 Informations Générales
             </h2>
@@ -30,7 +31,7 @@
                 <div class="md:col-span-2">
                     <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Nom du Bâtiment
                         <span class="text-red-500">*</span></label>
-                    <input type="text" name="nom_bat" required placeholder="Ex: Groupe Scolaire Jean Moulin"
+                    <input type="text" name="nom_bat" required placeholder="Ex: Groupe Scolaire Maurice Anjot"
                         class="w-full rounded-lg border-slate-300 text-sm focus:ring-slate-900 focus:border-slate-900">
                 </div>
                 <div>
@@ -48,6 +49,7 @@
             </div>
         </div>
 
+        {{-- 📍 Localisation & Cadastre --}}
         <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
             <h2 class="text-sm font-bold text-slate-800 mb-4 border-b border-slate-100 pb-2">📍 Localisation & Cadastre
             </h2>
@@ -63,8 +65,10 @@
                         class="w-full rounded-lg border-slate-300 text-sm bg-slate-50">
                         <option value="">-- Sélectionner --</option>
                         @foreach($adresses as $adresse)
-                        <option value="{{ $adresse->id_adresse }}">{{ $adresse->num_rue }} {{ $adresse->nom_voie }},
-                            {{ $adresse->ville }}
+                        {{-- On embarque la latitude et la longitude de la BAN directement dans l'option --}}
+                        <option value="{{ $adresse->id_adresse }}" data-lat="{{ $adresse->latitude }}"
+                            data-lng="{{ $adresse->longitude }}">
+                            {{ $adresse->num_rue }} {{ $adresse->nom_voie }}, {{ $adresse->ville }}
                         </option>
                         @endforeach
                     </select>
@@ -99,30 +103,11 @@
             </div>
         </div>
 
+        {{-- 💼 Administration & Classification --}}
         <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-            <h2 class="text-sm font-bold text-slate-800 mb-4 border-b border-slate-100 pb-2">💼 Propriété,
-                Administration & Classification</h2>
+            <h2 class="text-sm font-bold text-slate-800 mb-4 border-b border-slate-100 pb-2">💼 Administration &
+                Classification</h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-
-                <div class="md:col-span-3 relative">
-                    <div class="flex justify-between items-center mb-1">
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Propriétaire
-                            <span class="text-red-500">*</span></label>
-                        <button type="button" onclick="openModal('modalTiers')"
-                            class="text-xs text-blue-600 font-semibold hover:underline">➕ Créer un tiers</button>
-                    </div>
-                    <input type="text" id="search_tiers" placeholder="🔍 Rechercher un tiers..."
-                        class="w-full rounded-lg border-slate-300 text-sm focus:ring-slate-900 focus:border-slate-900 mb-1">
-                    <select name="id_tiers" id="select_tiers" required
-                        class="w-full rounded-lg border-slate-300 text-sm bg-slate-50">
-                        <option value="">-- Sélectionner --</option>
-                        @foreach($tiers as $t)
-                        <option value="{{ $t->id_tiers }}">
-                            {{ $t->raison_sociale ?? ($t->nom_tiers . ' ' . $t->prenom_tiers) }}
-                        </option>
-                        @endforeach
-                    </select>
-                </div>
 
                 <div class="md:col-span-1">
                     <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Classification
@@ -182,6 +167,7 @@
     </form>
 </div>
 
+{{-- Modale Adresse --}}
 <div id="modalAdresse"
     class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
     <div class="bg-white rounded-xl shadow-xl border border-slate-200 max-w-md w-full p-6 space-y-4">
@@ -226,6 +212,7 @@
     </div>
 </div>
 
+{{-- Modale Parcelle --}}
 <div id="modalParcelle"
     class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
     <div class="bg-white rounded-xl shadow-xl border border-slate-200 max-w-md w-full p-6 space-y-4">
@@ -276,78 +263,7 @@
         </form>
     </div>
 </div>
-
-<div id="modalTiers" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
-    <div class="bg-white rounded-xl shadow-xl border border-slate-200 max-w-md w-full p-6 space-y-4">
-        <h3 class="text-base font-bold text-slate-900">➕ Créer un Tiers (Propriétaire)</h3>
-        <form id="formTiers" class="space-y-3">
-            <div>
-                <label class="block text-xs font-medium text-slate-500">Typologie du Tiers</label>
-                <select name="type_tiers" id="toggle_type_tiers" onchange="switchTiersFields(this.value)"
-                    class="w-full rounded-md border-slate-300 text-sm bg-slate-50">
-                    <option value="Personne Morale">Personne Morale (Entreprise / Collectivité)</option>
-                    <option value="Personne Physique">Personne Physique (Particulier)</option>
-                </select>
-            </div>
-            <div>
-                <label class="block text-xs font-medium text-slate-500">Email Contact</label>
-                <input type="email" name="email_tiers" class="w-full rounded-md border-slate-300 text-sm">
-            </div>
-
-            <div id="fields_morale" class="space-y-3">
-                <div>
-                    <label class="block text-xs font-medium text-slate-500">Raison Sociale</label>
-                    <input type="text" name="raison_sociale" id="req_raison" required
-                        class="w-full rounded-md border-slate-300 text-sm">
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-slate-500">Numéro SIRET</label>
-                    <input type="text" name="siret" maxlength="14" class="w-full rounded-md border-slate-300 text-sm">
-                </div>
-            </div>
-
-            <div id="fields_physique" class="space-y-3 hidden">
-                <div class="grid grid-cols-3 gap-2">
-                    <div>
-                        <label class="block text-xs font-medium text-slate-500">Civilité</label>
-                        <input type="text" name="civilite" placeholder="M. / Mme"
-                            class="w-full rounded-md border-slate-300 text-sm">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-medium text-slate-500">Nom</label>
-                        <input type="text" name="nom_tiers" id="req_nom"
-                            class="w-full rounded-md border-slate-300 text-sm">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-medium text-slate-500">Prénom</label>
-                        <input type="text" name="prenom_tiers" id="req_prenom"
-                            class="w-full rounded-md border-slate-300 text-sm">
-                    </div>
-                </div>
-            </div>
-
-            <div>
-                <label class="block text-xs font-medium text-slate-500">Adresse Principale (Optionnelle)</label>
-                <select name="id_adresse" class="w-full rounded-md border-slate-300 text-sm bg-slate-50">
-                    <option value="">Aucune</option>
-                    @foreach($adresses as $adr)
-                    <option value="{{ $adr->id_adresse }}">{{ $adr->num_rue }} {{ $adr->nom_voie }}</option>
-                    @endforeach
-                </select>
-            </div>
-
-            <div class="flex justify-end gap-2 pt-2">
-                <button type="button" onclick="closeModal('modalTiers')"
-                    class="px-3 py-2 border rounded-md text-xs font-semibold text-slate-600">Fermer</button>
-                <button type="button"
-                    onclick="submitModal('formTiers', '{{ route('api.tiers.store') }}', 'select_tiers')"
-                    class="px-3 py-2 bg-blue-600 text-white rounded-md text-xs font-semibold">Créer</button>
-            </div>
-        </form>
-    </div>
-</div>
 @endsection
-
 @section('scripts')
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/@geoman-io/leaflet-geoman-free@latest/dist/leaflet-geoman.js"></script>
@@ -360,31 +276,14 @@ function openModal(id) {
     modal.classList.add('flex');
 }
 
+//"fn" est redevenu "function" et "class_list" est redevenu "classList"
 function closeModal(id) {
     const modal = document.getElementById(id);
     modal.classList.remove('flex');
     modal.classList.add('hidden');
 }
 
-function switchTiersFields(type) {
-    const moraleBlock = document.getElementById('fields_morale');
-    const physiqueBlock = document.getElementById('fields_physique');
-
-    if (type === 'Personne Morale') {
-        moraleBlock.classList.remove('hidden');
-        physiqueBlock.classList.add('hidden');
-        document.getElementById('req_raison').required = true;
-        document.getElementById('req_nom').required = false;
-        document.getElementById('req_prenom').required = false;
-    } else {
-        moraleBlock.classList.add('hidden');
-        physiqueBlock.classList.remove('hidden');
-        document.getElementById('req_raison').required = false;
-        document.getElementById('req_nom').required = true;
-        document.getElementById('req_prenom').required = true;
-    }
-}
-
+// "fn" est redevenu "function" et "class_list" est redevenu "classList"
 function submitModal(formId, targetUrl, selectDestId) {
     const formElement = document.getElementById(formId);
     const formData = new FormData(formElement);
@@ -403,48 +302,22 @@ function submitModal(formId, targetUrl, selectDestId) {
                 const newOption = new Option(data.label, data.id, true, true);
                 selectElement.add(newOption);
 
-                if (selectDestId === 'select_tiers') {
-                    document.getElementById('search_tiers').value = data.label;
-                }
-
                 closeModal(formElement.closest('[id^="modal"]').id);
                 formElement.reset();
             }
         })
         .catch(error => alert("Erreur d'insertion. Vérifiez la conformité des données foncières."));
 }
-
-document.getElementById('search_tiers').addEventListener('input', function(e) {
-    const query = e.target.value.toLowerCase();
-    const select = document.getElementById('select_tiers');
-    const options = select.options;
-    let firstMatchIndex = -1;
-
-    for (let i = 0; i < options.length; i++) {
-        const text = options[i].text.toLowerCase();
-        const matches = text.includes(query);
-
-        if (matches) {
-            options[i].disabled = false;
-            options[i].hidden = false;
-            if (firstMatchIndex === -1 && options[i].value !== "") firstMatchIndex = i;
-        } else {
-            if (options[i].value !== "") {
-                options[i].disabled = true;
-                options[i].hidden = true;
-            }
-        }
-    }
-    if (firstMatchIndex !== -1 && query.length > 2) {
-        select.selectedIndex = firstMatchIndex;
-    }
-});
-
-// --- GESTION DE LA CARTE LEAFLET & GEOMAN ---
 document.addEventListener("DOMContentLoaded", function() {
-    var map = L.map('map').setView([45.928, 6.223], 15);
+    //  Configuration initiale de la carte
+    var map = L.map('map', {
+        maxZoom: 22
+    }).setView([45.928, 6.223], 15);
+
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19
+        maxZoom: 22,
+        maxNativeZoom: 19,
+        attribution: '© OpenStreetMap contributors'
     }).addTo(map);
 
     map.pm.addControls({
@@ -463,6 +336,45 @@ document.addEventListener("DOMContentLoaded", function() {
     var currentMarker = null;
     var geojsonInput = document.getElementById('geojson_data');
 
+    // Changement d'adresse pour auto-centrage
+    var selectAdresse = document.getElementById('select_adresse');
+
+    selectAdresse.addEventListener('change', function() {
+        // On récupère l'option actuellement sélectionnée
+        var selectedOption = this.options[this.selectedIndex];
+
+        var lat = selectedOption.getAttribute('data-lat');
+        var lng = selectedOption.getAttribute('data-lng');
+
+        // Si l'adresse possède des coordonnées valides
+        if (lat && lng && lat !== "" && lng !== "") {
+            var targetLatLng = [parseFloat(lat), parseFloat(lng)];
+
+            // On déplace la carte sur le point GPS officiel de la BAN avec un zoom précis
+            map.setView(targetLatLng, 19);
+
+            // On place automatiquement le marqueur Geoman à cet endroit !
+            if (currentMarker) {
+                map.removeLayer(currentMarker);
+            }
+
+            // On crée un nouveau marqueur Leaflet à l'emplacement précis
+            currentMarker = L.marker(targetLatLng, {
+                draggable: true
+            }).addTo(map);
+
+            // On active les capacités Geoman sur ce marqueur pour qu'il soit modifiable / supprimable
+            currentMarker.pm.enable();
+
+            // On met à jour le champ caché GeoJSON pour le contrôleur
+            updateGeoJSON();
+
+            // Si l'agent déplace le marqueur manuellement sur le toit, on met à jour la position
+            currentMarker.on('pm:dragend', updateGeoJSON);
+        }
+    });
+
+    // Événements classiques Geoman pour la création/suppression manuelle
     map.on('pm:create', function(e) {
         if (currentMarker) {
             map.removeLayer(currentMarker);

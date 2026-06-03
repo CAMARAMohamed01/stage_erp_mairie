@@ -11,6 +11,7 @@ class Batiment extends Model
 
     protected $table = 'batiment';
     protected $primaryKey = 'id_batiment';
+    public $timestamps = false;
     protected $guarded = [];
     public function contratsAdministratifs()
     {
