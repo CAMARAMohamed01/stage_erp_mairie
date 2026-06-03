@@ -21,33 +21,58 @@
                             <h1 class="text-3xl font-extrabold text-slate-900">{{ $intervention->type_intervention }}</h1>
                         </div>
 
-                        {{-- Correction de l'espace/retour à la ligne sur le rôle Responsable technique --}}
                         @if(
                                 Auth::user()->role_appli === 'Administrateur' || Auth::user()->role_appli === 'Responsable
-                                                                            technique'
+                                                technique'
                             )
-                                <div class="flex items-center gap-2">
-                                    <a href="{{ route('interventions.edit', $intervention->id_int) }}"
-                                        class="text-xs bg-amber-100 text-amber-700 hover:bg-amber-200 px-3 py-1.5 rounded-lg font-bold transition">
-                                        ✏️ Modifier
-                                    </a>
+                            <div class="flex items-center gap-2">
+                                <a href="{{ route('interventions.edit', $intervention->id_int) }}"
+                                    class="text-xs bg-amber-100 text-amber-700 hover:bg-amber-200 px-3 py-1.5 rounded-lg font-bold transition">
+                                    ✏️ Modifier
+                                </a>
 
-                                    <form action="{{ route('interventions.destroy', $intervention->id_int) }}" method="POST"
-                                        onsubmit="return confirm('⚠️ Êtes-vous sûr de vouloir supprimer cette intervention ?');">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit"
-                                            class="text-xs bg-red-100 text-red-700 hover:bg-red-200 px-3 py-1.5 rounded-lg font-bold transition">
-                                            🗑️ Supprimer
-                                        </button>
-                                    </form>
-                                </div>
+                                <form action="{{ route('interventions.destroy', $intervention->id_int) }}" method="POST"
+                                    onsubmit="return confirm('⚠️ Êtes-vous sûr de vouloir supprimer cette intervention ?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit"
+                                        class="text-xs bg-red-100 text-red-700 hover:bg-red-200 px-3 py-1.5 rounded-lg font-bold transition">
+                                        🗑️ Supprimer
+                                    </button>
+                                </form>
+                            </div>
                         @endif
                     </div>
 
                     <div class="prose max-w-none text-slate-600 mb-8">
                         <h3 class="text-slate-900 font-semibold">Description du travail à effectuer :</h3>
                         <p class="leading-relaxed">{{ $intervention->description }}</p>
+                    </div>
+
+                    {{-- BLOC FINANCIER GLOBAL CONSOLIDÉ --}}
+                    <div
+                        class="mb-6 p-4 bg-slate-50 border border-slate-200 rounded-xl grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+                        <div class="border-r border-slate-200 last:border-0">
+                            <span class="text-xs text-slate-400 font-bold uppercase tracking-wider">Frais de
+                                Fournitures</span>
+                            <p class="text-lg font-extrabold text-slate-700 mt-0.5">
+                                {{ number_format($coutMateriels, 2, ',', ' ') }} €
+                            </p>
+                        </div>
+                        <div class="border-r border-slate-200 last:border-0">
+                            <span class="text-xs text-slate-400 font-bold uppercase tracking-wider">Prestations /
+                                Suivis</span>
+                            <p class="text-lg font-extrabold text-slate-700 mt-0.5">
+                                {{ number_format($coutSuivi, 2, ',', ' ') }} €
+                            </p>
+                        </div>
+                        <div class="bg-blue-50/50 rounded-lg p-1">
+                            <span class="text-xs text-blue-500 font-bold uppercase tracking-wider">Coût Budgétaire
+                                Total</span>
+                            <p class="text-lg font-black text-blue-700 mt-0.5">
+                                {{ number_format($coutTotalIntervention, 2, ',', ' ') }} € HT
+                            </p>
+                        </div>
                     </div>
 
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-6 pt-6 border-t border-slate-100">
@@ -79,13 +104,14 @@
                             <p class="text-xs text-slate-400 uppercase font-bold tracking-wider">Statut global</p>
                             <span
                                 class="inline-block mt-1 px-2.5 py-1 text-xs font-bold rounded-full 
-                                                                        {{ $intervention->statut_global === 'Terminée' ? 'bg-green-100 text-green-800' : ($intervention->statut_global === 'En cours' ? 'bg-blue-100 text-blue-800' : 'bg-amber-100 text-amber-800') }}">
+                                    {{ $intervention->statut_global === 'Terminée' ? 'bg-green-100 text-green-800' : ($intervention->statut_global === 'En cours' ? 'bg-blue-100 text-blue-800' : 'bg-amber-100 text-amber-800') }}">
                                 {{ $intervention->statut_global }}
                             </span>
                         </div>
                     </div>
                 </div>
 
+                {{-- TABLEAU DU SUIVI ET DES CR --}}
                 <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
                     <h2 class="text-lg font-bold text-slate-800 mb-6 border-b pb-2">Historique des interventions sur le
                         terrain</h2>
@@ -98,9 +124,17 @@
                                     </div>
                                     <div class="flex-1">
                                         <div class="flex justify-between items-start">
-                                            <p class="text-sm font-bold text-slate-900">Passage du
-                                                {{ \Carbon\Carbon::parse($action->date_action_suivi)->format('d/m/Y') }}
-                                            </p>
+                                            <div>
+                                                <p class="text-sm font-bold text-slate-900">Passage du
+                                                    {{ \Carbon\Carbon::parse($action->date_action_suivi)->format('d/m/Y') }}
+                                                </p>
+                                                @if($action->cout_associe > 0)
+                                                    <span
+                                                        class="text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded mt-1 inline-block">
+                                                        💰 Coût engagé : {{ number_format($action->cout_associe, 2, ',', ' ') }} €
+                                                    </span>
+                                                @endif
+                                            </div>
                                             <span class="text-xs bg-slate-100 px-2 py-1 rounded text-slate-500">
                                                 {{ $action->temps_passe_heures }}h passées
                                             </span>
@@ -117,6 +151,7 @@
                         <p class="text-sm text-slate-400 italic">Aucun compte-rendu de terrain pour le moment.</p>
                     @endif
                 </div>
+
                 <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
                     <h2 class="text-lg font-bold text-slate-800 mb-4 border-b pb-2">Suivi des étapes</h2>
                     <div class="space-y-4">
@@ -143,17 +178,14 @@
                         @endif
                     </div>
                 </div>
+
+                {{-- MATÉRIELS --}}
                 <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mt-6">
                     <div class="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
                         <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider">📦 Fournitures & Matériels
                             consommés</h3>
-                        @php
-                            $coutMaterielTotal = $intervention->achatsMateriels->sum(function ($m) {
-                                return $m->quantite * $m->prix_unitaire_ht;
-                            });
-                        @endphp
                         <span class="text-xs font-bold bg-blue-100 text-blue-800 px-2.5 py-1 rounded-full">
-                            Total matériel : {{ number_format($coutMaterielTotal, 2, ',', ' ') }} € HT
+                            Total matériel : {{ number_format($coutMateriels, 2, ',', ' ') }} € HT
                         </span>
                     </div>
 
@@ -171,9 +203,9 @@
                                     </p>
                                 </div>
                                 <div class="text-right">
-                                    <span class="font-bold text-slate-900">
-                                        {{ number_format($mat->quantite * $mat->prix_unitaire_ht, 2, ',', ' ') }} € HT
-                                    </span>
+                                    <span
+                                        class="font-bold text-slate-900">{{ number_format($mat->quantite * $mat->prix_unitaire_ht, 2, ',', ' ') }}
+                                        € HT</span>
                                     <p class="text-[10px] text-slate-400">Le
                                         {{ \Carbon\Carbon::parse($mat->date_achat)->format('d/m/Y') }}
                                     </p>
@@ -193,8 +225,7 @@
                                 class="grid grid-cols-1 sm:grid-cols-4 gap-3">
                                 @csrf
                                 <div class="sm:col-span-2">
-                                    <input type="text" name="nom_materiel" required
-                                        placeholder="Désignation (Ex: Vanne PVC, Câble 3G2.5...)"
+                                    <input type="text" name="nom_materiel" required placeholder="Désignation (Ex: Vanne PVC...)"
                                         class="w-full text-xs border border-slate-300 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500">
                                 </div>
                                 <div>
@@ -210,7 +241,6 @@
                                         placeholder="Prix U. HT (€)"
                                         class="w-full text-xs border border-slate-300 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500">
                                 </div>
-                                <input type="hidden" name="date_add" value="{{ now()->format('Y-m-d') }}">
                                 <div class="sm:col-span-4 flex justify-between items-center mt-1">
                                     <div class="flex items-center gap-2">
                                         <label class="text-[11px] text-slate-500 font-medium">Date d'utilisation/achat :</label>
@@ -218,33 +248,30 @@
                                             class="text-xs border border-slate-300 rounded px-2 py-0.5 bg-white text-slate-600">
                                     </div>
                                     <button type="submit"
-                                        class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-4 py-2 rounded-lg shadow transition">
-                                        Ajouter la ligne
-                                    </button>
+                                        class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-4 py-2 rounded-lg shadow transition">Ajouter
+                                        la ligne</button>
                                 </div>
                             </form>
                         </div>
                     @endif
                 </div>
-
             </div>
 
+            {{-- PANNEAU LATÉRAL DROIT --}}
             <div class="space-y-6">
                 <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
                     <h3 class="font-bold text-slate-900 mb-4 border-b pb-2">Actions disponibles</h3>
-
                     @if($intervention->statut_global !== 'Terminée')
                         @if(
                                 Auth::user()->role_appli === 'Responsable technique' || Auth::user()->role_appli === 'Technicien' ||
                                 Auth::user()->role_appli === 'Administrateur'
                             )
-                                <a href="{{ route('interventions.cloturer.form', $intervention->id_int) }}"
-                                    class="w-full block text-center bg-green-600 text-white font-bold py-3 rounded-lg hover:bg-green-700 transition shadow-md mb-3 text-sm">
-                                    ✓ Saisir un compte-rendu de terrain
-                                </a>
+                            <a href="{{ route('interventions.cloturer.form', $intervention->id_int) }}"
+                                class="w-full block text-center bg-green-600 text-white font-bold py-3 rounded-lg hover:bg-green-700 transition shadow-md mb-3 text-sm">
+                                ✓ Saisir un compte-rendu de terrain
+                            </a>
                         @endif
                     @endif
-
                     <a href="{{ route('interventions.pdf', $intervention->id_int) }}"
                         class="w-full bg-white border border-slate-300 text-slate-700 py-2 rounded-lg hover:bg-slate-50 transition text-sm text-center block font-medium">
                         🖨️ Imprimer le bon (PDF)
@@ -252,28 +279,26 @@
                 </div>
 
                 <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
-                    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
-                        <h3 class="font-bold text-slate-900 mb-4 border-b pb-2">Équipement(s) technique(s)</h3>
+                    <h3 class="font-bold text-slate-900 mb-4 border-b pb-2">Équipement(s) technique(s)</h3>
+                    @if($intervention->equipements && $intervention->equipements->count() > 0)
+                        <ul class="space-y-3">
+                            @foreach($intervention->equipements as $equip)
+                                <li class="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                    <a href="{{ route('equipements.show', $equip->id_equipement) }}"
+                                        class="text-blue-600 font-bold hover:underline block text-sm">⚙️
+                                        {{ $equip->nom_equipement }}</a>
+                                    <span class="text-xs text-slate-500">Réf :
+                                        {{ $equip->reference_serie ?? 'Non renseignée' }}</span>
+                                </li>
+                            @endforeach
+                        </ul>
+                    @else
+                        <p class="text-xs text-slate-400 italic">Aucun équipement de l'inventaire lié.</p>
+                    @endif
+                </div>
 
-                        @if($intervention->equipements && $intervention->equipements->count() > 0)
-                            <ul class="space-y-3">
-                                @foreach($intervention->equipements as $equip)
-                                    <li class="bg-slate-50 p-3 rounded-lg border border-slate-100">
-                                        <a href="{{ route('equipements.show', $equip->id_equipement) }}"
-                                            class="text-blue-600 font-bold hover:underline block text-sm">
-                                            ⚙️ {{ $equip->nom_equipement }}
-                                        </a>
-                                        <span class="text-xs text-slate-500">Réf :
-                                            {{ $equip->reference_serie ?? 'Non renseignée' }}</span>
-                                    </li>
-                                @endforeach
-                            </ul>
-                        @else
-                            <p class="text-xs text-slate-400 italic">Aucun équipement de l'inventaire lié.</p>
-                        @endif
-                    </div>
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
                     <h3 class="font-bold text-slate-900 mb-4 border-b pb-2">Localisation immobilière</h3>
-
                     <div class="space-y-4">
                         <div>
                             <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block">Local /
@@ -281,13 +306,11 @@
                             @if($intervention->local)
                                 <p class="text-sm font-semibold text-slate-800 mt-1">🏢 {{ $intervention->local->nom_local }}
                                 </p>
-                                <span class="text-xs text-slate-500">Niveau : {{ $intervention->local->niveau ?? 'RDC' }} |
-                                    Usage : {{ $intervention->local->typeUsage->libelle_usage ?? 'Générique' }}</span>
+                                <span class="text-xs text-slate-500">Niveau : {{ $intervention->local->niveau ?? 'RDC' }}</span>
                             @else
                                 <p class="text-xs text-slate-400 italic mt-1">Aucun local intérieur spécifique rattaché.</p>
                             @endif
                         </div>
-
                         <div class="pt-3 border-t border-slate-100">
                             <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block">Bâtiment
                                 communal</span>
@@ -295,7 +318,6 @@
                                 <p class="text-sm font-semibold text-slate-800 mt-1">🏛️ {{ $intervention->batiment->nom_bat }}
                                 </p>
                             @elseif($intervention->local && $intervention->local->batiment)
-                                {{-- Si l'intervention est liée à un local, on remonte intelligemment au bâtiment parent --}}
                                 <p class="text-sm font-semibold text-slate-800 mt-1">🏛️
                                     {{ $intervention->local->batiment->nom_bat }}
                                 </p>
@@ -309,7 +331,6 @@
 
                 <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
                     <h3 class="font-bold text-slate-900 mb-4 border-b pb-2">Espace Public associé</h3>
-
                     @if($intervention->lieuxPublicis && $intervention->lieuxPublicis->count() > 0)
                         <ul class="space-y-3">
                             @foreach($intervention->lieuxPublicis as $lieu)
@@ -324,8 +345,6 @@
                         <p class="text-xs text-slate-400 italic">Aucun espace ou lieu public extérieur lié.</p>
                     @endif
                 </div>
-
-
 
                 <div class="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
                     <h3 class="text-sm font-bold text-slate-800 uppercase mb-4 flex items-center">
@@ -353,15 +372,14 @@
                         </div>
                     @endif
                 </div>
+
                 <div class="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
                     <h3 class="text-sm font-bold text-slate-800 uppercase mb-3 flex items-center">
                         <span class="mr-2">🏢</span> Prestataire Externe
                     </h3>
                     @if($intervention->tiers)
                         <div class="p-3 bg-indigo-50 border border-indigo-100 rounded-lg">
-                            <p class="text-sm font-bold text-indigo-900">
-                                {{ $intervention->tiers->nom_tiers }}
-                            </p>
+                            <p class="text-sm font-bold text-indigo-900">{{ $intervention->tiers->nom_tiers }}</p>
                             @if($intervention->tiers->telephone || $intervention->tiers->email)
                                 <div class="mt-2 text-xs text-indigo-700 space-y-1 border-t border-indigo-200/60 pt-2">
                                     @if($intervention->tiers->telephone)
@@ -378,11 +396,11 @@
                         </div>
                     @endif
                 </div>
+
                 <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
                     <div>
                         <h2 class="text-sm font-bold text-slate-800 mb-4 border-b border-slate-100 pb-2">📸 Photos & Bons
                             d'intervention</h2>
-
                         <ul class="space-y-3 mb-6">
                             @forelse($documents as $doc)
                                 <li
@@ -400,66 +418,24 @@
                                             </p>
                                         </div>
                                     </div>
-
                                     <div class="flex items-center gap-2">
                                         <a href="{{ asset('storage/' . $doc->chemin_stockage) }}" target="_blank"
-                                            class="text-blue-600 hover:text-blue-800 text-xs font-bold bg-blue-50 px-2 py-1 rounded border border-blue-100">
-                                            Voir
-                                        </a>
-                                        @can('check-permission', ['Patrimoine & Equipements', 'suppression'])
-                                            <form action="{{ route('documents.global.destroy', $doc->id_document) }}" method="POST"
-                                                class="inline" onsubmit="return confirm('Supprimer cette pièce jointe ?');">
-                                                @csrf @method('DELETE')
-                                                <button type="submit"
-                                                    class="text-red-600 hover:text-red-800 text-xs font-bold bg-red-50 px-2 py-1 rounded border border-red-100">
-                                                    ❌
-                                                </button>
-                                            </form>
-                                        @endcan
+                                            class="text-blue-600 hover:text-blue-800 text-xs font-bold bg-blue-50 px-2 py-1 rounded border border-blue-100">Voir</a>
                                     </div>
                                 </li>
                             @empty
-                                <li class="text-sm text-slate-400 italic text-center py-4">Aucune photo ou document lié à cette
-                                    intervention.</li>
+                                <li class="text-sm text-slate-400 italic text-center py-4">Aucune photo ou document lié.</li>
                             @endforelse
                         </ul>
                     </div>
-
-                    @can('check-permission', ['Patrimoine & Equipements', 'ecriture'])
-                        <form action="{{ route('interventions.documents.store', $intervention->id_int) }}" method="POST"
-                            enctype="multipart/form-data"
-                            class="bg-slate-50 p-4 rounded-lg border border-slate-200 border-dashed mt-auto">
-                            @csrf
-
-                            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Ajouter une pièce
-                                jointe</label>
-                            <p class="text-[10px] text-slate-500 mb-3">Formats acceptés : PDF, JPG, PNG, DOC, DOCX. (Max : 5 Mo)
-                            </p>
-
-                            <div class="flex items-start gap-2">
-                                <div class="w-full">
-                                    <input type="file" name="fichier" required
-                                        class="block w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:font-semibold file:bg-slate-900 file:text-white hover:file:bg-slate-800 cursor-pointer focus:outline-none">
-
-                                    @error('fichier')
-                                        <p class="text-xs text-red-600 font-bold mt-2">⚠️ {{ $message }}</p>
-                                    @enderror
-                                </div>
-
-                                <button type="submit"
-                                    class="px-3 py-1.5 bg-indigo-600 text-white font-bold rounded-md hover:bg-indigo-700 transition text-xs whitespace-nowrap">
-                                    📤 Envoyer
-                                </button>
-                            </div>
-                        </form>
-                    @endcan
                 </div>
+
                 <div class="bg-slate-100 rounded-xl p-6 border border-slate-200">
                     <h3 class="text-sm font-bold text-slate-500 uppercase mb-3">Traçabilité & Origine</h3>
                     @if($intervention->id_action)
                         <p class="text-sm text-slate-600 mb-2">Origine : action #{{ $intervention->id_action }}</p>
                         <a href="{{ route('actions.show', $intervention->id_action) }}"
-                            class="text-blue-600 text-xs font-bold hover:underline">Voir le action d'origine →</a>
+                            class="text-blue-600 text-xs font-bold hover:underline">Voir l'action d'origine →</a>
                     @else
                         <p class="text-xs text-slate-400 italic">Créé manuellement sans action d'origine.</p>
                     @endif

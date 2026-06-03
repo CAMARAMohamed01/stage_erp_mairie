@@ -85,8 +85,26 @@ class InterventionController extends Controller
             ->get();
 
         // On récupère l'intervention avec ses relations
-        $intervention = Intervention::with(['equipements', 'categorie', 'action', 'suiviActions', 'agents', 'tiers', 'contrat', 'achatsMateriels'])->findOrFail($id);
-        return view('interventions.show', compact('intervention', 'documents'));
+        $intervention = Intervention::with([
+            'equipements',
+            'categorie',
+            'action',
+            'suiviActions',
+            'agents',
+            'tiers',
+            'contrat',
+            'achatsMateriels'
+        ])->findOrFail($id);
+
+        $coutMateriels = $intervention->achatsMateriels->reduce(function ($carry, $m) {
+            return $carry + ($m->quantite * $m->prix_unitaire_ht);
+        }, 0);
+
+        $coutSuivi = $intervention->suiviActions->sum('cout_associe');
+
+        // Coût total consolidé
+        $coutTotalIntervention = $coutMateriels + $coutSuivi;
+        return view('interventions.show', compact('intervention', 'documents', 'coutMateriels', 'coutSuivi', 'coutTotalIntervention'));
     }
 
     public function cloturer($id)
@@ -152,6 +170,7 @@ class InterventionController extends Controller
                 'compte_rendu' => 'required|string|min:10',
                 'date_cloture' => 'required|date',
                 'temps_passe' => 'nullable|numeric|min:0',
+                'cout_associe' => 'nullable|numeric|min:0',
                 'statut_final' => 'required|string'
             ]);
 
@@ -160,10 +179,10 @@ class InterventionController extends Controller
                 'date_action_suivi' => $request->date_cloture,
                 'description_etape' => $request->compte_rendu,
                 'temps_passe_heures' => $request->temps_passe ?? 0,
+                'cout_associe' => $request->cout_associe ?? 0,
                 'statut_apres_action' => $request->statut_final,
                 'id_int' => $id,
                 'id_user' => Auth::id(),
-                'cout_associe' => 0
             ]);
 
             // 3. Mise à jour de l'intervention parente
@@ -417,13 +436,12 @@ class InterventionController extends Controller
             'date_achat' => $validated['date_achat'],
             'statut_achat' => 'Utilisé',
             'id_int' => $intervention->id_int,
-            'id_operation' => $intervention->id_operation, // Héritage auto du budget de l'intervention
-            'id_contrat' => $intervention->id_contrat,   // Héritage auto du contrat de l'intervention
         ]);
 
         return redirect()->route('interventions.show', $id)
             ->with('success', 'Matériel ajouté avec succès au bon de travaux.');
     }
+
 
 
 }
