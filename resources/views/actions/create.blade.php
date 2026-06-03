@@ -18,7 +18,7 @@
                                 clip-rule="evenodd"></path>
                         </svg>
                         <a href="{{ route('actions.index') }}"
-                            class="ml-1 text-sm text-slate-500 hover:text-blue-600 font-medium">actions</a>
+                            class="ml-1 text-sm text-slate-500 hover:text-blue-600 font-medium">Actions</a>
                     </div>
                 </li>
                 <li aria-current="page">
@@ -36,13 +36,14 @@
 
         <div class="bg-white rounded-xl border border-slate-200 shadow-lg overflow-hidden">
             <div class="bg-slate-900 px-8 py-6">
-                <h1 class="text-2xl font-bold text-white">Saisie d'un action</h1>
-                <p class="text-slate-400 text-sm mt-1">Enregistrement d'une doléance ou d'un incident technique.</p>
+                <h1 class="text-2xl font-bold text-white">Saisie d'une action</h1>
+                <p class="text-slate-400 text-sm mt-1">Enregistrement d'une doléance ou d'un incident technique citoyen.</p>
             </div>
 
             <form action="{{ route('actions.store') }}" method="POST" class="p-8 space-y-8">
                 @csrf
 
+                {{-- BLOC 1 : CITOYEN / EMETTEUR --}}
                 <div class="bg-blue-50/50 p-6 rounded-xl border border-blue-100 space-y-6">
                     <div class="flex items-center gap-2 mb-2">
                         <span class="bg-blue-600 text-white p-1 rounded">
@@ -79,20 +80,17 @@
 
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div>
-                                <label for="emetteur_nom" class="block text-xs font-bold text-slate-500 uppercase mb-1">Nom
-                                    / Organisme</label>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nom / Organisme</label>
                                 <input type="text" name="emetteur_nom" id="emetteur_nom" placeholder="Ex: Martin"
                                     class="w-full border-slate-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
                             </div>
                             <div>
-                                <label for="emetteur_prenom"
-                                    class="block text-xs font-bold text-slate-500 uppercase mb-1">Prénom</label>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Prénom</label>
                                 <input type="text" name="emetteur_prenom" id="emetteur_prenom" placeholder="Ex: Jean"
                                     class="w-full border-slate-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
                             </div>
                             <div>
-                                <label for="emetteur_contact"
-                                    class="block text-xs font-bold text-slate-500 uppercase mb-1">Coordonnées
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Coordonnées
                                     (Tél/Email)</label>
                                 <input type="text" name="emetteur_contact" id="emetteur_contact"
                                     placeholder="06 00 00 00 00"
@@ -107,12 +105,60 @@
                                 <span class="ml-3 text-sm text-slate-700 font-bold">💾 Enregistrer ce contact comme citoyen
                                     (Base Tiers)</span>
                             </label>
-                            <p class="text-xs text-slate-500 ml-8 mt-1">Cochez cette case si cette personne habite la
-                                commune. Elle sera ajoutée au répertoire pour ses futurs actions.</p>
                         </div>
                     </div>
                 </div>
 
+                {{-- NOUVEAU BLOC : LOCALISATION DE L'INCIDENT --}}
+                <div class="bg-amber-50/40 p-6 rounded-xl border border-amber-200/60 space-y-6">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="bg-amber-500 text-white p-1 rounded">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z">
+                                </path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                        </span>
+                        <h2 class="text-sm font-bold text-amber-900 uppercase tracking-wider">Localisation de l'incident
+                        </h2>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Adresse officielle (Voie
+                                issue de la BAN)</label>
+                            <select name="id_adresse" id="id_adresse"
+                                class="w-full border-slate-300 rounded-lg shadow-sm focus:ring-amber-500 focus:border-amber-500 text-sm">
+                                <option value="">-- Sélectionner une adresse de voirie --</option>
+                                @foreach($adresses as $adr)
+                                    <option value="{{ $adr->id_adresse }}">
+                                        {{ $adr->num_rue }} {{ $adr->nom_voie }} ({{ $adr->code_postal }} {{ $adr->ville }})
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Ou Local technique
+                                intérieur (Bâtiment / Pièce)</label>
+                            <select name="id_local" id="id_local"
+                                class="w-full border-slate-300 rounded-lg shadow-sm focus:ring-amber-500 focus:border-amber-500 text-sm">
+                                <option value="">-- Sélectionner un local technique --</option>
+                                @foreach($locaux as $loc)
+                                    <option value="{{ $loc->id_local }}">🏢 {{ $loc->nom_local }} (Niveau :
+                                        {{ $loc->niveau ?? 'RDC' }})
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                    <p class="text-[11px] text-slate-500 italic mt-2">💡 Conseil : Si l'anomalie se situe en pleine rue,
+                        choisissez l'adresse. Si elle concerne un bâtiment municipal, privilégiez le local technique.</p>
+                </div>
+
+                {{-- BLOC DETRAILS DE L'INCIDENT --}}
                 <div class="space-y-6">
                     <div class="flex items-center gap-2 mb-2">
                         <span class="bg-slate-700 text-white p-1 rounded">
@@ -169,20 +215,17 @@
                     <div>
                         <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Description précise</label>
                         <textarea name="description" rows="4" required
-                            placeholder="Détaillez l'anomalie, la localisation précise, les observations..."
+                            placeholder="Détaillez l'anomalie, les observations du citoyen..."
                             class="w-full border-slate-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"></textarea>
                     </div>
                 </div>
 
                 <div class="pt-6 border-t border-slate-100 flex justify-end gap-4">
                     <a href="{{ route('actions.index') }}"
-                        class="px-6 py-2.5 text-sm font-bold text-slate-500 hover:text-slate-800 transition">
-                        Annuler
-                    </a>
+                        class="px-6 py-2.5 text-sm font-bold text-slate-500 hover:text-slate-800 transition">Annuler</a>
                     <button type="submit"
-                        class="px-8 py-2.5 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 shadow-md transition-all transform hover:-translate-y-0.5">
-                        Enregistrer l'action
-                    </button>
+                        class="px-8 py-2.5 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 shadow-md transition-all transform hover:-translate-y-0.5">Enregistrer
+                        l'action</button>
                 </div>
             </form>
         </div>
@@ -201,10 +244,8 @@
                 inputPrenom.disabled = true;
                 checkCreerTiers.disabled = true;
                 checkCreerTiers.checked = false;
-
-                inputNom.class_list.add('bg-slate-100');
-                inputPrenom.class_list.add('bg-slate-100');
-
+                inputNom.classList.add('bg-slate-100');
+                inputPrenom.classList.add('bg-slate-100');
                 inputNom.value = "";
                 inputPrenom.value = "";
                 inputContact.placeholder = "Sera récupéré automatiquement";
@@ -212,9 +253,8 @@
                 inputNom.disabled = false;
                 inputPrenom.disabled = false;
                 checkCreerTiers.disabled = false;
-
-                inputNom.class_list.remove('bg-slate-100');
-                inputPrenom.class_list.remove('bg-slate-100');
+                inputNom.classList.remove('bg-slate-100');
+                inputPrenom.classList.remove('bg-slate-100');
                 inputContact.placeholder = "06 00 00 00 00";
             }
         });

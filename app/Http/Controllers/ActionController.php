@@ -3,24 +3,22 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\action;
+use App\Models\Action;
 use App\Models\Intervention;
 use App\Models\Utilisateur;
 use App\Models\Categorie;
-// tiers physique
 use App\Models\TiersPhysique;
+use App\Models\Local;
+use App\Models\Adresse;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Session;
-class actionController extends Controller
+use Illuminate\Support\Facades\DB;
+
+class ActionController extends Controller
 {
     public function index(Request $request)
     {
-        // 1. Initialisation de la requête
-        $query = action::query()->with('categorie');
+        $query = Action::query()->with(['categorie', 'adresse', 'local']);
 
-        // 2. Recherche textuelle (Description ou Émetteur)
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
@@ -29,247 +27,159 @@ class actionController extends Controller
             });
         }
 
-        // 3. Filtrage par Statut
         if ($request->filled('statut')) {
             $query->where('statut_action', $request->statut);
         }
 
-        // 4. Filtrage par Catégorie
         if ($request->filled('categorie_id')) {
             $query->where('id_cat', $request->categorie_id);
         }
 
-        // 5. Exécution et récupération des catégories pour le menu déroulant
         $actions = $query->orderBy('date_creation', 'desc')->get();
         $categories = Categorie::orderBy('libelle')->get();
 
         return view('actions.index', compact('actions', 'categories'));
     }
-    // La méthode pour afficher UN dossier complet
+
     public function show($id)
     {
-        // On cherche le action avec sa catégorie et l'utilisateur associé (s'il y en a un)
-        // failOrFail permet d'afficher une belle page 404 si l'ID n'existe pas dans la base
-        $action = action::with(['categorie'])->findOrFail($id);
-
+        $action = Action::with(['categorie', 'adresse', 'local'])->findOrFail($id);
         return view('actions.show', compact('action'));
     }
-    public function prendreEnCharge($id)
-    {
-        // 1. Récupérer le action
-        $action = action::findOrFail($id);
 
-        // 2. Mettre à jour le statut
-        $action->update([
-            'statut_action' => 'En cours'
-        ]);
-
-        // 3. Rediriger avec un message de succès
-        return redirect()->back()->with('success', 'Le action est désormais en cours de traitement.');
-    }
-
-    public function creerIntervention($id)
-    {
-        $action = action::findOrFail($id);
-
-        // 1. Créer l'intervention technique
-        // On récupère les infos du action pour pré-remplir l'intervention
-        $intervention = Intervention::create([
-            'date_ouverture' => now(),
-            'type_intervention' => 'Réparation : ' . $action->description,
-            'statut_global' => 'En cours',
-            'id_cat' => $action->id_cat,
-            'id_action' => $action->id_action, // C'est ici que le lien se fait dans votre BDD !
-            'description' => 'Suite au action #' . $action->id_action,
-        ]);
-
-        // 2. On lie le action à l'intervention (si vous avez une colonne id_int dans votre table action)
-        // Et on change le statut en "Transmis"
-        $action->update([
-            'statut_action' => 'Transmis'
-        ]);
-
-        return redirect()->route('technique.dashboard')->with('success', 'Intervention générée avec succès !');
-    }
-
-    public function exportExcel()
-    {
-        $actions = action::with('categorie')->get();
-        $fileName = 'registre_actions_' . date('d_m_Y') . '.csv';
-
-        $headers = [
-            "Content-type" => "text/csv; charset=UTF-8",
-            "Content-Disposition" => "attachment; filename=$fileName",
-            "Pragma" => "no-cache",
-            "Cache-Control" => "must-revalidate, post-check=0, pre-check=0",
-            "Expires" => "0"
-        ];
-
-        $callback = function () use ($actions) {
-            $file = fopen('php://output', 'w');
-            fprintf($file, chr(0xEF) . chr(0xBB) . chr(0xBF)); // BOM UTF-8
-
-            // En-têtes adaptés à la table action
-            fputcsv($file, ['ID', 'Date', 'Émetteur', 'Catégorie', 'Priorité', 'Statut', 'Description']);
-
-            foreach ($actions as $sig) {
-                fputcsv($file, [
-                    $sig->id_action,
-                    $sig->date_creation,
-                    $sig->emetteur_nom,
-                    $sig->categorie->libelle ?? 'N/A',
-                    $sig->priorite,
-                    $sig->statut_action,
-                    $sig->description
-                ]);
-            }
-            fclose($file);
-        };
-
-        return response()->stream($callback, 200, $headers);
-    }
-
-    public function imprimer($id)
-    {
-        $action = action::with('categorie')->findOrFail($id);
-        return view('actions.print', compact('action'));
-    }
     public function create()
     {
-        $categories = Categorie::all();
-        // On récupère les tiers physiques existants pour la liaison
-        $tiers = TiersPhysique::all();
-        return view('actions.create', compact('categories', 'tiers'));
+        $categories = Categorie::orderBy('libelle')->get();
+        $tiers = TiersPhysique::orderBy('nom_tiers')->get();
+
+        // Récupération des adresses BAN et des locaux pour la localisation
+        $adresses = DB::table('Adresse')->orderBy('nom_voie')->orderBy('num_rue')->get();
+        $locaux = DB::table('local_')->orderBy('nom_local')->get();
+
+        return view('actions.create', compact('categories', 'tiers', 'adresses', 'locaux'));
     }
 
     public function store(Request $request)
     {
         try {
-            // 1. Validation des données
+            // 1. Validation stricte des données issues du formulaire
             $validated = $request->validate([
-                'description' => 'required',
-                'id_cat' => 'required',
-                'mode_reception' => 'required',
-                'priorite' => 'required',
+                'description' => 'required|string|max:500',
+                'id_cat' => 'required|exists:categorie,id_cat',
+                'mode_reception' => 'required|string|max:100',
+                'priorite' => 'required|string|max:50',
                 'id_tiers' => 'nullable|exists:tiers,id_tiers',
                 'emetteur_nom' => 'required_without:id_tiers',
                 'emetteur_prenom' => 'required_if:creer_nouveau_tiers,1',
                 'emetteur_contact' => 'nullable|string|max:50',
-                'creer_nouveau_tiers' => 'nullable'
+                'creer_nouveau_tiers' => 'nullable',
+                'id_adresse' => 'nullable|exists:Adresse,id_adresse',
+                'id_local' => 'nullable|exists:local_,id_local'
             ]);
 
             $id_tiers_final = $request->id_tiers;
             $emetteur_contact_final = $request->emetteur_contact;
             $emetteur_nom_final = '';
 
-            // CAS A : L'agent a coché "Créer un nouveau citoyen"
+            // CAS A : L'agent coche "Créer un nouveau citoyen"
             if ($request->has('creer_nouveau_tiers') && $request->creer_nouveau_tiers == '1' && empty($id_tiers_final)) {
-
                 $isEmail = str_contains($request->emetteur_contact, '@');
                 $email = $isEmail ? $request->emetteur_contact : null;
-                $tel = !$isEmail ? substr($request->emetteur_contact, 0, 12) : null;
+
+                $tel = null;
+                if (!$isEmail && !empty($request->emetteur_contact)) {
+                    // 🚀 SÉCURITÉ VARCHAR(12) : On supprime tous les espaces, points, tirets du numéro
+                    $telNettoye = preg_replace('/[^0-9+]/', '', $request->emetteur_contact);
+                    // On ne garde que les 12 premiers caractères au cas où (ex: +33612345678)
+                    $tel = substr($telNettoye, 0, 12);
+                }
 
                 $nouveauTiers = \App\Models\Tiers::create([
                     'type_tiers' => 'Physique',
                     'email_tiers' => $email,
-                    'tel_tiers' => $tel
+                    'tel_tiers' => $tel // ✅ Format épuré (ex: 0630323246), accepté par ton VARCHAR(12)
                 ]);
 
-                TiersPhysique::create([
+                \App\Models\TiersPhysique::create([
                     'id_tiers' => $nouveauTiers->id_tiers,
                     'nom_tiers' => $request->emetteur_nom,
                     'prenom_tiers' => $request->emetteur_prenom
                 ]);
 
                 $id_tiers_final = $nouveauTiers->id_tiers;
-
-                // On garde le nom pour le action
                 $emetteur_nom_final = trim($request->emetteur_prenom . ' ' . $request->emetteur_nom);
-
-            }
-            // CAS B : Un citoyen existant a été sélectionné dans la liste
-            else if (!empty($id_tiers_final)) {
-
-                // On va chercher son vrai nom dans la base de données
-                $tiersPhysique = TiersPhysique::where('id_tiers', $id_tiers_final)->first();
-
-                if ($tiersPhysique) {
-                    $emetteur_nom_final = trim($tiersPhysique->prenom_tiers . ' ' . $tiersPhysique->nom_tiers);
-                } else {
-                    $emetteur_nom_final = 'Citoyen inconnu';
-                }
-            }
-            // CAS C : Personne de passage (ni existante, ni à créer)
-            else {
+            } else if (!empty($id_tiers_final)) {
+                $tiersPhysique = \App\Models\TiersPhysique::where('id_tiers', $id_tiers_final)->first();
+                $emetteur_nom_final = $tiersPhysique ? trim($tiersPhysique->prenom_tiers . ' ' . $tiersPhysique->nom_tiers) : 'Citoyen inconnu';
+            } else {
                 $emetteur_nom_final = trim($request->emetteur_prenom . ' ' . $request->emetteur_nom);
             }
 
-            // 3. Création du action avec le bon nom !
-            $action = action::create([
+            // 2. Sauvegarde directe via le Query Builder
+            DB::table('action')->insert([
                 'date_creation' => now(),
                 'description' => $request->description,
                 'id_cat' => $request->id_cat,
                 'mode_reception' => $request->mode_reception,
                 'priorite' => $request->priorite,
                 'statut_action' => 'Nouveau',
-                'id_user' => Auth::id(),
-                'id_tiers' => $id_tiers_final,
-                'emetteur_nom' => $emetteur_nom_final,
-                'emetteur_contact' => $emetteur_contact_final
+                'id_user' => Auth::id() ?? 1,
+                'id_tiers' => $id_tiers_final ?: null,
+                'emetteur_nom' => $emetteur_nom_final ?: 'Anonyme',
+                'emetteur_contact' => $emetteur_contact_final ?: null,
+                'id_adresse' => $request->id_adresse ? (int) $request->id_adresse : null,
+                'id_local' => $request->id_local ? (int) $request->id_local : null,
+                'id_user_assigne' => null
             ]);
 
-            return redirect()->route('actions.index')->with('success', 'action enregistré avec succès.');
+            return redirect()->route('actions.index')->with('success', 'Action enregistrée avec succès.');
 
         } catch (\Exception $e) {
-            dd($e->getMessage());
+            dd("Erreur SQL lors de l'insertion : " . $e->getMessage());
         }
     }
 
-    // AFFICHER LE FORMULAIRE DE MODIFICATION
     public function edit($id)
     {
-        $action = action::findOrFail($id);
+        $action = Action::findOrFail($id);
+        $categories = Categorie::orderBy('libelle')->get();
+        $tiers = TiersPhysique::orderBy('nom_tiers')->get();
 
-        // On charge les listes pour les menus déroulants
-        $categories = \App\Models\Categorie::orderBy('libelle')->get();
-        // Assure-toi que la requête correspond à ce que tu as dans create()
-        $tiers = \App\Models\TiersPhysique::orderBy('nom_tiers')->get();
+        // Récupération pour la vue de modification
+        $adresses = DB::table('Adresse')->orderBy('nom_voie')->orderBy('num_rue')->get();
+        $locaux = DB::table('local_')->orderBy('nom_local')->get();
 
-        return view('actions.edit', compact('action', 'categories', 'tiers'));
+        return view('actions.edit', compact('action', 'categories', 'tiers', 'adresses', 'locaux'));
     }
 
-    // TRAITER LA MODIFICATION
     public function update(Request $request, $id)
     {
-        $action = action::findOrFail($id);
+        $action = Action::findOrFail($id);
 
         $validated = $request->validate([
-            'description' => 'required',
-            'id_cat' => 'required',
-            'mode_reception' => 'required',
-            'priorite' => 'required',
+            'description' => 'required|string|max:500',
+            'id_cat' => 'required|exists:categorie,id_cat',
+            'mode_reception' => 'required|string|max:100',
+            'priorite' => 'required|string|max:50',
             'id_tiers' => 'nullable|exists:tiers,id_tiers',
             'emetteur_nom' => 'required_without:id_tiers',
             'emetteur_contact' => 'nullable|string|max:50',
+
+            // Validation des modifications géographiques
+            'id_adresse' => 'nullable|exists:Adresse,id_adresse',
+            'id_local' => 'nullable|exists:local_,id_local'
         ]);
 
         $id_tiers_final = $request->id_tiers;
         $emetteur_nom_final = '';
 
-        // Si on a sélectionné un tiers existant, on va chercher son nom
         if (!empty($id_tiers_final)) {
             $tiersPhysique = TiersPhysique::where('id_tiers', $id_tiers_final)->first();
-            if ($tiersPhysique) {
-                $emetteur_nom_final = trim($tiersPhysique->prenom_tiers . ' ' . $tiersPhysique->nom_tiers);
-            } else {
-                $emetteur_nom_final = 'Citoyen inconnu';
-            }
+            $emetteur_nom_final = $tiersPhysique ? trim($tiersPhysique->prenom_tiers . ' ' . $tiersPhysique->nom_tiers) : 'Citoyen inconnu';
         } else {
-            // Sinon on prend ce qui a été tapé dans la case "Nom"
             $emetteur_nom_final = $request->emetteur_nom;
         }
 
-        // Mise à jour
         $action->update([
             'description' => $request->description,
             'id_cat' => $request->id_cat,
@@ -277,25 +187,20 @@ class actionController extends Controller
             'priorite' => $request->priorite,
             'id_tiers' => $id_tiers_final,
             'emetteur_nom' => $emetteur_nom_final,
-            'emetteur_contact' => $request->emetteur_contact
+            'emetteur_contact' => $request->emetteur_contact,
+            'id_adresse' => $request->id_adresse ?: null, //  Mise à jour de l'adresse
+            'id_local' => $request->id_local ?: null       //  Mise à jour du local
         ]);
 
-        return redirect()->route('actions.show', $action->id_action)
-            ->with('success', 'action mis à jour avec succès.');
+        return redirect()->route('actions.show', $action->id_action)->with('success', 'Action mise à jour avec succès.');
     }
 
-    // SUPPRIMER LE action
     public function destroy($id)
     {
-        $action = action::findOrFail($id);
-
-        // IMPORTANT : S'il y a des interventions liées à ce action,
-        // on vide le champ 'id_action' pour ne pas bloquer la suppression
+        $action = Action::findOrFail($id);
         Intervention::where('id_action', $id)->update(['id_action' => null]);
-
         $action->delete();
 
-        return redirect()->route('actions.index')
-            ->with('success', 'action supprimé définitivement.');
+        return redirect()->route('actions.index')->with('success', 'Action supprimée définitivement.');
     }
 }

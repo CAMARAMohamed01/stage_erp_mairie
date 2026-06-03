@@ -13,7 +13,7 @@ return new class extends Migration {
         Schema::create('tiers', function (Blueprint $table) {
             $table->id('id_tiers');
             $table->string('type_tiers', 50); // 'Physique' ou 'Morale'
-            $table->string('tel_tiers', 12)->nullable();
+            $table->string('tel_tiers', 50)->nullable();
             $table->string('email_tiers', 100)->unique()->nullable();
 
             $table->unsignedBigInteger('id_adresse')->nullable();

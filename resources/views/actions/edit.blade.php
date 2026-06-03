@@ -17,13 +17,14 @@
 
     <div class="bg-white rounded-xl border border-slate-200 shadow-lg overflow-hidden">
         <div class="bg-amber-500 px-8 py-6">
-            <h1 class="text-2xl font-bold text-white">Modification du action #{{ $action->id_action }}</h1>
+            <h1 class="text-2xl font-bold text-white">Modification de l'action #{{ $action->id_action }}</h1>
         </div>
 
         <form action="{{ route('actions.update', $action->id_action) }}" method="POST" class="p-8 space-y-8">
             @csrf
             @method('PUT')
 
+            {{-- CITOYEN EMETTEUR --}}
             <div class="bg-slate-50 p-6 rounded-xl border border-slate-100 space-y-6">
                 <h2 class="text-sm font-bold text-slate-700 uppercase tracking-wider border-b pb-2">Identification de
                     l'émetteur</h2>
@@ -62,6 +63,44 @@
                 </div>
             </div>
 
+            {{-- LOCALISATION DE L'INCIDENT (EDITION) --}}
+            <div class="bg-amber-50/40 p-6 rounded-xl border border-amber-200/60 space-y-6">
+                <h2 class="text-sm font-bold text-amber-900 uppercase tracking-wider border-b pb-2">📍 Localisation de
+                    l'incident</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Adresse officielle
+                            (BAN)</label>
+                        <select name="id_adresse" id="id_adresse"
+                            class="w-full border-slate-300 rounded-lg shadow-sm text-sm focus:ring-amber-500">
+                            <option value="">-- Sélectionner une adresse --</option>
+                            @foreach($adresses as $adr)
+                            <option value="{{ $adr->id_adresse }}"
+                                {{ $action->id_adresse == $adr->id_adresse ? 'selected' : '' }}>
+                                {{ $adr->num_rue }} {{ $adr->nom_voie }} ({{ $adr->code_postal }})
+                            </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Ou Local technique
+                            intérieur</label>
+                        <select name="id_local" id="id_local"
+                            class="w-full border-slate-300 rounded-lg shadow-sm text-sm focus:ring-amber-500">
+                            <option value="">-- Sélectionner un local technique --</option>
+                            @foreach($locaux as $loc)
+                            <option value="{{ $loc->id_local }}"
+                                {{ $action->id_local == $loc->id_local ? 'selected' : '' }}>
+                                🏢 {{ $loc->nom_local }}
+                            </option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            {{-- INCIDENT --}}
             <div class="space-y-6">
                 <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wider border-b pb-2">Détails de
                     l'incident</h2>
@@ -90,8 +129,7 @@
                             class="w-full border-slate-300 rounded-lg shadow-sm focus:ring-amber-500">
                             @foreach($categories as $cat)
                             <option value="{{ $cat->id_cat }}" {{ $action->id_cat == $cat->id_cat ? 'selected' : '' }}>
-                                {{ $cat->libelle }}
-                            </option>
+                                {{ $cat->libelle }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -144,11 +182,11 @@ const inputNom = document.getElementById('emetteur_nom');
 
 function toggleFields() {
     if (selectTiers.value !== "") {
-        inputNom.class_list.add('bg-slate-100', 'text-slate-400');
+        inputNom.classList.add('bg-slate-100', 'text-slate-400');
         inputNom.readOnly = true;
         inputNom.value = "Le nom sera mis à jour avec celui du Tiers";
     } else {
-        inputNom.class_list.remove('bg-slate-100', 'text-slate-400');
+        inputNom.classList.remove('bg-slate-100', 'text-slate-400');
         inputNom.readOnly = false;
         if (inputNom.value === "Le nom sera mis à jour avec celui du Tiers") inputNom.value = "";
     }

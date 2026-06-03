@@ -38,4 +38,8 @@ class action extends Model
     {
         return $this->belongsTo(Categorie::class, 'id_cat', 'id_cat');
     }
+    public function local()
+    {
+        return $this->belongsTo(Local::class, 'id_local');
+    }
 }
