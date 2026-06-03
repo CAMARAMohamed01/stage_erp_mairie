@@ -23,7 +23,7 @@
         <form action="{{ route('locaux.index') }}" method="GET" class="flex gap-2 mb-6">
             <div class="relative flex-grow max-w-md">
                 <input type="text" name="search" value="{{ request('search') }}"
-                    placeholder="Rechercher par local, bâtiment ou usage..."
+                    placeholder="Rechercher par local, bâtiment..."
                     class="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm transition">
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -56,7 +56,6 @@
                         <th class="p-4">Désignation</th>
                         <th class="p-4">Bâtiment Rattaché</th>
                         <th class="p-4 text-center">Niveau / Étage</th>
-                        <th class="p-4 text-center">Usage</th>
                         <th class="p-4 text-center">Surface (m²)</th>
                         <th class="p-4 text-right">Actions</th>
                     </tr>
@@ -79,9 +78,6 @@
                                 @else
                                     <span class="text-xs text-slate-400">—</span>
                                 @endif
-                            </td>
-                            <td class="p-4 text-center text-slate-500">
-                                {{ $local->libelle_usage ?? 'Non défini' }}
                             </td>
                             <td class="p-4 text-center text-slate-600 font-mono text-xs">
                                 {{ $local->surface_m2 ? $local->surface_m2 . ' m²' : '—' }}

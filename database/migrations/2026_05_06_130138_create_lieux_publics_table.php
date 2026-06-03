@@ -23,7 +23,7 @@ return new class extends Migration {
             $table->unsignedBigInteger('id_batiment')->nullable();
             $table->unsignedBigInteger('id_type_erp')->nullable();
             $table->unsignedBigInteger('id_parcelle'); // NOT NULL
-            $table->unsignedBigInteger('id_immo')->unique(); // Contrainte UNIQUE
+            $table->unsignedBigInteger('id_immo')->nullable()->unique(); // Contrainte UNIQUE
 
             $table->foreign('id_decision_reglement')->references('id_decision')->on('decision_administratif');
             $table->foreign('id_tiers')->references('id_tiers')->on('tiers');

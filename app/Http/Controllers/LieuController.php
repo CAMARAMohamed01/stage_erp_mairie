@@ -234,8 +234,7 @@ class LieuController extends Controller
 
         // 1. Les locaux rattachés directement à cet espace (ex: buvette de parc)
         $locaux = DB::table('local_')
-            ->leftJoin('type_usage', 'local_.id_usage', '=', 'type_usage.id_usage')
-            ->select('local_.*', 'type_usage.libelle_usage')
+            ->select('local_.*')
             ->where('id_lieu', $id)
             ->get();
 

@@ -15,7 +15,7 @@ return new class extends Migration {
             $table->string('nom_local', 80);
             $table->decimal('largeur', 4, 2)->nullable();
             $table->decimal('longueur', 4, 2)->nullable();
-            $table->decimal('surface_m2', 4, 2)->nullable();
+            $table->decimal('surface_m2', 6, 2)->nullable();
             $table->string('niveau', 50)->nullable();
             $table->string('statut_occupation', 50)->nullable();
             $table->string('ref_article_assurance', 50)->nullable();

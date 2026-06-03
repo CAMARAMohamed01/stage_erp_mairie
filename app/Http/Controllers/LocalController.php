@@ -14,16 +14,14 @@ class LocalController extends Controller
         // 1. Initialisation de la requête avec les jointures
         $query = DB::table('local_')
             ->leftJoin('batiment', 'local_.id_batiment', '=', 'batiment.id_batiment')
-            ->leftJoin('type_usage', 'local_.id_usage', '=', 'type_usage.id_usage')
-            ->select('local_.*', 'batiment.nom_bat', 'type_usage.libelle_usage');
+            ->select('local_.*', 'batiment.nom_bat');
 
         // 2. Application du filtre si une recherche est effectuée
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('local_.nom_local', 'ilike', '%' . $search . '%')
-                    ->orWhere('batiment.nom_bat', 'ilike', '%' . $search . '%')
-                    ->orWhere('type_usage.libelle_usage', 'ilike', '%' . $search . '%');
+                    ->orWhere('batiment.nom_bat', 'ilike', '%' . $search . '%');
             });
         }
 
@@ -38,16 +36,15 @@ class LocalController extends Controller
     // Préparer le formulaire d'ajout
     public function create()
     {
-        // On a besoin de la liste des bâtiments, des usages et des contrats d'assurance
+        // On a besoin de la liste des bâtiments et des contrats d'assurance
         $batiments = DB::table('batiment')->orderBy('nom_bat')->get();
-        $usages = DB::table('type_usage')->orderBy('libelle_usage')->get();
 
         // Optionnel: on récupère les lieux publics si un local dépend d'un lieu (ex: Cabanon dans un parc)
         $lieux = DB::table('lieux_publics')->orderBy('nom_lieu')->get();
         $contrats = Contrat::orderBy('numero_contrat')->get();
 
 
-        return view('locaux.create', compact('batiments', 'usages', 'lieux', 'contrats'));
+        return view('locaux.create', compact('batiments', 'lieux', 'contrats'));
     }
 
     // --- SAUVEGARDER LE LOCAL EN BASE ---
@@ -66,7 +63,6 @@ class LocalController extends Controller
             'remarque' => 'nullable|string|max:255',
             'id_batiment' => 'nullable|integer|exists:batiment,id_batiment',
             'id_lieu' => 'nullable|integer|exists:lieux_publics,id_lieu',
-            'id_usage' => 'nullable|integer|exists:type_usage,id_usage',
             'id_contrats' => 'nullable|array',
             'id_contrats.*' => 'exists:contrat,id_contrat',
         ]);
@@ -109,12 +105,10 @@ class LocalController extends Controller
         $local = DB::table('local_')
             ->leftJoin('batiment', 'local_.id_batiment', '=', 'batiment.id_batiment')
             ->leftJoin('lieux_publics', 'local_.id_lieu', '=', 'lieux_publics.id_lieu')
-            ->leftJoin('type_usage', 'local_.id_usage', '=', 'type_usage.id_usage')
             ->select(
                 'local_.*',
                 'batiment.nom_bat',
                 'lieux_publics.nom_lieu',
-                'type_usage.libelle_usage'
             )
             ->where('id_local', $id)
             ->first();
@@ -160,11 +154,10 @@ class LocalController extends Controller
 
         // Récupération des référentiels pour les listes déroulantes
         $batiments = DB::table('batiment')->orderBy('nom_bat')->get();
-        $usages = DB::table('type_usage')->orderBy('libelle_usage')->get();
         $lieux = DB::table('lieux_publics')->orderBy('nom_lieu')->get();
         $contrats = Contrat::orderBy('numero_contrat')->get();
 
-        return view('locaux.edit', compact('local', 'batiments', 'usages', 'lieux', 'contrats'));
+        return view('locaux.edit', compact('local', 'batiments', 'lieux', 'contrats'));
     }
 
     // --- MISE À JOUR EN BASE ---
@@ -182,7 +175,6 @@ class LocalController extends Controller
             'remarque' => 'nullable|string|max:255',
             'id_batiment' => 'nullable|integer|exists:batiment,id_batiment',
             'id_lieu' => 'nullable|integer|exists:lieux_publics,id_lieu',
-            'id_usage' => 'nullable|integer|exists:type_usage,id_usage',
             'id_contrats' => 'nullable|array',
             'id_contrats.*' => 'exists:contrat,id_contrat',
         ]);
