@@ -12,12 +12,13 @@ use App\Models\Local;
 use App\Models\Adresse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Models\Tiers;
 
 class ActionController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Action::query()->with(['categorie', 'adresse', 'local']);
+        $query = Action::query()->with(['categorie', 'adresse', 'local', 'tiers', 'createur']);
 
         if ($request->filled('search')) {
             $search = $request->search;
@@ -43,7 +44,7 @@ class ActionController extends Controller
 
     public function show($id)
     {
-        $action = Action::with(['categorie', 'adresse', 'local'])->findOrFail($id);
+        $action = Action::with(['categorie', 'adresse', 'local', 'tiers', 'createur'])->findOrFail($id);
         return view('actions.show', compact('action'));
     }
 
@@ -62,7 +63,7 @@ class ActionController extends Controller
     public function store(Request $request)
     {
         try {
-            // 1. Validation stricte des données issues du formulaire
+            // Validation stricte des données issues du formulaire
             $validated = $request->validate([
                 'description' => 'required|string|max:500',
                 'id_cat' => 'required|exists:categorie,id_cat',
@@ -88,19 +89,18 @@ class ActionController extends Controller
 
                 $tel = null;
                 if (!$isEmail && !empty($request->emetteur_contact)) {
-                    // 🚀 SÉCURITÉ VARCHAR(12) : On supprime tous les espaces, points, tirets du numéro
                     $telNettoye = preg_replace('/[^0-9+]/', '', $request->emetteur_contact);
                     // On ne garde que les 12 premiers caractères au cas où (ex: +33612345678)
                     $tel = substr($telNettoye, 0, 12);
                 }
 
-                $nouveauTiers = \App\Models\Tiers::create([
+                $nouveauTiers = Tiers::create([
                     'type_tiers' => 'Physique',
                     'email_tiers' => $email,
-                    'tel_tiers' => $tel // ✅ Format épuré (ex: 0630323246), accepté par ton VARCHAR(12)
+                    'tel_tiers' => $tel
                 ]);
 
-                \App\Models\TiersPhysique::create([
+                TiersPhysique::create([
                     'id_tiers' => $nouveauTiers->id_tiers,
                     'nom_tiers' => $request->emetteur_nom,
                     'prenom_tiers' => $request->emetteur_prenom
@@ -109,13 +109,13 @@ class ActionController extends Controller
                 $id_tiers_final = $nouveauTiers->id_tiers;
                 $emetteur_nom_final = trim($request->emetteur_prenom . ' ' . $request->emetteur_nom);
             } else if (!empty($id_tiers_final)) {
-                $tiersPhysique = \App\Models\TiersPhysique::where('id_tiers', $id_tiers_final)->first();
+                $tiersPhysique = TiersPhysique::where('id_tiers', $id_tiers_final)->first();
                 $emetteur_nom_final = $tiersPhysique ? trim($tiersPhysique->prenom_tiers . ' ' . $tiersPhysique->nom_tiers) : 'Citoyen inconnu';
             } else {
                 $emetteur_nom_final = trim($request->emetteur_prenom . ' ' . $request->emetteur_nom);
             }
 
-            // 2. Sauvegarde directe via le Query Builder
+            // Sauvegarde directe via le Query Builder
             DB::table('action')->insert([
                 'date_creation' => now(),
                 'description' => $request->description,
@@ -202,5 +202,64 @@ class ActionController extends Controller
         $action->delete();
 
         return redirect()->route('actions.index')->with('success', 'Action supprimée définitivement.');
+    }
+
+
+    public function prendreEnCharge($id)
+    {
+        // Récupérer l'action
+        $action = Action::findOrFail($id);
+
+        //  Mettre à jour le statut dans la table action
+        $action->update([
+            'statut_action' => 'En cours'
+        ]);
+
+        // 3. Rediriger avec un message de succès
+        return redirect()->back()->with('success', 'Le signalement est désormais en cours de traitement.');
+    }
+
+
+    public function creerIntervention($id)
+    {
+        $action = Action::findOrFail($id);
+
+        // Créer l'intervention technique via le Query Builder
+        // On respecte scrupuleusement les contraintes NOT NULL de DDL (description, id_cat, etc.)
+        $idIntervention = DB::table('intervention')->insertGetId([
+            'date_ouverture' => now(),
+            'type_intervention' => 'Réparation : ' . substr($action->description, 0, 130),
+            'statut_global' => 'En cours',
+            'description' => 'Intervention générée suite au signalement citoyen #' . $action->id_action,
+            'id_cat' => $action->id_cat,
+            'id_action' => $action->id_action,
+            'id_local' => $action->id_local ?: null, // On hérite automatiquement du local s'il est saisi
+            'code_budget' => null,
+            'date_cloture' => null,
+            'id_compteur' => null,
+            'id_troncon' => null,
+            'id_tiers' => $action->id_tiers ?: null, // On hérite du citoyen émetteur
+            'id_contrat' => null,
+            'id_user_demandeur' => Auth::id() ?? 1,
+            'id_service' => null,
+            'Autre' => null
+        ], 'id_int');
+
+        // Faire évoluer le statut du signalement d'origine en "Transmis"
+        $action->update([
+            'statut_action' => 'Transmis'
+        ]);
+
+        // Redirection vers la fiche de l'intervention fraîchement créée pour que l'agent puisse la planifier
+        return redirect()->route('interventions.show', $idIntervention)
+            ->with('success', 'Intervention technique générée avec succès depuis le signalement !');
+    }
+
+    public function imprimer($id)
+    {
+        // On charge l'action avec sa catégorie, son adresse BAN, son local et son créateur
+        $action = Action::with(['categorie', 'adresse', 'local', 'createur'])->findOrFail($id);
+
+        return view('actions.print', compact('action'));
     }
 }

@@ -3,40 +3,25 @@
 @section('title', 'Nouveau action')
 
 @section('content')
-    <div class="max-w-3xl mx-auto">
-        <nav class="flex mb-5" aria-label="Breadcrumb">
-            <ol class="inline-flex items-center space-x-1 md:space-x-3">
-                <li class="inline-flex items-center">
-                    <a href="{{ route('technique.dashboard') }}"
-                        class="text-sm text-slate-500 hover:text-blue-600 font-medium">Tableau de bord</a>
-                </li>
+    <div class="max-w-4xl mx-auto space-y-6">
+        <nav class="flex" aria-label="Breadcrumb">
+            <ol class="inline-flex items-center space-x-1 md:space-x-2 text-xs font-semibold uppercase tracking-wider">
                 <li>
-                    <div class="flex items-center">
-                        <svg class="w-4 h-4 text-slate-400" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd"
-                                d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                                clip-rule="evenodd"></path>
-                        </svg>
-                        <a href="{{ route('actions.index') }}"
-                            class="ml-1 text-sm text-slate-500 hover:text-blue-600 font-medium">Actions</a>
-                    </div>
+                    <a href="{{ route('technique.dashboard') }}"
+                        class="text-slate-400 hover:text-blue-600 transition">Tableau de bord</a>
                 </li>
-                <li aria-current="page">
-                    <div class="flex items-center">
-                        <svg class="w-4 h-4 text-slate-400" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd"
-                                d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                                clip-rule="evenodd"></path>
-                        </svg>
-                        <span class="ml-1 text-sm text-slate-800 font-bold">Nouveau</span>
-                    </div>
+                <div class="text-slate-300 px-1">/</div>
+                <li>
+                    <a href="{{ route('actions.index') }}" class="text-slate-400 hover:text-blue-600 transition">Actions</a>
                 </li>
+                <div class="text-slate-300 px-1">/</div>
+                <li class="text-slate-800 font-bold">Nouveau</li>
             </ol>
         </nav>
 
         <div class="bg-white rounded-xl border border-slate-200 shadow-lg overflow-hidden">
             <div class="bg-slate-900 px-8 py-6">
-                <h1 class="text-2xl font-bold text-white">Saisie d'une action</h1>
+                <h1 class="text-2xl font-bold text-white tracking-tight">Saisie d'une action</h1>
                 <p class="text-slate-400 text-sm mt-1">Enregistrement d'une doléance ou d'un incident technique citoyen.</p>
             </div>
 
@@ -56,12 +41,12 @@
                         </h2>
                     </div>
 
-                    <div class="grid grid-cols-1 gap-6">
+                    <div class="grid grid-cols-1 gap-5">
                         <div>
                             <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Citoyen répertorié (Base
                                 Tiers)</label>
                             <select name="id_tiers" id="id_tiers"
-                                class="w-full border-slate-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                                class="w-full border-slate-300 rounded-lg shadow-sm text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 py-2.5 bg-white">
                                 <option value="">-- Rechercher un habitant --</option>
                                 @foreach($tiers as $t)
                                     <option value="{{ $t->id_tiers }}">{{ $t->nom_tiers }} {{ $t->prenom_tiers }}</option>
@@ -69,12 +54,12 @@
                             </select>
                         </div>
 
-                        <div class="relative py-2">
+                        <div class="relative py-1">
                             <div class="absolute inset-0 flex items-center">
                                 <div class="w-full border-t border-slate-200"></div>
                             </div>
-                            <div class="relative flex justify-center text-xs uppercase">
-                                <span class="bg-blue-50 px-3 text-slate-400 font-bold">Ou nouveau contact</span>
+                            <div class="relative flex justify-center text-[10px] uppercase tracking-wider">
+                                <span class="bg-blue-50/50 px-3 text-slate-400 font-black">Ou nouveau contact</span>
                             </div>
                         </div>
 
@@ -82,24 +67,24 @@
                             <div>
                                 <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nom / Organisme</label>
                                 <input type="text" name="emetteur_nom" id="emetteur_nom" placeholder="Ex: Martin"
-                                    class="w-full border-slate-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                                    class="w-full border-slate-300 rounded-lg shadow-sm text-sm focus:ring-2 focus:ring-blue-500 py-2.5">
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Prénom</label>
                                 <input type="text" name="emetteur_prenom" id="emetteur_prenom" placeholder="Ex: Jean"
-                                    class="w-full border-slate-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                                    class="w-full border-slate-300 rounded-lg shadow-sm text-sm focus:ring-2 focus:ring-blue-500 py-2.5">
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Coordonnées
                                     (Tél/Email)</label>
                                 <input type="text" name="emetteur_contact" id="emetteur_contact"
                                     placeholder="06 00 00 00 00"
-                                    class="w-full border-slate-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                                    class="w-full border-slate-300 rounded-lg shadow-sm text-sm focus:ring-2 focus:ring-blue-500 py-2.5">
                             </div>
                         </div>
 
-                        <div class="mt-4 bg-white p-3 rounded-lg border border-blue-100 shadow-sm">
-                            <label class="flex items-center cursor-pointer">
+                        <div class="mt-2 bg-white p-4 rounded-xl border border-blue-100 shadow-sm">
+                            <label class="flex items-center cursor-pointer select-none">
                                 <input type="checkbox" name="creer_nouveau_tiers" id="creer_nouveau_tiers" value="1"
                                     class="w-5 h-5 text-blue-600 rounded border-slate-300 focus:ring-blue-500">
                                 <span class="ml-3 text-sm text-slate-700 font-bold">💾 Enregistrer ce contact comme citoyen
@@ -109,9 +94,9 @@
                     </div>
                 </div>
 
-                {{-- NOUVEAU BLOC : LOCALISATION DE L'INCIDENT --}}
-                <div class="bg-amber-50/40 p-6 rounded-xl border border-amber-200/60 space-y-6">
-                    <div class="flex items-center gap-2 mb-2">
+                {{-- BLOC 2 : LOCALISATION DE L'INCIDENT --}}
+                <div class="bg-amber-50/20 p-6 rounded-xl border border-amber-200/60 space-y-6">
+                    <div class="flex items-center gap-2">
                         <span class="bg-amber-500 text-white p-1 rounded">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -125,12 +110,12 @@
                         </h2>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <div>
                             <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Adresse officielle (Voie
-                                issue de la BAN)</label>
+                                BAN)</label>
                             <select name="id_adresse" id="id_adresse"
-                                class="w-full border-slate-300 rounded-lg shadow-sm focus:ring-amber-500 focus:border-amber-500 text-sm">
+                                class="w-full border-slate-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 text-sm py-2.5 bg-white">
                                 <option value="">-- Sélectionner une adresse de voirie --</option>
                                 @foreach($adresses as $adr)
                                     <option value="{{ $adr->id_adresse }}">
@@ -142,9 +127,9 @@
 
                         <div>
                             <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Ou Local technique
-                                intérieur (Bâtiment / Pièce)</label>
+                                intérieur</label>
                             <select name="id_local" id="id_local"
-                                class="w-full border-slate-300 rounded-lg shadow-sm focus:ring-amber-500 focus:border-amber-500 text-sm">
+                                class="w-full border-slate-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 text-sm py-2.5 bg-white">
                                 <option value="">-- Sélectionner un local technique --</option>
                                 @foreach($locaux as $loc)
                                     <option value="{{ $loc->id_local }}">🏢 {{ $loc->nom_local }} (Niveau :
@@ -154,13 +139,14 @@
                             </select>
                         </div>
                     </div>
-                    <p class="text-[11px] text-slate-500 italic mt-2">💡 Conseil : Si l'anomalie se situe en pleine rue,
-                        choisissez l'adresse. Si elle concerne un bâtiment municipal, privilégiez le local technique.</p>
+                    <p class="text-xs text-slate-400 italic font-medium mt-1">💡 Conseil : Si l'anomalie se situe en pleine
+                        rue, choisissez l'adresse. Si elle concerne un bâtiment municipal, privilégiez le local technique.
+                    </p>
                 </div>
 
-                {{-- BLOC DETRAILS DE L'INCIDENT --}}
+                {{-- BLOC 3 : DETAILS DE L'INCIDENT --}}
                 <div class="space-y-6">
-                    <div class="flex items-center gap-2 mb-2">
+                    <div class="flex items-center gap-2">
                         <span class="bg-slate-700 text-white p-1 rounded">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -171,10 +157,11 @@
                         <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wider">Détails de l'incident</h2>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <div>
                             <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Mode de réception</label>
-                            <select name="mode_reception" required class="w-full border-slate-300 rounded-lg shadow-sm">
+                            <select name="mode_reception" required
+                                class="w-full border-slate-300 rounded-lg shadow-sm text-sm focus:ring-2 focus:ring-blue-500 py-2.5 bg-white">
                                 <option value="Téléphone">📞 Téléphone</option>
                                 <option value="Email">📧 Email</option>
                                 <option value="Accueil">🏢 Accueil Mairie</option>
@@ -184,7 +171,8 @@
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Catégorie technique</label>
-                            <select name="id_cat" required class="w-full border-slate-300 rounded-lg shadow-sm">
+                            <select name="id_cat" required
+                                class="w-full border-slate-300 rounded-lg shadow-sm text-sm focus:ring-2 focus:ring-blue-500 py-2.5 bg-white">
                                 @foreach($categories as $cat)
                                     <option value="{{ $cat->id_cat }}">{{ $cat->libelle }}</option>
                                 @endforeach
@@ -195,37 +183,40 @@
                     <div>
                         <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Priorité d'intervention</label>
                         <div class="flex gap-6 mt-2">
-                            <label class="flex items-center cursor-pointer">
+                            <label class="flex items-center cursor-pointer select-none">
                                 <input type="radio" name="priorite" value="Basse"
-                                    class="text-green-500 focus:ring-green-500">
-                                <span class="ml-2 text-sm text-slate-600">Basse</span>
+                                    class="w-4 h-4 text-green-500 focus:ring-green-500">
+                                <span class="ml-2 text-sm font-medium text-slate-600">Basse</span>
                             </label>
-                            <label class="flex items-center cursor-pointer">
+                            <label class="flex items-center cursor-pointer select-none">
                                 <input type="radio" name="priorite" value="Normale" checked
-                                    class="text-blue-500 focus:ring-blue-500">
-                                <span class="ml-2 text-sm text-slate-600">Normale</span>
+                                    class="w-4 h-4 text-blue-500 focus:ring-blue-500">
+                                <span class="ml-2 text-sm font-medium text-slate-600">Normale</span>
                             </label>
-                            <label class="flex items-center cursor-pointer">
-                                <input type="radio" name="priorite" value="Haute" class="text-red-500 focus:ring-red-500">
-                                <span class="ml-2 text-sm text-slate-600 font-bold text-red-600">Haute / Urgence</span>
+                            <label class="flex items-center cursor-pointer select-none">
+                                <input type="radio" name="priorite" value="Haute"
+                                    class="w-4 h-4 text-red-500 focus:ring-red-500">
+                                <span class="ml-2 text-sm font-bold text-red-600">Haute / Urgence</span>
                             </label>
                         </div>
                     </div>
 
                     <div>
                         <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Description précise</label>
-                        <textarea name="description" rows="4" required
-                            placeholder="Détaillez l'anomalie, les observations du citoyen..."
-                            class="w-full border-slate-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"></textarea>
+                        <textarea name="description" rows="5" required
+                            placeholder="Détaillez l'anomalie de manière exhaustive, les observations du citoyen..."
+                            class="w-full border-slate-300 rounded-lg shadow-sm text-sm p-4 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white font-medium text-slate-800 leading-relaxed"></textarea>
                     </div>
                 </div>
 
-                <div class="pt-6 border-t border-slate-100 flex justify-end gap-4">
+                {{-- BOUTONS DE COMMANDE --}}
+                <div class="pt-6 border-t border-slate-200 flex justify-end gap-3">
                     <a href="{{ route('actions.index') }}"
-                        class="px-6 py-2.5 text-sm font-bold text-slate-500 hover:text-slate-800 transition">Annuler</a>
+                        class="px-5 py-2.5 text-sm font-bold text-slate-500 hover:text-slate-800 transition">Annuler</a>
                     <button type="submit"
-                        class="px-8 py-2.5 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 shadow-md transition-all transform hover:-translate-y-0.5">Enregistrer
-                        l'action</button>
+                        class="px-6 py-2.5 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 shadow-md hover:shadow-lg transition transform hover:-translate-y-0.5 text-sm">
+                        Enregistrer l'action
+                    </button>
                 </div>
             </form>
         </div>

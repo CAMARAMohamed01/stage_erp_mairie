@@ -1,191 +1,297 @@
 @extends('layouts.app')
 
-@section('title', 'Détail du action #' . $action->id_action)
+@section('title', 'Détail du Action #' . $action->id_action)
 
 @section('content')
-    <div class="max-w-4xl mx-auto">
-        <div class="mb-6">
+    <div class="max-w-5xl mx-auto space-y-6 pb-16">
+
+        {{-- FIL D'ARIANE / BREADCRUMB --}}
+        <div class="flex items-center justify-between">
+            <nav class="flex" aria-label="Breadcrumb">
+                <ol class="inline-flex items-center space-x-1 md:space-x-2 text-xs font-semibold uppercase tracking-wider">
+                    <li class="inline-flex items-center">
+                        <a href="{{ route('technique.dashboard') }}"
+                            class="text-slate-400 hover:text-slate-700 transition">Mairie</a>
+                    </li>
+                    <div class="text-slate-300 px-1">/</div>
+                    <li>
+                        <a href="{{ route('actions.index') }}"
+                            class="text-slate-400 hover:text-slate-700 transition">Signalements</a>
+                    </li>
+                    <div class="text-slate-300 px-1">/</div>
+                    <li class="text-slate-800 font-bold">Fiche #{{ $action->id_action }}</li>
+                </ol>
+            </nav>
             <a href="{{ route('actions.index') }}"
-                class="text-slate-500 hover:text-slate-800 text-sm flex items-center transition">
-                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18">
-                    </path>
-                </svg>
-                Retour à la liste des actions
+                class="text-xs font-bold text-slate-500 hover:text-slate-800 transition flex items-center gap-1">
+                ← RETOUR AU CATALOGUE
             </a>
         </div>
 
-        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mb-6">
-            <div class="p-8">
-                <div class="flex justify-between items-start mb-6 border-b border-slate-100 pb-6">
-                    <div class="pr-6">
-                        <h1 class="text-2xl font-bold text-slate-900 mb-2">action #{{ $action->id_action }}</h1>
-                        <p class="text-slate-600 text-lg italic bg-slate-50 p-3 rounded border border-slate-100">
-                            "{{ $action->description }}"
-                        </p>
-                    </div>
-                    <div class="flex flex-col items-end gap-3 min-w-max">
-                        <div class="flex gap-2">
-                            <x-badge type="statut" :value="$action->statut_action" class="text-sm px-4 py-1" />
-                            <x-badge type="priorite" :value="$action->priorite" class="text-sm px-4 py-1" />
+        {{-- GRILLE PRINCIPALE --}}
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+            {{-- COLONNE GAUCHE : INFOS MAJEURES DE L'INCIDENT --}}
+            <div class="lg:col-span-2 space-y-6">
+
+                {{-- BLOC CENTRAL --}}
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-8 space-y-6">
+                    <div class="flex justify-between items-start border-b border-slate-100 pb-4">
+                        <div>
+                            <span class="text-xs font-bold uppercase tracking-widest text-blue-600">Doléance
+                                Citoyenne</span>
+                            <h1 class="text-3xl font-black text-slate-900 mt-1 tracking-tight">Signalement
+                                #{{ $action->id_action }}</h1>
                         </div>
 
-                        <div class="flex items-center gap-2 mt-2">
+                        <div class="flex items-center gap-2">
                             <a href="{{ route('actions.edit', $action->id_action) }}"
-                                class="text-xs bg-amber-100 text-amber-700 hover:bg-amber-200 px-3 py-1.5 rounded-lg font-bold transition">
+                                class="text-xs bg-slate-100 text-slate-700 hover:bg-slate-200 px-3 py-2 rounded-lg font-bold transition">
                                 ✏️ Modifier
                             </a>
-
                             <form action="{{ route('actions.destroy', $action->id_action) }}" method="POST"
-                                onsubmit="return confirm('⚠️ Êtes-vous sûr de vouloir supprimer ce action ?');">
+                                onsubmit="return confirm('⚠️ Confirmer la suppression définitive de ce signalement ?');">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit"
-                                    class="text-xs bg-red-100 text-red-700 hover:bg-red-200 px-3 py-1.5 rounded-lg font-bold transition">
+                                    class="text-xs bg-red-50 text-red-600 hover:bg-red-100 px-3 py-2 rounded-lg font-bold transition">
                                     🗑️ Supprimer
                                 </button>
                             </form>
                         </div>
                     </div>
-                </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 pt-2">
-                    <div>
-                        <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center">
-                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                            </svg>
-                            Informations Émetteur
-                        </h3>
-                        <div class="space-y-3 bg-slate-50 p-4 rounded-lg border border-slate-100">
-                            <div class="flex justify-between items-center border-b border-slate-200 pb-2">
-                                <span class="text-slate-500 text-sm">Nom :</span>
-                                <div class="text-right">
-                                    @php
-                                        // On prépare le nom à afficher par défaut
-                                        $nomAffiche = $action->emetteur_nom;
-
-                                        // S'il y a un ID Tiers, on va chercher dynamiquement le vrai nom !
-                                        if ($action->id_tiers) {
-                                            $citoyen = \App\Models\TiersPhysique::where(
-                                                'id_tiers',
-                                                $action->id_tiers
-                                            )->first();
-                                            if ($citoyen) {
-                                                $nomAffiche = $citoyen->prenom_tiers . ' ' . $citoyen->nom_tiers;
-                                            }
-                                        }
-                                    @endphp
-
-                                    <span class="font-bold text-slate-800">{{ $nomAffiche }}</span>
-
-                                    @if($action->id_tiers)
-                                        <span
-                                            class="ml-2 inline-block text-[10px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full uppercase font-bold"
-                                            title="Citoyen enregistré dans la base Tiers">
-                                            Inscrit
-                                        </span>
-                                    @endif
-                                </div>
-                            </div>
-                            <div class="flex justify-between items-center border-b border-slate-200 pb-2">
-                                <span class="text-slate-500 text-sm">Contact :</span>
-                                <span
-                                    class="font-medium text-slate-800">{{ $action->emetteur_contact ?? 'Non renseigné' }}</span>
-                            </div>
-                            <div class="flex justify-between items-center border-b border-slate-200 pb-2">
-                                <span class="text-slate-500 text-sm">Réception :</span>
-                                <span class="font-medium text-slate-800">{{ $action->mode_reception }}</span>
-                            </div>
-                            <div class="flex justify-between items-center">
-                                <span class="text-slate-500 text-sm">Date d'alerte :</span>
-                                <span
-                                    class="font-medium text-slate-800">{{ \Carbon\Carbon::parse($action->date_creation)->format('d/m/Y à H:i') }}</span>
-                            </div>
+                    {{-- LA DESCRIPTION DE L'ANOMALIE --}}
+                    <div class="space-y-2">
+                        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Description des faits
+                            rapportés</h3>
+                        <div
+                            class="bg-slate-50 border border-slate-100 rounded-xl p-5 text-slate-700 text-base leading-relaxed font-medium italic">
+                            "{!! nl2br(e($action->description)) !!}"
                         </div>
                     </div>
 
-                    <div>
-                        <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center">
-                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2">
-                                </path>
-                            </svg>
-                            Classification technique
-                        </h3>
-                        <div class="space-y-3 bg-slate-50 p-4 rounded-lg border border-slate-100">
-                            <div class="flex justify-between items-center border-b border-slate-200 pb-2">
-                                <span class="text-slate-500 text-sm">Catégorie :</span>
+                    {{-- MATRICE DE STATUS / CARACTÉRISTIQUES --}}
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4">
+                        <div class="p-3 border border-slate-100 rounded-xl bg-slate-50/50">
+                            <span class="block text-[10px] uppercase font-bold text-slate-400 tracking-wider">Statut</span>
+                            <span
+                                class="inline-block mt-1 px-2.5 py-0.5 text-xs font-extrabold rounded-full
+                                                    {{ $action->statut_action === 'Nouveau' ? 'bg-blue-100 text-blue-800' : ($action->statut_action === 'En cours' ? 'bg-amber-100 text-amber-800' : 'bg-green-100 text-green-800') }}">
+                                {{ $action->statut_action }}
+                            </span>
+                        </div>
+
+                        <div class="p-3 border border-slate-100 rounded-xl bg-slate-50/50">
+                            <span
+                                class="block text-[10px] uppercase font-bold text-slate-400 tracking-wider">Priorité</span>
+                            <span
+                                class="inline-block mt-1 px-2.5 py-0.5 text-xs font-extrabold rounded-full
+                                                    {{ $action->priorite === 'Haute' ? 'bg-red-100 text-red-700' : ($action->priorite === 'Normale' ? 'bg-slate-100 text-slate-700' : 'bg-green-100 text-green-700') }}">
+                                {{ $action->priorite }}
+                            </span>
+                        </div>
+
+                        <div class="p-3 border border-slate-100 rounded-xl bg-slate-50/50">
+                            <span class="block text-[10px] uppercase font-bold text-slate-400 tracking-wider">Canal</span>
+                            <span class="text-sm font-bold text-slate-800 block mt-1">
+                                {{ $action->mode_reception }}
+                            </span>
+                        </div>
+
+                        <div class="p-3 border border-slate-100 rounded-xl bg-slate-50/50">
+                            <span class="block text-[10px] uppercase font-bold text-slate-400 tracking-wider">Date
+                                d'alerte</span>
+                            <span class="text-sm font-bold text-slate-800 block mt-1">
+                                {{ \Carbon\Carbon::parse($action->date_creation)->format('d/m/Y') }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- 📍 BLOC AMÉLIORÉ : LOCALISATION DU SIGNALEMENT --}}
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-4">
+                    <h3
+                        class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5 border-b pb-2">
+                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z">
+                            </path>
+                        </svg>
+                        Analyse de la Localisation
+                    </h3>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {{-- Cas Adresse Voirie (BAN) --}}
+                        <div
+                            class="p-4 rounded-xl border {{ $action->id_adresse ? 'border-amber-200 bg-amber-50/20' : 'border-slate-100 bg-slate-50/30' }} flex gap-3 items-start">
+                            <span class="text-2xl mt-0.5">🛣️</span>
+                            <div>
                                 <span
-                                    class="font-bold text-slate-800">{{ $action->categorie->libelle ?? 'Non définie' }}</span>
+                                    class="block text-[11px] font-bold uppercase tracking-wider text-slate-400">Emplacement
+                                    Domaine Public</span>
+                                @if($action->id_adresse && $action->adresse)
+                                    <p class="font-bold text-slate-800 mt-1 text-sm">{{ $action->adresse->num_rue }}
+                                        {{ $action->adresse->nom_voie }}
+                                    </p>
+                                    <p class="text-xs text-slate-500 font-medium">{{ $action->adresse->code_postal }}
+                                        {{ $action->adresse->ville }}
+                                    </p>
+                                @else
+                                    <p class="text-slate-400 text-xs italic mt-1">Aucune adresse de voirie BAN liée</p>
+                                @endif
                             </div>
-                            <div class="flex justify-between items-center">
-                                <span class="text-slate-500 text-sm">Assigné à :</span>
-                                <span class="font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded">Service
-                                    Technique</span>
+                        </div>
+
+                        {{-- Cas Local technique Intérieur --}}
+                        <div
+                            class="p-4 rounded-xl border {{ $action->id_local ? 'border-blue-200 bg-blue-50/20' : 'border-slate-100 bg-slate-50/30' }} flex gap-3 items-start">
+                            <span class="text-2xl mt-0.5">🏢</span>
+                            <div>
+                                <span class="block text-[11px] font-bold uppercase tracking-wider text-slate-400">Patrimoine
+                                    Bâti Municipal</span>
+                                @if($action->id_local && $action->local)
+                                    <p class="font-bold text-slate-800 mt-1 text-sm">{{ $action->local->nom_local }}</p>
+                                    <p class="text-xs text-slate-500 font-medium">Niveau : {{ $action->local->niveau ?? 'RDC' }}
+                                    </p>
+                                @else
+                                    <p class="text-slate-400 text-xs italic mt-1">Aucun local intérieur spécifique rattaché</p>
+                                @endif
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="bg-slate-50 px-8 py-4 border-t border-slate-200 flex flex-wrap justify-between items-center gap-4">
-                <div>
-                    @if(session('success'))
-                        <span
-                            class="text-green-600 font-medium text-sm flex items-center bg-green-50 px-3 py-1.5 rounded-lg border border-green-200">
-                            <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd"
-                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                    clip-rule="evenodd"></path>
-                            </svg>
-                            {{ session('success') }}
-                        </span>
-                    @endif
+            {{-- COLONNE DROITE : EMETTEUR & CLASSIFICATION --}}
+            <div class="space-y-6">
+
+                {{-- BLOC EMETTEUR --}}
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-4">
+                    <h3
+                        class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5 border-b pb-2">
+                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                        </svg>
+                        Détails du Déclarant
+                    </h3>
+
+                    @php
+                        $nomAffiche = $action->emetteur_nom;
+                        if ($action->id_tiers) {
+                            $citoyen = \App\Models\TiersPhysique::where('id_tiers', $action->id_tiers)->first();
+                            if ($citoyen) {
+                                $nomAffiche = $citoyen->prenom_tiers . ' ' . $citoyen->nom_tiers;
+                            }
+                        }
+                    @endphp
+
+                    <div class="space-y-3 text-sm">
+                        <div class="flex justify-between items-center border-b border-slate-100 pb-2">
+                            <span class="text-slate-400 font-medium">Identité :</span>
+                            <div class="flex items-center gap-1.5">
+                                <span class="font-bold text-slate-800">{{ $nomAffiche }}</span>
+                                @if($action->id_tiers)
+                                    <span
+                                        class="bg-blue-100 text-blue-700 font-black text-[9px] px-1.5 py-0.5 rounded uppercase tracking-wide">Fiche
+                                        Tiers</span>
+                                @endif
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center border-b border-slate-100 pb-2">
+                            <span class="text-slate-400 font-medium">Contact :</span>
+                            <span class="font-bold text-slate-700">{{ $action->emetteur_contact ?? 'Non renseigné' }}</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-400 font-medium">Créé par agent :</span>
+                            <span
+                                class="text-xs bg-slate-100 text-slate-700 px-2..5 py-1 font-extrabold rounded-md border border-slate-200 uppercase tracking-wider"
+                                title="Enregistré par {{ $action->agent->prenom_user ?? 'Agent' }} {{ $action->agent->nom_user ?? '' }}">
+                                👤 {{ $action->agent->initiales ?? 'AG' }}
+                            </span>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="flex flex-wrap gap-3">
-                    <a href="{{ route('action.pdf', $action->id_action) }}" target="_blank"
-                        class="px-4 py-2 bg-white border border-slate-300 text-slate-700 rounded-lg font-bold hover:bg-slate-100 transition shadow-sm flex items-center text-sm">
-                        🖨️ Imprimer Récépissé
-                    </a>
+                {{-- BLOC METIER INTERNE --}}
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-4">
+                    <h3
+                        class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5 border-b pb-2">
+                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10">
+                            </path>
+                        </svg>
+                        Rattachement Service
+                    </h3>
 
-                    @if($action->statut_action === 'Nouveau')
-                        <form action="{{ route('action.prendre-en-charge', $action->id_action) }}" method="POST">
-                            @csrf
-                            @method('PATCH')
-                            <button type="submit"
-                                class="px-5 py-2 bg-slate-800 text-white rounded-lg font-bold hover:bg-slate-900 shadow-sm transition flex items-center text-sm">
-                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7">
-                                    </path>
-                                </svg>
-                                Prendre en charge
-                            </button>
-                        </form>
-                    @else
-                        <button disabled
-                            class="px-5 py-2 bg-slate-200 text-slate-500 rounded-lg font-medium cursor-not-allowed italic text-sm">
-                            ✓ Pris en charge
+                    <div class="space-y-3 text-sm">
+                        <div class="flex justify-between items-center border-b border-slate-100 pb-2">
+                            <span class="text-slate-400 font-medium">Corps d'état :</span>
+                            <span
+                                class="font-black text-slate-800">{{ $action->categorie->libelle ?? 'Non définie' }}</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-400 font-medium">Attribution :</span>
+                            <span
+                                class="text-xs font-bold px-2 py-1 bg-indigo-50 text-indigo-700 rounded-lg border border-indigo-100">👷
+                                Services Techniques</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- BARRE DE COMMANDE ET DE WORKFLOW CRUCIFORME (STICKY BANNER ECO-DESIGN) --}}
+        <div class="bg-white border border-slate-200 shadow-lg rounded-xl p-4 flex items-center justify-between gap-4 mt-6">
+            <div>
+                @if(session('success'))
+                    <span
+                        class="text-green-700 font-bold text-xs flex items-center bg-green-50 px-3 py-2 rounded-xl border border-green-200">
+                        {{ session('success') }}
+                    </span>
+                @else
+                    <p class="text-xs text-slate-400 font-semibold italic pl-2">Prêt pour traitement technique municipal.</p>
+                @endif
+            </div>
+
+            <div class="flex items-center gap-2">
+                <a href="{{ route('action.pdf', $action->id_action) }}" target="_blank"
+                    class="px-4 py-2 border border-slate-300 text-slate-700 rounded-lg font-bold hover:bg-slate-50 transition shadow-sm text-xs">
+                    🖨️ Récépissé
+                </a>
+
+                @if($action->statut_action === 'Nouveau')
+                    <form action="{{ route('action.prendre-en-charge', $action->id_action) }}" method="POST">
+                        @csrf
+                        @method('PATCH')
+                        <button type="submit"
+                            class="px-4 py-2 bg-slate-900 text-white rounded-lg font-bold hover:bg-slate-800 shadow-sm transition text-xs flex items-center gap-1">
+                            🤝 Prendre en charge
                         </button>
-                    @endif
+                    </form>
+                @else
+                    <button disabled
+                        class="px-4 py-2 bg-slate-100 text-slate-400 rounded-lg font-bold cursor-not-allowed italic text-xs">
+                        ✓ Déjà pris en charge
+                    </button>
+                @endif
 
-                    @if($action->statut_action !== 'Transmis')
-                        <form action="{{ route('action.creer-intervention', $action->id_action) }}" method="POST">
-                            @csrf
-                            <button type="submit"
-                                class="px-5 py-2 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 shadow-sm transition flex items-center text-sm">
-                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                </svg>
-                                Générer une intervention
-                            </button>
-                        </form>
-                    @endif
-                </div>
+                @if($action->statut_action !== 'Transmis')
+                    <form action="{{ route('action.creer-intervention', $action->id_action) }}" method="POST">
+                        @csrf
+                        <button type="submit"
+                            class="px-5 py-2 bg-blue-600 text-white font-black rounded-lg hover:bg-blue-700 shadow transition text-xs flex items-center gap-1">
+                            ⚡ Planifier Travaux (GMAO)
+                        </button>
+                    </form>
+                @else
+                    <button disabled
+                        class="px-4 py-2 bg-green-50 border border-green-200 text-green-700 rounded-lg font-black text-xs cursor-not-allowed">
+                        Envoyé aux services techniques
+                    </button>
+                @endif
             </div>
         </div>
     </div>

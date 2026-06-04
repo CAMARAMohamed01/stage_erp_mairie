@@ -20,6 +20,11 @@ class action extends Model
     {
         return $this->belongsTo(Utilisateur::class, 'id_user', 'id_user');
     }
+    public function createur()
+    {
+
+        return $this->belongsTo(Utilisateur::class, 'id_user');
+    }
 
     // Le citoyen (Optionnel, grâce à notre approche hybride !)
     public function tiers()
