@@ -20,6 +20,8 @@ class TypeErp extends Model
     // La relation Many-to-Many vers les contrôles
     public function controles()
     {
-        return $this->belongsToMany(ControleReglementaire::class, 'type_erp_controle', 'id_type_erp', 'id_controle');
+        return $this->belongsToMany(ControleReglementaire::class, 'type_erp_controle', 'id_type_erp', 'id_controle')
+            ->withPivot('date_controle'); // 🚀 Utile si tu pars de l'ERP pour voir ses contrôles
     }
+
 }

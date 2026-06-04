@@ -77,8 +77,8 @@
                         </div>
                     </div>
                 </div>
-                <!-- BLOC DES ÉQUIPEMENTS SOUMIS AU CONTRÔLE -->
-                <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm mt-6">
+
+                <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
                     <h3
                         class="text-sm font-bold text-slate-800 uppercase tracking-wider mb-4 border-b pb-2 flex items-center justify-between">
                         <span>⚙️ Équipements soumis à ce contrôle</span>
@@ -126,8 +126,7 @@
                                             </td>
                                             <td class="p-3 font-medium">
                                                 @if($equipement->pivot->date_controle)
-                                                    <span
-                                                        class="{{ \Carbon\Carbon::parse($equipement->pivot->date_controle)->isPast() ? 'text-slate-800' : 'text-slate-800' }}">
+                                                    <span class="text-slate-800">
                                                         {{ \Carbon\Carbon::parse($equipement->pivot->date_controle)->format('d/m/Y') }}
                                                     </span>
                                                 @else
@@ -136,9 +135,7 @@
                                             </td>
                                             <td class="p-3 text-right">
                                                 <a href="{{ route('equipements.show', $equipement->id_equipement) }}"
-                                                    class="text-blue-600 hover:text-blue-800 font-medium text-xs">
-                                                    Consulter →
-                                                </a>
+                                                    class="text-blue-600 hover:text-blue-800 font-medium text-xs">Consulter →</a>
                                             </td>
                                         </tr>
                                     @endforeach
@@ -147,13 +144,14 @@
                         </div>
                     @else
                         <div class="text-center py-8 bg-slate-50/50 rounded-lg border border-dashed border-slate-200">
-                            <p class="text-sm text-slate-500 italic">Aucun équipement de la commune n'est actuellement rattaché
-                                à ce contrôle.</p>
+                            <p class="text-sm text-slate-500 italic">Aucun équipement de l'commune n'est actuellement rattaché à
+                                ce contrôle.</p>
                         </div>
                     @endif
                 </div>
             </div>
 
+            {{-- PANNEAU LATÉRAL : TYPES D'ERP AVEC DATE DE CONTROLE --}}
             <div>
                 <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm h-full">
                     <h3
@@ -166,11 +164,23 @@
                     @if($controle->typesErp->count() > 0)
                         <ul class="space-y-3">
                             @foreach($controle->typesErp as $erp)
-                                <li class="p-3 bg-slate-50 border border-slate-100 rounded-lg text-sm">
-                                    <div class="font-bold text-slate-800">Catégorie {{ $erp->categorie_erp }} - Type
-                                        {{ $erp->type_erp }}
+                                <li
+                                    class="p-4 bg-slate-50 border border-slate-200 rounded-lg text-sm flex flex-col justify-between gap-2">
+                                    <div>
+                                        <div class="font-bold text-slate-900">Catégorie {{ $erp->categorie_erp }} - Type
+                                            {{ $erp->type_erp }}
+                                        </div>
+                                        <div class="text-xs text-slate-500 mt-1 leading-relaxed">
+                                            {{ $erp->reglementation_applicable }}
+                                        </div>
                                     </div>
-                                    <div class="text-xs text-slate-500 mt-1">{{ $erp->reglementation_applicable }}</div>
+                                    {{-- Affichage de la nouvelle colonne date_controle du pivot --}}
+                                    <div class="pt-2 border-t border-slate-200/60 flex justify-between items-center text-xs">
+                                        <span class="text-slate-400 font-semibold uppercase">Dernier contrôle :</span>
+                                        <span class="font-bold text-slate-700 bg-white border px-2 py-0.5 rounded shadow-sm">
+                                            {{ $erp->pivot->date_controle ? \Carbon\Carbon::parse($erp->pivot->date_controle)->format('d/m/Y') : 'Non planifié' }}
+                                        </span>
+                                    </div>
                                 </li>
                             @endforeach
                         </ul>

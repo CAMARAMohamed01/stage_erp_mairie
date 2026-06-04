@@ -23,9 +23,9 @@ class ControleReglementaire extends Model
     // La relation Many-to-Many vers les types ERP
     public function typesErp()
     {
-        return $this->belongsToMany(TypeErp::class, 'type_erp_controle', 'id_controle', 'id_type_erp');
+        return $this->belongsToMany(TypeErp::class, 'type_erp_controle', 'id_controle', 'id_type_erp')
+            ->withPivot('date_controle');
     }
-
     // La relation Many-to-Many vers les Équipements
     public function equipements()
     {
@@ -36,4 +36,5 @@ class ControleReglementaire extends Model
             'id_equipement'      // Clé étrangère du modèle cible
         )->withPivot('date_controle'); // On récupère la date du dernier contrôle
     }
+
 }
