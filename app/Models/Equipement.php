@@ -87,13 +87,15 @@ class Equipement extends Model
             'id_contrat'
         );
     }
-    // Récupérer l'équipement parent (celui qui le contient)
+
     public function equipementParent()
     {
         return $this->belongsTo(Equipement::class, 'id_parent', 'id_equipement');
     }
 
-    // Récupérer les sous-équipements (ceux qu'il contient)
+    /**
+     * Relation pour obtenir la liste des sous-composants rattachés
+     */
     public function sousEquipements()
     {
         return $this->hasMany(Equipement::class, 'id_parent', 'id_equipement');

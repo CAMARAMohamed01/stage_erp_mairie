@@ -16,13 +16,11 @@ return new class extends Migration {
             $table->decimal('surface_totale_m2', 8, 4)->nullable();
             $table->date('date_construction')->nullable();
 
-            $table->unsignedBigInteger('id_tiers'); // NOT NULL
             $table->unsignedBigInteger('id_parcelle'); // NOT NULL
             $table->unsignedBigInteger('id_type_erp'); // NOT NULL
             $table->unsignedBigInteger('id_adresse'); // NOT NULL
-            $table->unsignedBigInteger('id_immo')->unique(); // Contrainte UNIQUE de votre SQL
+            $table->unsignedBigInteger('id_immo')->nullable()->unique();
 
-            $table->foreign('id_tiers')->references('id_tiers')->on('tiers');
             $table->foreign('id_parcelle')->references('id_parcelle')->on('parcelle');
             $table->foreign('id_type_erp')->references('id_type_erp')->on('type_erp');
             $table->foreign('id_adresse')->references('id_adresse')->on('Adresse');

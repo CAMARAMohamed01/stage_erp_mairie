@@ -1,13 +1,35 @@
 @extends('layouts.app')
 
-@section('header_title', 'Ajouter un Équipement')
+@section('header_title', request()->has('id_parent') ? 'Ajouter un Sous-Équipement' : 'Ajouter un Équipement')
 
 @section('content')
-    <div class="max-w-4xl mx-auto bg-white p-8 rounded-lg shadow-md border border-slate-100">
+    <div class="max-w-4xl mx-auto bg-white p-8 rounded-lg shadow-md border border-slate-100 space-y-6">
+
+        {{-- 🎯 BANDEAU D'INFORMATION TECHNIQUE EN CAS DE RATTACHEMENT HIÉRARCHIQUE --}}
+        @if(request()->has('id_parent'))
+            @php
+                $parentName = DB::table('equipement')->where('id_equipement', request('id_parent'))->value('nom_equipement');
+            @endphp
+
+            @if($parentName)
+                <div
+                    class="bg-blue-50 border border-blue-200 text-blue-800 p-4 rounded-xl flex items-center gap-3 shadow-sm select-none">
+                    <span class="text-xl">🔗</span>
+                    <div class="text-sm font-medium">
+                        Vous êtes en train de créer un <span class="font-bold">sous-composant technique</span> qui sera rattaché
+                        automatiquement à l'équipement parent : <span class="font-black underline">{{ $parentName }}</span>.
+                    </div>
+                </div>
+            @endif
+        @endif
 
         <form action="{{ route('equipements.store') }}" method="POST" class="space-y-8">
             @csrf
 
+            {{-- 🎯 CHAMP CACHÉ : Transmet l'ID parent capturé depuis l'URL au contrôleur au moment du Store --}}
+            <input type="hidden" name="id_parent" value="{{ request('id_parent') }}">
+
+            {{-- SECTION 1 : INFORMATIONS GENERALES --}}
             <div>
                 <h3 class="text-lg font-bold text-slate-800 border-b pb-2 mb-4 flex items-center">
                     <span class="mr-2">📋</span> Informations Générales
@@ -15,7 +37,8 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Nom / Désignation *</label>
-                        <input type="text" name="nom_equipement" required placeholder="Ex: Banc public, Chaudière..."
+                        <input type="text" name="nom_equipement" required
+                            placeholder="Ex: Détecteur optique, Vanne secteur..."
                             class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm">
                     </div>
 
@@ -54,7 +77,7 @@
                         </select>
                     </div>
                     <div>
-                        <label for="id_contrats" class="block text-sm font-medium text-slate-700 mb-1">
+                        <label class="block text-sm font-medium text-slate-700 mb-1">
                             Contrats rattachés (Maintenance, Assurance...)
                         </label>
                         <select name="id_contrats[]" id="id_contrats" multiple size="4"
@@ -62,12 +85,10 @@
                             @if(isset($contrats))
                                 @foreach($contrats as $c)
                                     @php
-                                        // Vérifie si l'équipement possède déjà ce contrat (pour le mode édition)
                                         $isSelected = isset($equipement) && $equipement->contratsAdministratifs->contains(
                                             'id_contrat',
                                             $c->id_contrat
                                         );
-                                        // Ou s'il vient d'être sélectionné avant une erreur de validation
                                         $isOldSelected = in_array($c->id_contrat, old('id_contrats', []));
                                     @endphp
                                     <option value="{{ $c->id_contrat }}" {{ ($isSelected || $isOldSelected) ? 'selected' : '' }}>
@@ -82,6 +103,7 @@
                 </div>
             </div>
 
+            {{-- SECTION 2 : ACHAT & GARANTIE --}}
             <div>
                 <h3 class="text-lg font-bold text-slate-800 border-b pb-2 mb-4 flex items-center">
                     <span class="mr-2">💳</span> Achat & Garantie
@@ -107,6 +129,7 @@
                 </div>
             </div>
 
+            {{-- SECTION 3 : LOCALISATION --}}
             <div>
                 <h3 class="text-lg font-bold text-slate-800 border-b pb-2 mb-4 flex items-center">
                     <span class="mr-2">📍</span> Localisation
@@ -139,6 +162,7 @@
                     </div>
                 </div>
             </div>
+
             <div>
                 <label class="block text-sm font-bold text-slate-700 mb-1">Tronçon rattaché</label>
                 <select name="id_troncon" class="w-full border-slate-300 rounded-lg focus:ring-blue-500">
@@ -151,6 +175,7 @@
                 </select>
             </div>
 
+            {{-- SECTION 4 : CONTROLES REGLEMENTAIRES --}}
             <div>
                 <h3 class="text-lg font-bold text-slate-800 border-b pb-2 mb-4 flex items-center">
                     <span class="mr-2">🛡️</span> Contrôles réglementaires
@@ -185,6 +210,7 @@
                 </div>
             </div>
 
+            {{-- ACTIONNEURS --}}
             <div class="flex justify-end pt-6 border-t border-gray-200">
                 <a href="{{ route('equipements.index') }}"
                     class="px-6 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg mr-4 font-medium transition duration-150">

@@ -57,21 +57,20 @@ class EquipementController extends Controller
 
         return view('equipements.create', compact('familles', 'locaux', 'lieux', 'controles', 'contrats', 'troncons'));
     }
-
     public function store(Request $request)
     {
-        //dd($request->all());
-        // 1. Validation complète
+        // dd($request->all(), $request->query('id_parent'));
+
         $validated = $request->validate([
             'nom_equipement' => 'required|max:80',
             'id_famille' => 'required|exists:famille_equipement,id_famille',
+            'id_parent' => 'nullable|exists:equipement,id_equipement',
             'marque' => 'nullable|max:50',
             'couleur' => 'nullable|max:50',
             'reference_serie' => 'nullable|max:80',
             'date_achat' => 'nullable|date',
             'duree_garantie_mois' => 'nullable|max:50',
             'etat_fonctionnement' => 'nullable|max:50',
-            // 'id_local' => 'nullable|exists:local,id_local',
             'id_local' => 'nullable|exists:local_,id_local',
             'id_lieu' => 'nullable|exists:lieux_publics,id_lieu',
             'dates_controles' => 'nullable|array',
@@ -80,34 +79,50 @@ class EquipementController extends Controller
             'id_troncon' => 'nullable|exists:troncon,id_troncon',
         ]);
 
-        // 2. Création de l'équipement avec les champs directs
+        // Nettoyage des tableaux de pivots pour ne garder que les colonnes directes
         $equipementData = $validated;
         unset($equipementData['dates_controles']);
         unset($equipementData['id_contrats']);
         unset($equipementData['controles']);
 
-        // 2. Création de l'équipement UNIQUEMENT avec ses propres colonnes
-        $equipement = Equipement::create($equipementData);
-        if ($request->has('id_contrats')) {
-            $equipement->contratsAdministratifs()->attach($request->id_contrats);
+        //  Si id_parent n'est pas dans le formulaire caché, on le récupère depuis l'URL
+        if (!isset($equipementData['id_parent']) || is_null($equipementData['id_parent'])) {
+            $equipementData['id_parent'] = $request->query('id_parent') ?: null;
         }
-        // 3. Liaison avec la table pivot (soumis_a_controle)
-        if ($request->has('controles')) {
-            $pivotData = [];
 
-            foreach ($request->controles as $id_controle) {
-                // On récupère la date correspondante à cet ID de contrôle
-                $date = $request->dates_controles[$id_controle] ?? null;
+        //  Exécution sécurisée via une transaction de base de données
+        $equipement = DB::transaction(function () use ($equipementData, $request) {
 
-                // On prépare le tableau pour la table pivot
-                $pivotData[$id_controle] = ['date_controle' => $date];
+            // Création de l'équipement avec son id_parent maillé
+            $newEquipement = Equipement::create($equipementData);
+
+            // Liaison avec la table pivot des contrats
+            if ($request->has('id_contrats')) {
+                $newEquipement->contratsAdministratifs()->attach($request->id_contrats);
             }
 
-            // On attache les contrôles avec leurs dates respectives
-            $equipement->controles()->attach($pivotData);
+            if ($request->has('controles')) {
+                $pivotData = [];
+
+                foreach ($request->controles as $id_controle) {
+                    $date = $request->dates_controles[$id_controle] ?? null;
+                    $pivotData[$id_controle] = ['date_controle' => $date];
+                }
+
+                $newEquipement->controles()->attach($pivotData);
+            }
+
+            return $newEquipement;
+        });
+
+        // Redirection intelligente
+        if ($equipement->id_parent) {
+            return redirect()->route('equipements.show', $equipement->id_parent)
+                ->with('success', 'Le sous-composant technique a bien été rattaché et enregistré !');
         }
 
-        return redirect()->route('equipements.index')->with('success', 'Équipement complet enregistré !');
+        return redirect()->route('equipements.index')
+            ->with('success', 'Équipement principal enregistré avec succès !');
     }
 
     public function show($id)

@@ -9,88 +9,93 @@ class EquipementSeeder extends Seeder
 {
     public function run(): void
     {
-        // 1. Cartographie précise des équipements avec leur famille correspondante
-        $equipementsNomenclature = [
-            ['nom' => 'Defibrillateurs', 'famille' => 'securité'],
-            ['nom' => 'Agorespace', 'famille' => 'espaces verts'],
-            ['nom' => 'ADOUCISSEUR', 'famille' => 'Plomberie'],
-            ['nom' => 'tonte foot', 'famille' => 'espaces verts'],
-            ['nom' => 'deratisation', 'famille' => 'nettoyage'],
-            ['nom' => 'photocopieurs', 'famille' => 'Autre'],
-            ['nom' => 'bacteriologie', 'famille' => 'securité'],
-            ['nom' => 'Paratonnerre', 'famille' => 'électricité'],
-            ['nom' => 'fibre', 'famille' => 'VRD'],
-            ['nom' => 'INCENDIE', 'famille' => 'incendie'],
-            ['nom' => 'panneau numérique', 'famille' => 'électricité'],
-            ['nom' => 'telephonie hebergee', 'famille' => 'Autre'],
-            ['nom' => 'installations electriques', 'famille' => 'électricité'],
-            ['nom' => 'installation GAZ', 'famille' => 'chauffage'],
-            ['nom' => 'carte SIM panneau entree village', 'famille' => 'Autre'],
-            ['nom' => 'cloche eglise', 'famille' => 'Autre'],
-            ['nom' => 'telesurveillance', 'famille' => 'securité'],
-            ['nom' => 'CTA', 'famille' => 'chauffage'], // Centrale de Traitement d'Air
-            ['nom' => 'Chauffage', 'famille' => 'chauffage'],
-            ['nom' => 'équipements cuisine', 'famille' => 'Autre'],
-            ['nom' => 'éclairage de sécurité', 'famille' => 'électricité'],
-            ['nom' => 'appareils de cuisson et remise en température', 'famille' => 'Autre'],
-            ['nom' => 'Désenfumage', 'famille' => 'incendie'],
-            ['nom' => 'Extincteurs', 'famille' => 'incendie'],
-            ['nom' => 'Ascenceurs', 'famille' => 'manutention'],
-            ['nom' => 'Alarme Incendie', 'famille' => 'incendie'],
-            ['nom' => 'Système détection automatique incendie', 'famille' => 'incendie'],
-            ['nom' => 'Chauffage école', 'famille' => 'chauffage'],
-            ['nom' => 'Jeux du stade', 'famille' => 'espaces verts'],
-            ['nom' => 'agrées du fier', 'famille' => 'espaces verts'],
-            ['nom' => 'cages de foot', 'famille' => 'espaces verts'],
-            ['nom' => 'bloc escalade', 'famille' => 'Autre'],
-            ['nom' => 'porte coulissante', 'famille' => 'serrurerie'],
-            ['nom' => 'cages de foot école', 'famille' => 'espaces verts'],
-            ['nom' => 'parcours sportif', 'famille' => 'espaces verts'],
-            ['nom' => 'echafaudage', 'famille' => 'manutention'],
-            ['nom' => 'lignes de vie ( foot + photovoltaique )', 'famille' => 'toiture'],
-            ['nom' => 'treuil / palan', 'famille' => 'manutention'],
-            ['nom' => 'ampliroll', 'famille' => 'manutention'],
-            ['nom' => 'camion', 'famille' => 'manutention'],
-            ['nom' => 'légionelle', 'famille' => 'securité']
+        // 🚀 Ingestion de tes lignes d'équipements avec leurs familles respectives
+        $dataset = [
+            ['famille' => 'Equipement GAZ', 'equipement' => 'citerne'],
+            ['famille' => 'équipement voirie', 'equipement' => 'Passage piéton'],
+            ['famille' => 'équipement voirie', 'equipement' => 'plaque égout'],
+            ['famille' => 'Equipements cuisine', 'equipement' => 'Four'],
+            ['famille' => 'Équipements de chauffage et climatisation', 'equipement' => 'CTA'],
+            ['famille' => 'Équipements de chauffage et climatisation', 'equipement' => 'PAC'],
+            ['famille' => 'Équipements de sécurité', 'equipement' => 'Alarme Incendie'],
+            ['famille' => 'Équipements de sécurité', 'equipement' => 'centrale Incendie'],
+            ['famille' => 'Équipements de sécurité', 'equipement' => 'Defibrillateurs'],
+            ['famille' => 'Équipements de sécurité', 'equipement' => 'Extincteurs'],
+            ['famille' => 'Équipements de sécurité', 'equipement' => 'Système détection automatique incendie'],
+            ['famille' => 'Équipements de sécurité', 'equipement' => 'trappe de désenfumage'],
+            ['famille' => 'Equipements informatiques et numériques', 'equipement' => 'Logiciels'],
+            ['famille' => 'Equipements informatiques et numériques', 'equipement' => 'Ordinateurs'],
+            ['famille' => 'Equipements informatiques et numériques', 'equipement' => 'Photocopieurs'],
+            ['famille' => 'Equipements informatiques et numériques', 'equipement' => 'ROUTEUR'],
+            ['famille' => 'Equipements informatiques et numériques', 'equipement' => 'Serveurs'],
+            ['famille' => 'Equipements informatiques et numériques', 'equipement' => 'telephonie hebergee'],
+            ['famille' => 'Équipements techniques et d\'infrastructure', 'equipement' => 'ADOUCISSEUR'],
+            ['famille' => 'Équipements techniques et d\'infrastructure', 'equipement' => 'ascenceur'],
+            ['famille' => 'Équipements techniques et d\'infrastructure', 'equipement' => 'echafaudage'],
+            ['famille' => 'Équipements techniques et d\'infrastructure', 'equipement' => 'groupe electrogéne'],
+            ['famille' => 'Équipements techniques et d\'infrastructure', 'equipement' => 'Lignes De Vie'],
+            ['famille' => 'Équipements techniques et d\'infrastructure', 'equipement' => 'treuil / palan'],
+            ['famille' => 'jeux extérieurs', 'equipement' => 'city stade'],
+            ['famille' => 'jeux extérieurs', 'equipement' => 'Agrées'],
+            ['famille' => 'jeux extérieurs', 'equipement' => 'bloc escalade'],
+            ['famille' => 'jeux extérieurs', 'equipement' => 'cages de foot'],
+            ['famille' => 'jeux extérieurs', 'equipement' => 'cages de foot'], // Le doublon sera géré
+            ['famille' => 'jeux extérieurs', 'equipement' => 'Skate Park'],
+            ['famille' => 'materiel électroportatif et espaces verts', 'equipement' => 'debrousailleuse'],
+            ['famille' => 'Matériel logistique', 'equipement' => 'barrières'],
+            ['famille' => 'meubles et mobilier', 'equipement' => 'chaises'],
+            ['famille' => 'MOBILIER URBAIN', 'equipement' => 'abribus'],
+            ['famille' => 'MOBILIER URBAIN', 'equipement' => 'panneau numérique'],
+            ['famille' => 'transport et véhicules', 'equipement' => 'camion'],
+            ['famille' => 'transport et véhicules', 'equipement' => 'kubota'],
+            ['famille' => 'Équipements techniques et d\'infrastructure', 'equipement' => 'Cloche'],
+            ['famille' => 'Équipements techniques et d\'infrastructure', 'equipement' => 'Paratonnerre'],
+            ['famille' => 'Équipements techniques et d\'infrastructure', 'equipement' => 'porte coulissante'],
+            ['famille' => 'materiel électroportatif et espaces verts', 'equipement' => 'ROBOT tonte foot'],
+            ['famille' => 'Équipements de chauffage et climatisation', 'equipement' => 'installation plomberie'],
+            ['famille' => 'Équipements d\'électricité', 'equipement' => 'installation électrique'],
+            ['famille' => 'Équipements de sécurité', 'equipement' => 'installation électrique'], // Rattaché à sécurité selon ta ligne
+            ['famille' => 'Espaces verts', 'equipement' => 'Agorespace'],
         ];
 
-        // Désactivation temporaire pour vider proprement la table si besoin
-        DB::statement('TRUNCATE TABLE equipement RESTART IDENTITY CASCADE;');
+        $insertions = 0;
 
-        // Récupération des IDs d'immobilisation et de locaux par défaut pour l'intégrité référentielle nullable
-        $idImmoDefaut = DB::table('immobilisation_inventaire_')->value('id_immo');
-        $idLocalDefaut = DB::table('local_')->value('id_local');
+        foreach ($dataset as $row) {
+            // 1. Uniformisation du nom de la famille pour correspondre à ce qui a été inséré
+            $familleFormatee = mb_convert_case(trim($row['famille']), MB_CASE_TITLE, "UTF-8");
 
-        foreach ($equipementsNomenclature as $item) {
+            // 2. Uniformisation du nom de l'équipement (TitleCase comme demandé pour chaque début de mot)
+            $equipementFormate = mb_convert_case(trim($row['equipement']), MB_CASE_TITLE, "UTF-8");
 
-            //Récupération dynamique de la famille d'équipement par son nom exact
+            // 3. Récupération dynamique de l'ID de la famille parente
             $idFamille = DB::table('famille_equipement')
-                ->where('libelle_famille', 'ilike', $item['famille'])
+                ->where('libelle_famille', 'ilike', $familleFormatee)
                 ->value('id_famille');
 
-            // Sécurité si une famille venait à manquer
+            // Sécurité : Si la famille n'existe pas (ex: 'Espaces Verts' qui n'était pas dans ta première liste), on la crée à la volée !
             if (!$idFamille) {
-                $idFamille = DB::table('famille_equipement')->where('libelle_famille', 'Autre')->value('id_famille') ?? 1;
+                $idFamille = DB::table('famille_equipement')->insertGetId([
+                    'libelle_famille' => $familleFormatee
+                ], 'id_famille');
             }
 
-            // Insertion de l'équipement en base
-            DB::table('equipement')->insert([
-                'nom_equipement' => $item['nom'],
-                'reference_serie' => 'SN-' . strtoupper(bin2hex(random_bytes(4))),
-                'date_achat' => now()->subMonths(rand(6, 48))->format('Y-m-d'), // Date aléatoire réaliste
-                'duree_garantie_mois' => 24.00,
-                'marque' => 'Standard Communal',
-                'etat_fonctionnement' => 'Opérationnel',
-                'couleur' => null,
-                'remarque' => 'Équipement technique recensé pour la maintenance',
-                'id_immo' => $idImmoDefaut,
-                'id_troncon' => null,
-                'id_service' => null,
-                'id_lieu' => null,
-                'id_parent' => null,
-                'id_local' => $idLocalDefaut, // Lié au premier local disponible (ex: Mairie ou Bibliothèque)
-                'id_famille' => $idFamille
-            ]);
+            // 4. 🛡️ SÉCURITÉ ANTI-DOUBLON COMPLÈTE
+            // On vérifie si cet équipement exact n'est pas déjà enregistré pour cette même famille
+            $existeEquipement = DB::table('equipement')
+                ->where('nom_equipement', 'ilike', $equipementFormate)
+                ->where('id_famille', $idFamille)
+                ->exists();
+
+            if (!$existeEquipement) {
+                DB::table('equipement')->insert([
+                    'nom_equipement' => $equipementFormate,
+                    'id_famille' => $idFamille,
+                    'etat_fonctionnement' => 'En service' // Statut initial par défaut
+                ]);
+                $insertions++;
+            }
         }
+
+        $this->command->info("🛡️ Référentiel des équipements initialisé avec succès ! {$insertions} nouveaux composants uniques importés.");
     }
 }
