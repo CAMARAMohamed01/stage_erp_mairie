@@ -38,14 +38,14 @@
                     📄 Exporter en PDF
                 </a>
 
-                @if(auth()->user()->can('check-permission', ['Patrimoine', 'ecriture']))
+                @if(auth()->user()->can('check-permission', ['Patrimoine & Équipements', 'ecriture']))
                     <a href="{{ route('compteurs.edit', $compteur->id_compteur) }}"
                         class="px-4 py-2 bg-amber-100 text-amber-700 border border-amber-200 text-sm font-semibold rounded-lg hover:bg-amber-200 transition">
                         ✏️ Modifier
                     </a>
                 @endif
 
-                @if(auth()->user()->can('check-permission', ['Patrimoine', 'suppression']))
+                @if(auth()->user()->can('check-permission', ['Patrimoine & Équipements', 'suppression']))
                     <form action="{{ route('compteurs.destroy', $compteur->id_compteur) }}" method="POST" class="inline"
                         onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer définitivement ce compteur ?');">
                         @csrf
