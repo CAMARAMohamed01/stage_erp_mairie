@@ -129,7 +129,6 @@ class ActionController extends Controller
                 'emetteur_contact' => $emetteur_contact_final ?: null,
                 'id_adresse' => $request->id_adresse ? (int) $request->id_adresse : null,
                 'id_local' => $request->id_local ? (int) $request->id_local : null,
-                'id_user_assigne' => null
             ]);
 
             return redirect()->route('actions.index')->with('success', 'Action enregistrée avec succès.');
@@ -212,7 +211,7 @@ class ActionController extends Controller
 
         //  Mettre à jour le statut dans la table action
         $action->update([
-            'statut_action' => 'En cours'
+            'statut_action' => 'Transmis'
         ]);
 
         // 3. Rediriger avec un message de succès
@@ -245,9 +244,9 @@ class ActionController extends Controller
             'Autre' => null
         ], 'id_int');
 
-        // Faire évoluer le statut du signalement d'origine en "Transmis"
+        // Faire évoluer le statut du signalement d'origine en "En cours" pour indiquer qu'il est pris en charge par les équipes techniques
         $action->update([
-            'statut_action' => 'Transmis'
+            'statut_action' => 'En cours'
         ]);
 
         // Redirection vers la fiche de l'intervention fraîchement créée pour que l'agent puisse la planifier

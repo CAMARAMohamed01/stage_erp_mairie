@@ -164,7 +164,7 @@
             @endif
 
             <button type="submit"
-                class="px-8 py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-lg shadow-md transition">
+                class="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg shadow-md transition">
                 💾 Enregistrer les modifications
             </button>
         </div>

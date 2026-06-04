@@ -142,7 +142,7 @@
 
             <div class="flex justify-end pt-2">
                 <button type="submit"
-                    class="px-6 py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-lg shadow-md transition">
+                    class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg shadow-md transition">
                     💾 Enregistrer le compteur
                 </button>
             </div>
