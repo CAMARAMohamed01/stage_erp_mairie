@@ -11,6 +11,7 @@ class Adresse extends Model
 
     protected $table = 'Adresse'; // Attention à la majuscule de votre SQL
     protected $primaryKey = 'id_adresse';
+    public $timestamps = false;
     protected $guarded = [];
 
     // Une adresse appartient à un lieu-dit
