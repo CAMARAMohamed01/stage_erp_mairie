@@ -419,55 +419,45 @@ class TiersController extends Controller
     {
         $tiers = Tiers::findOrFail($id_tiers);
 
-        // 1. On valide les textes ET le document_rib
         $validated = $request->validate([
             'titulaire_compte' => 'required|string|max:100',
             'iban' => 'required|string|max:34',
             'bic' => 'required|string|max:11',
             'rib' => 'nullable|string|max:50',
-            'document_rib' => 'nullable|file|mimes:pdf,jpeg,png,jpg|max:5120', // Validation du fichier (5Mo max)
+            'document_rib' => 'nullable|file|mimes:pdf,jpeg,png,jpg|max:5120',
         ]);
 
-        // Nettoyage des espaces potentiels dans l'IBAN et le BIC
-        $iban = str_replace(' ', '', strtoupper($validated['iban']));
-        $bic = str_replace(' ', '', strtoupper($validated['bic']));
-
-        // 2. Création du compte et récupération de l'instance (très important pour avoir l'id_compte)
+        // La création applique automatiquement le chiffrement sur les 3 champs via le modèle
         $compte = CompteBancaire::create([
             'titulaire_compte' => $validated['titulaire_compte'],
-            'iban' => $iban,
-            'bic' => $bic,
-            'rib' => $validated['rib'] ?? null,
+            'iban' => $validated['iban'],
+            'bic' => $validated['bic'],
+            'rib' => $validated['rib'], // Pris en compte et crypté si présent
             'id_tiers' => $tiers->id_tiers,
             'date_ajout' => now()->format('Y-m-d'),
         ]);
 
-        // 3. Traitement de l'upload du document s'il y en a un
         if ($request->hasFile('document_rib')) {
             $file = $request->file('document_rib');
-
-            // Stockage physique dans storage/app/public/documents/comptes
             $path = $file->store('documents/comptes', 'public');
 
-            // Création de l'enregistrement dans la table `document`
             \App\Models\Document::create([
                 'nom_fichier' => $file->getClientOriginalName(),
                 'type_doc' => 'RIB',
                 'chemin_stockage' => $path,
                 'taille_ko' => round($file->getSize() / 1024, 2),
                 'date_upload' => now()->format('Y-m-d'),
-                'id_compte' => $compte->id_compte, // C'est ici qu'on fait le lien avec le compte !
+                'id_compte' => $compte->id_compte,
             ]);
         }
 
-        // 4. On redirige vers la bonne vue
         if ($tiers->type_tiers !== 'Physique') {
             return redirect()->route('tiers.show_entreprise', $tiers->id_tiers)
-                ->with('success', 'Compte bancaire et document ajoutés avec succès.');
+                ->with('success', '🔐 Compte bancaire (IBAN, BIC, RIB) crypté et enregistré avec succès.');
         }
 
         return redirect()->route('tiers.show', $tiers->id_tiers)
-            ->with('success', 'Compte bancaire et document ajoutés avec succès.');
+            ->with('success', '🔐 Compte bancaire (IBAN, BIC, RIB) crypté et enregistré avec succès.');
     }
     // --- SUPPRIMER UN COMPTE BANCAIRE ---
     public function destroyCompte($id)

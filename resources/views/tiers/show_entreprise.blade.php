@@ -127,7 +127,7 @@
                             d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z">
                         </path>
                     </svg>
-                    Comptes Bancaires
+                    Comptes Bancaires Sécurisés 🛡️
                 </h2>
                 <a href="{{ route('tiers.comptes.create', $entreprise->id_tiers) }}"
                     class="px-3 py-1.5 bg-emerald-100 text-emerald-700 text-xs font-bold rounded-lg hover:bg-emerald-200 transition shadow-sm">
@@ -145,17 +145,31 @@
                                     <p class="text-xs font-bold uppercase text-slate-500 mb-1">Titulaire</p>
                                     <p class="text-sm font-semibold text-slate-800 mb-3">{{ $compte->titulaire_compte }}</p>
 
+                                    {{-- 🔒 AFFICHAGE SÉCURISÉ ET MASQUÉ DE L'IBAN DÉCRYPTÉ --}}
                                     <div class="bg-white p-2 rounded border border-slate-100 mb-2">
-                                        <p class="text-[10px] text-slate-400 uppercase">IBAN</p>
-                                        <p class="font-mono text-sm text-slate-900 tracking-wide">{{ $compte->iban }}</p>
+                                        <p class="text-[10px] text-slate-400 uppercase">IBAN (Chiffré AES-256)</p>
+                                        <p class="font-mono text-xs text-slate-900 tracking-wide">
+                                            {{ $compte->iban ? Str::mask($compte->iban, '•', 4, -4) : 'N/A' }}
+                                        </p>
                                     </div>
 
-                                    <div class="flex justify-between items-center mt-2">
+                                    {{-- 🔒 AFFICHAGE SÉCURISÉ ET MASQUÉ DU BIC ET DU RIB --}}
+                                    <div class="grid grid-cols-2 gap-2 bg-white p-2 rounded border border-slate-100 mb-2">
                                         <div>
                                             <p class="text-[10px] text-slate-400 uppercase">BIC</p>
-                                            <p class="font-mono text-sm text-slate-700">{{ $compte->bic }}</p>
+                                            <p class="font-mono text-xs text-slate-700">
+                                                {{ $compte->bic ? Str::mask($compte->bic, '•', 2, -2) : 'N/A' }}
+                                            </p>
                                         </div>
+                                        <div>
+                                            <p class="text-[10px] text-slate-400 uppercase">Clé RIB</p>
+                                            <p class="font-mono text-xs text-slate-700">
+                                                {{ $compte->rib ? Str::mask($compte->rib, '•', 0, -2) : 'N/A' }}
+                                            </p>
+                                        </div>
+                                    </div>
 
+                                    <div class="flex justify-between items-center mt-3 pt-2 border-t border-slate-100">
                                         <div class="flex items-center gap-2">
                                             @if($compte->documents && $compte->documents->count() > 0)
                                                 <div class="text-xs">
@@ -168,21 +182,21 @@
                                                     @endforeach
                                                 </div>
                                             @endif
-
-                                            <form action="{{ route('tiers.comptes.destroy', $compte->id_compte) }}" method="POST"
-                                                class="inline-block" onsubmit="return confirm('Supprimer ce compte bancaire ?');">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="text-slate-400 hover:text-red-500 transition"
-                                                    title="Supprimer le compte">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
-                                                        </path>
-                                                    </svg>
-                                                </button>
-                                            </form>
                                         </div>
+
+                                        <form action="{{ route('tiers.comptes.destroy', $compte->id_compte) }}" method="POST"
+                                            class="inline-block" onsubmit="return confirm('Supprimer ce compte bancaire ?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="text-slate-400 hover:text-red-500 transition"
+                                                title="Supprimer le compte">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                                                    </path>
+                                                </svg>
+                                            </button>
+                                        </form>
                                     </div>
                                 </div>
                             </div>
@@ -264,7 +278,7 @@
                 </div>
             @else
                 <div class="px-8 py-10 text-center border-t border-slate-100">
-                    <p class="text-slate-500 font-medium">Aucun document n'est rattaché à ce dossier entreprise.</p>
+                    <p class="text-slate-500 font-medium">Aucun document n'est rattaché à ce dossier dossier d'entreprise.</p>
                 </div>
             @endif
         </div>
