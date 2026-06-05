@@ -103,12 +103,12 @@
                                 @endforelse
                             </td>
 
-                            <td class="px-6 py-4 text-right">
-                                <a href="{{ route('tiers.show_entreprise', $entreprise->id_tiers) }}"
-                                    class="text-blue-600 hover:text-emerald-800 font-medium bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded transition">
-                                    Voir le dossier
-                                </a>
-                            </td>
+                                <td class="px-6 py-4 text-right">
+                                    <a href="{{ route('tiers.show_entreprise', $entreprise->id_tiers) }}"
+                                        class="text-blue-600 hover:text-emerald-800 font-medium bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded transition">
+                                        Voir le dossier
+                                    </a>
+                                </td>
                         </tr>
                     @empty
                         <tr>

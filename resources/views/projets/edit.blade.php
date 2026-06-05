@@ -48,7 +48,7 @@
                             (€)</label>
                         <input type="number" step="0.01" name="budget_global_alloue"
                             value="{{ old('budget_global_alloue', $projet->budget_global_alloue) }}"
-                            class="w-full rounded-lg border-slate-300 shadow-sm focus:ring-2 focus:ring-blue-500">
+                            cl  ass="w-full rounded-lg border-slate-300 shadow-sm focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div class="md:col-span-2">
                         <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Chef de projet

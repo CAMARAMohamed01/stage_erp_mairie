@@ -38,17 +38,7 @@
                             class="w-full rounded-lg border-slate-300 focus:ring-slate-900 focus:border-slate-900 text-sm">
                     </div>
 
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Usage
-                            Principal</label>
-                        <select name="id_usage"
-                            class="w-full rounded-lg border-slate-300 focus:ring-slate-900 focus:border-slate-900 text-sm bg-slate-50">
-                            <option value="">-- Sélectionner l'usage --</option>
-                            @foreach($usages as $usage)
-                                <option value="{{ $usage->id_usage }}">{{ $usage->libelle_usage }}</option>
-                            @endforeach
-                        </select>
-                    </div>
+
 
                     <div>
                         <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Statut

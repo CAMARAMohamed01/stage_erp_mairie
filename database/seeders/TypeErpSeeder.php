@@ -34,6 +34,6 @@ class TypeErpSeeder extends Seeder
             );
         }
 
-        $this->command->info('✨ Référentiel des Types ERP inséré avec succès !');
+        $this->command->info('Référentiel des Types ERP inséré avec succès !');
     }
 }
