@@ -234,6 +234,7 @@
                                 class="w-full border rounded-lg p-2 bg-white font-medium">
                                 <option value="Mariage Civil">Mariage Civil</option>
                                 <option value="PACS">PACS</option>
+                                <option value="Union Libre">Union Libre</option>
                             </select>
                             <input type="date" name="date_union"
                                 class="w-full border rounded-lg p-1.5 bg-white font-mono">
@@ -513,11 +514,6 @@
 
 @section('scripts')
 <script>
-/**
- * 🔐 FONCTION DE COPIE TRANSPARENTE POUR COMPTABLE
- * Récupère la valeur brute chiffrée passée via Blade, l'envoie dans le presse-papiers
- * et lève un toast de validation visuelle.
- */
 function copyToClipboard(value) {
     if (!value) return;
 
