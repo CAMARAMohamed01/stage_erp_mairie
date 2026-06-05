@@ -65,7 +65,6 @@
                             class="w-full rounded-lg border-slate-300 text-sm bg-slate-50">
                             <option value="">-- Sélectionner --</option>
                             @foreach($adresses as $adresse)
-                                {{-- On embarque la latitude et la longitude de la BAN directement dans l'option --}}
                                 <option value="{{ $adresse->id_adresse }}" data-lat="{{ $adresse->latitude }}"
                                     data-lng="{{ $adresse->longitude }}">
                                     {{ $adresse->num_rue }} {{ $adresse->nom_voie }}, {{ $adresse->ville }}
@@ -123,11 +122,13 @@
                     </div>
 
                     <div class="md:col-span-2">
+                        {{-- 🎯 MODIFICATION : L'immobilisation comptable n'est plus obligatoire (Retrait de l'étoile rouge
+                        et de required) --}}
                         <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Immobilisation
-                            Comptable <span class="text-red-500"></span></label>
+                            Comptable (Optionnelle)</label>
                         <select name="id_immo" id="select_immo"
                             class="w-full rounded-lg border-slate-300 text-sm bg-slate-50">
-                            <option value="">-- Sélectionner --</option>
+                            <option value="">-- Aucune immobilisation rattachée --</option>
                             @foreach($immos_disponibles as $immo)
                                 <option value="{{ $immo->id_immo }}">{{ $immo->num_inventaire }}
                                     ({{ $immo->libelle_comptable }})</option>
@@ -245,8 +246,11 @@
                         </select>
                     </div>
                     <div>
+                        {{-- 🎯 MODIFICATION : L'immobilisation est rendue optionnelle aussi dans le formulaire de création
+                        de parcelle cadastrale --}}
                         <label class="block text-xs font-medium text-slate-500">Immobilisation liée</label>
-                        <select name="id_immo" required class="w-full rounded-md border-slate-300 text-sm bg-slate-50">
+                        <select name="id_immo" class="w-full rounded-md border-slate-300 text-sm bg-slate-50">
+                            <option value="">-- Aucune (Optionnelle) --</option>
                             @foreach($immos_disponibles as $immo)
                                 <option value="{{ $immo->id_immo }}">{{ $immo->num_inventaire }}</option>
                             @endforeach
@@ -264,26 +268,24 @@
         </div>
     </div>
 @endsection
+
 @section('scripts')
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/@geoman-io/leaflet-geoman-free@latest/dist/leaflet-geoman.js"></script>
 
     <script>
-        // --- GESTION DES FENÊTRES MODALES & AJAX ---
         function openModal(id) {
             const modal = document.getElementById(id);
             modal.classList.remove('hidden');
             modal.classList.add('flex');
         }
 
-        //"fn" est redevenu "function" et "class_list" est redevenu "classList"
         function closeModal(id) {
             const modal = document.getElementById(id);
             modal.classList.remove('flex');
             modal.classList.add('hidden');
         }
 
-        // "fn" est redevenu "function" et "class_list" est redevenu "classList"
         function submitModal(formId, targetUrl, selectDestId) {
             const formElement = document.getElementById(formId);
             const formData = new FormData(formElement);
@@ -308,8 +310,8 @@
                 })
                 .catch(error => alert("Erreur d'insertion. Vérifiez la conformité des données foncières."));
         }
+
         document.addEventListener("DOMContentLoaded", function () {
-            //  Configuration initiale de la carte
             var map = L.map('map', {
                 maxZoom: 22
             }).setView([45.928, 6.223], 15);
@@ -335,46 +337,31 @@
 
             var currentMarker = null;
             var geojsonInput = document.getElementById('geojson_data');
-
-            // Changement d'adresse pour auto-centrage
             var selectAdresse = document.getElementById('select_adresse');
 
             selectAdresse.addEventListener('change', function () {
-                // On récupère l'option actuellement sélectionnée
                 var selectedOption = this.options[this.selectedIndex];
-
                 var lat = selectedOption.getAttribute('data-lat');
                 var lng = selectedOption.getAttribute('data-lng');
 
-                // Si l'adresse possède des coordonnées valides
                 if (lat && lng && lat !== "" && lng !== "") {
                     var targetLatLng = [parseFloat(lat), parseFloat(lng)];
-
-                    // On déplace la carte sur le point GPS officiel de la BAN avec un zoom précis
                     map.setView(targetLatLng, 19);
 
-                    // On place automatiquement le marqueur Geoman à cet endroit !
                     if (currentMarker) {
                         map.removeLayer(currentMarker);
                     }
 
-                    // On crée un nouveau marqueur Leaflet à l'emplacement précis
                     currentMarker = L.marker(targetLatLng, {
                         draggable: true
                     }).addTo(map);
 
-                    // On active les capacités Geoman sur ce marqueur pour qu'il soit modifiable / supprimable
                     currentMarker.pm.enable();
-
-                    // On met à jour le champ caché GeoJSON pour le contrôleur
                     updateGeoJSON();
-
-                    // Si l'agent déplace le marqueur manuellement sur le toit, on met à jour la position
                     currentMarker.on('pm:dragend', updateGeoJSON);
                 }
             });
 
-            // Événements classiques Geoman pour la création/suppression manuelle
             map.on('pm:create', function (e) {
                 if (currentMarker) {
                     map.removeLayer(currentMarker);

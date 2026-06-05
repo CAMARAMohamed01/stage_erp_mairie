@@ -9,8 +9,9 @@ class Local extends Model
 {
     use HasFactory;
 
-    protected $table = 'local_'; // Le fameux underscore !
+    protected $table = 'local_';
     protected $primaryKey = 'id_local';
+    public $timestamps = false;
     protected $guarded = [];
 
     // Relation inverse : Connaître tous les projets qui ont impacté ce local

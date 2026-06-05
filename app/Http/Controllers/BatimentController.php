@@ -142,9 +142,10 @@ class BatimentController extends Controller
         $types_erp = DB::table('type_erp')->orderBy('categorie_erp')->get();
         $lieu_dits = DB::table('lieu_dit')->orderBy('nom_lieu_dit')->get();
 
+        // On ne propose que les immos qui ne sont pas déjà prises par un bâtiment
         $immos_disponibles = DB::table('immobilisation_inventaire_')
             ->whereNotIn('id_immo', function ($query) {
-                $query->select('id_immo')->from('batiment');
+                $query->select('id_immo')->from('batiment')->whereNotNull('id_immo');
             })->get();
 
         // Récupération des contrats
@@ -155,7 +156,7 @@ class BatimentController extends Controller
 
     public function store(Request $request)
     {
-        // ✅ MISE À JOUR : Suppression de la validation requise sur 'id_tiers'
+        // 🎯 MISE À JOUR : 'id_immo' devient 'nullable'
         $request->validate([
             'nom_bat' => 'required|string|max:100',
             'surface_totale_m2' => 'nullable|numeric',
@@ -163,13 +164,13 @@ class BatimentController extends Controller
             'id_parcelle' => 'required|integer|exists:parcelle,id_parcelle',
             'id_type_erp' => 'required|integer|exists:type_erp,id_type_erp',
             'id_adresse' => 'required|integer|exists:Adresse,id_adresse',
-            'id_immo' => 'required|integer|exists:immobilisation_inventaire_,id_immo|unique:batiment,id_immo',
+            'id_immo' => 'nullable|integer|exists:immobilisation_inventaire_,id_immo|unique:batiment,id_immo',
             'geojson_data' => 'nullable|json',
             'id_contrats' => 'nullable|array',
             'id_contrats.*' => 'exists:contrat,id_contrat',
         ]);
 
-        // Utilisation d'Eloquent pour chaîner les contrats
+        // Utilisation d'Eloquent pour la création du bâtiment
         $batiment = Batiment::create([
             'nom_bat' => $request->nom_bat,
             'surface_totale_m2' => $request->surface_totale_m2,
@@ -177,7 +178,7 @@ class BatimentController extends Controller
             'id_parcelle' => $request->id_parcelle,
             'id_type_erp' => $request->id_type_erp,
             'id_adresse' => $request->id_adresse,
-            'id_immo' => $request->id_immo,
+            'id_immo' => $request->id_immo ?: null, // 🎯 FORCE LE NULL SI VIDE
         ]);
 
         // Liaison dans la table pivot des contrats
@@ -197,7 +198,6 @@ class BatimentController extends Controller
 
         return redirect()->route('batiments.index')->with('success', 'Le bâtiment a été intégré avec succès.');
     }
-
     public function edit($id)
     {
         $batiment = Batiment::with('contratsAdministratifs')
