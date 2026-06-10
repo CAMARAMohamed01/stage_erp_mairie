@@ -29,7 +29,7 @@ class TronconController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'id_voie' => 'required|exists:voie,id_voie',
+            'id_voie' => 'nullable|exists:voie,id_voie',
             'numero_troncon' => 'required|string|max:150|unique:troncon,numero_troncon',
             'nom_portion' => 'nullable|string|max:100',
             'pk_debut' => 'nullable|numeric',
@@ -66,7 +66,7 @@ class TronconController extends Controller
     public function update(Request $request, $id)
     {
         $validated = $request->validate([
-            'id_voie' => 'required|exists:voie,id_voie',
+            'id_voie' => 'nullable|exists:voie,id_voie',
             'numero_troncon' => 'required|string|max:150|unique:troncon,numero_troncon,' . $id . ',id_troncon',
             'nom_portion' => 'nullable|string|max:100',
             'pk_debut' => 'nullable|numeric',

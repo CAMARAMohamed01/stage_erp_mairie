@@ -131,10 +131,9 @@ document.addEventListener("DOMContentLoaded", function() {
                 <h3 class="text-sm font-bold text-slate-800 uppercase bg-slate-50 p-2 rounded">1. Identification</h3>
 
                 <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-1">Voie associée <span
-                            class="text-red-500">*</span></label>
-                    <select name="id_voie" required class="w-full border-slate-300 rounded-lg focus:ring-blue-500">
-                        <option value="">-- Choisir la voie parente --</option>
+                    <label class="block text-sm font-bold text-slate-700 mb-1">Voie associée</label>
+                    <select name="id_voie" class="w-full border-slate-300 rounded-lg focus:ring-blue-500">
+                        <option value="">-- Aucune voie associée (Optionnel) --</option>
                         @foreach($voies as $v)
                         <option value="{{ $v->id_voie }}"
                             {{ old('id_voie', $troncon->id_voie) == $v->id_voie ? 'selected' : '' }}>
