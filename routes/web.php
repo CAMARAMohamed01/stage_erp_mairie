@@ -553,6 +553,8 @@ Route::middleware('auth')->group(function () {
         ->middleware('can:check-permission,"Voirie","suppression"')->name('voies.destroy');
 
     // --- GESTION DES TRONÇONS DE VOIE ---
+    Route::get('/troncons', [TronconController::class, 'index'])
+        ->middleware('can:check-permission,"Voirie","lecture"')->name('troncons.index');
     Route::get('/troncons/create', [TronconController::class, 'create'])
         ->middleware('can:check-permission,"Voirie","ecriture"')->name('troncons.create');
     Route::post('/troncons', [TronconController::class, 'store'])

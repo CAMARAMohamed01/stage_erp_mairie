@@ -16,6 +16,22 @@ use App\Models\Ouvrage;
 
 class TronconController extends Controller
 {
+    public function index(Request $request)
+    {
+        $query = Troncon::with('voie');
+
+        // Barre de recherche simple
+        if ($request->filled('search')) {
+            $searchTerm = '%' . $request->search . '%';
+            $query->where('numero_troncon', 'ilike', $searchTerm)
+                ->orWhere('nom_portion', 'ilike', $searchTerm);
+        }
+
+        // On trie par numéro et on récupère les résultats
+        $troncons = $query->orderBy('numero_troncon', 'asc')->get();
+
+        return view('troncons.index', compact('troncons'));
+    }
     public function create(Request $request)
     {
         $selectedVoieId = $request->query('id_voie');

@@ -115,7 +115,7 @@
 
             <div>
                 <button onclick="toggleMenu('menu-voirie')"
-                    class="w-full flex items-center justify-between px-4 py-2.5 rounded-lg transition-colors font-medium hover:bg-slate-800 hover:text-white {{ request()->routeIs('voies.*', 'ouvrages.*', 'communes.*') ? 'text-white' : '' }}">
+                    class="w-full flex items-center justify-between px-4 py-2.5 rounded-lg transition-colors font-medium hover:bg-slate-800 hover:text-white {{ request()->routeIs('voies.*', 'troncons.*', 'ouvrages.*', 'communes.*') ? 'text-white' : '' }}">
                     <div class="flex items-center">
                         <svg class="w-5 h-5 mr-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -124,22 +124,33 @@
                         Voirie & Réseaux
                     </div>
                     <svg id="arrow-menu-voirie"
-                        class="w-4 h-4 arrow-icon {{ request()->routeIs('voies.*', 'ouvrages.*', 'communes.*') ? 'rotate-90' : '' }}"
+                        class="w-4 h-4 arrow-icon {{ request()->routeIs('voies.*', 'troncons.*', 'ouvrages.*', 'communes.*') ? 'rotate-90' : '' }}"
                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                     </svg>
                 </button>
                 <div id="menu-voirie"
-                    class="flex flex-col pl-12 pr-4 py-1 space-y-1 {{ request()->routeIs('voies.*', 'ouvrages.*', 'communes.*') ? '' : 'hidden' }}">
+                    class="flex flex-col pl-12 pr-4 py-1 space-y-1 {{ request()->routeIs('voies.*', 'troncons.*', 'ouvrages.*', 'communes.*') ? '' : 'hidden' }}">
+
                     <a href="{{ route('voies.index') }}"
-                        class="text-sm py-2 transition-colors {{ request()->routeIs('voies.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Voies
-                        & Tronçons</a>
+                        class="text-sm py-2 transition-colors {{ request()->routeIs('voies.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">
+                        Voies (Axes principaux)
+                    </a>
+
+                    <a href="{{ route('troncons.index') }}"
+                        class="text-sm py-2 transition-colors {{ request()->routeIs('troncons.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">
+                        Tronçons & Chemins
+                    </a>
+
                     <a href="{{ route('ouvrages.index') }}"
-                        class="text-sm py-2 transition-colors {{ request()->routeIs('ouvrages.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Ouvrages
-                        d'art</a>
+                        class="text-sm py-2 transition-colors {{ request()->routeIs('ouvrages.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">
+                        Ouvrages d'art
+                    </a>
+
                     <a href="{{ route('communes.index') }}"
-                        class="text-sm py-2 transition-colors {{ request()->routeIs('communes.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">Communes
-                        partenaires</a>
+                        class="text-sm py-2 transition-colors {{ request()->routeIs('communes.*') ? 'text-white font-bold' : 'text-slate-400 hover:text-white' }}">
+                        Communes partenaires
+                    </a>
                 </div>
             </div>
 
