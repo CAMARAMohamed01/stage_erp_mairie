@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Projet;
+use App\Models\Batiment;
+use App\Models\LieuPublic;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -15,7 +17,6 @@ class ProjetController extends Controller
             $query->where('nom_projet', 'ilike', '%' . $request->search . '%');
         }
 
-        // Filtre par type
         if ($request->filled('type')) {
             $query->where('type_projet', $request->type);
         }
@@ -27,13 +28,17 @@ class ProjetController extends Controller
     public function create()
     {
         $utilisateurs = DB::table('utilisateur')->get();
-        return view('projets.create', compact('utilisateurs'));
+        // On récupère les périmètres possibles
+        $batiments = DB::table('batiment')->orderBy('nom_bat')->get();
+        $lieux = DB::table('lieux_publics')->orderBy('nom_lieu')->get();
+
+        return view('projets.create', compact('utilisateurs', 'batiments', 'lieux'));
     }
+
     public function show($id)
     {
-        // On charge les relation 'chefProjet' définies dans ton modèle
-        $projet = Projet::with(['interventions', 'chefProjet'])->findOrFail($id);
-
+        // On charge les interventions, le chef de projet, et le périmètre (bâtiments + lieux)
+        $projet = Projet::with(['interventions', 'chefProjet', 'batiments', 'lieuxPublics'])->findOrFail($id);
         return view('projets.show', compact('projet'));
     }
 
@@ -46,18 +51,34 @@ class ProjetController extends Controller
             'annee_mandat' => 'required|string|max:5',
             'avis' => 'nullable|string|max:100',
             'id_user' => 'required|exists:utilisateur,id_user',
+            // Validation des tableaux de périmètre
+            'batiments' => 'nullable|array',
+            'batiments.*' => 'exists:batiment,id_batiment',
+            'lieux' => 'nullable|array',
+            'lieux.*' => 'exists:lieux_publics,id_lieu',
         ]);
 
-        Projet::create($validated);
+        $projet = Projet::create($validated);
 
-        return redirect()->route('projets.index')->with('success', 'Projet créé avec succès.');
+        // Attachement des relations (Pivot tables)
+        if ($request->has('batiments')) {
+            $projet->batiments()->attach($request->batiments);
+        }
+        if ($request->has('lieux')) {
+            $projet->lieuxPublics()->attach($request->lieux);
+        }
+
+        return redirect()->route('projets.index')->with('success', 'Projet et son périmètre créés avec succès.');
     }
 
     public function edit($id)
     {
-        $projet = Projet::findOrFail($id);
+        $projet = Projet::with(['batiments', 'lieuxPublics'])->findOrFail($id);
         $utilisateurs = DB::table('utilisateur')->get();
-        return view('projets.edit', compact('projet', 'utilisateurs'));
+        $batiments = DB::table('batiment')->orderBy('nom_bat')->get();
+        $lieux = DB::table('lieux_publics')->orderBy('nom_lieu')->get();
+
+        return view('projets.edit', compact('projet', 'utilisateurs', 'batiments', 'lieux'));
     }
 
     public function update(Request $request, $id)
@@ -71,16 +92,29 @@ class ProjetController extends Controller
             'annee_mandat' => 'required|string|max:5',
             'avis' => 'nullable|string|max:100',
             'id_user' => 'required|exists:utilisateur,id_user',
+            'batiments' => 'nullable|array',
+            'batiments.*' => 'exists:batiment,id_batiment',
+            'lieux' => 'nullable|array',
+            'lieux.*' => 'exists:lieux_publics,id_lieu',
         ]);
 
         $projet->update($validated);
+
+        // La méthode sync() met à jour la table pivot (ajoute les nouveaux, supprime les décochés)
+        $projet->batiments()->sync($request->input('batiments', []));
+        $projet->lieuxPublics()->sync($request->input('lieux', []));
 
         return redirect()->route('projets.index')->with('success', 'Projet mis à jour.');
     }
 
     public function destroy($id)
     {
-        Projet::findOrFail($id)->delete();
+        $projet = Projet::findOrFail($id);
+        // On détache d'abord les relations pour éviter les erreurs de clés étrangères
+        $projet->batiments()->detach();
+        $projet->lieuxPublics()->detach();
+        $projet->delete();
+
         return redirect()->route('projets.index')->with('success', 'Projet supprimé.');
     }
 }
