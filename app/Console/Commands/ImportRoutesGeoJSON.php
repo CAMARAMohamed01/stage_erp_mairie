@@ -4,7 +4,13 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
-
+/**
+ * Class ImportRoutesGeoJSON
+ * * Flux ETL (Extract, Transform, Load) dédié à l'intégration des données géospatiales.
+ * Traite les tracés de voirie issus d'OpenStreetMap ou de SIG (format GeoJSON) 
+ * pour alimenter le référentiel de la commune de Dingy-Saint-Clair.
+ * * @package App\Console\Commands
+ */
 class ImportRoutesGeoJSON extends Command
 {
     // Le nom de la commande à taper dans le terminal
@@ -12,7 +18,15 @@ class ImportRoutesGeoJSON extends Command
 
     // La description
     protected $description = 'Importe les routes depuis un fichier GeoJSON vers les tables voie et troncon';
-
+    /**
+     * Exécute le traitement du flux géospatial.
+     * * Logique technique & métier :
+     * 1. Extraction et parsing du fichier d'entrée GeoJSON.
+     * 2. Filtrage des primitives pour n'isoler que les vecteurs linéaires (LineString).
+     * 3. Normalisation et dédoublonnage de l'entité parente "voie".
+     * 4. Injection du tronçon avec typage fort PostGIS (Conversion JSON -> Géométrie brute).
+     * * @return void
+     */
     public function handle()
     {
         $path = storage_path('app/routes_dingy.geojson');
@@ -35,6 +49,10 @@ class ImportRoutesGeoJSON extends Command
 
         foreach ($data['features'] as $index => $feature) {
             // On ne traite que les lignes (LineString)
+            /**
+             * Contrainte topologique : On écarte les points (noeuds) et les polygones
+             * pour ne conserver que les arcs (LineString) représentant les axes routiers.
+             */
             if ($feature['geometry']['type'] !== 'LineString') {
                 continue;
             }
@@ -52,14 +70,19 @@ class ImportRoutesGeoJSON extends Command
                 $idVoie = DB::table('voie')->insertGetId([
                     'nom_voie' => $nomVoie,
                     // On génère un numéro fictif pour respecter d'éventuelles contraintes
-                    'numero_voie' => 'V-' . rand(1000, 9999)
+                    'numero_voie' => 'V-' . rand(1000, 9999) // Injection d'un code d'inventaire fictif
                 ], 'id_voie');
             } else {
                 $idVoie = $voie->id_voie;
             }
 
-            // 2. Création du Tronçon avec la fonction PostGIS (ST_GeomFromGeoJSON)
-            // On s'assure d'utiliser le SRID 4326 (WGS 84, coordonnées GPS standard)
+            // 2. INJECTION SPATIALE DANS POSTGRESQL (Table: troncon)
+            /**
+             * Sécurisation PostGIS : 
+             * - ST_GeomFromGeoJSON parse la structure de coordonnées JSON.
+             * - ST_SetSRID force le système de référence spatial sur le SRID 4326.
+             * (Système WGS 84 utilisé par défaut par les puces GPS et OpenStreetMap).
+             */
             DB::table('troncon')->insert([
                 'id_voie' => $idVoie,
                 'numero_troncon' => 'TR-' . uniqid(),

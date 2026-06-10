@@ -77,6 +77,16 @@ class InterventionController extends Controller
 
         return back()->with('success', 'Le document a été joint à l\'intervention avec succès.');
     }
+
+    /**
+     * Affiche le détail d'une intervention et consolide son coût financier.
+     * * Règle métier : Le coût total d'une intervention est la somme exacte 
+     * des achats de matériels (quantité * prix unitaire HT) et du coût de la main d'œuvre 
+     * ou des prestataires issus de l'historique de suivi.
+     *
+     * @param int $id Identifiant de l'intervention
+     * @return \Illuminate\View\View
+     */
     public function show($id)
     {
         $documents = DB::table('document')
@@ -118,7 +128,14 @@ class InterventionController extends Controller
 
         return redirect()->back()->with('success', 'L\'intervention a été clôturée avec succès.');
     }
-
+    /**
+     * Exporte le registre des interventions au format CSV.
+     * * Technique : Injection du BOM (Byte Order Mark) UTF-8 au début du fichier
+     * pour forcer Microsoft Excel à interpréter correctement les caractères accentués.
+     * Utilisation d'un stream HTTP pour ne pas saturer la RAM du serveur lors de gros exports.
+     *
+     * @return \Symfony\Component\HttpFoundation\StreamedResponse
+     */
     public function exportExcel()
     {
         $interventions = Intervention::all();
@@ -243,7 +260,15 @@ class InterventionController extends Controller
             'projets',
         ));
     }
-
+    /**
+     * Enregistre une nouvelle intervention et ses dépendances patrimoniales.
+     * * Sécurité : Utilisation d'une transaction SQL pour garantir que l'intervention 
+     * et ses liaisons dans les tables pivots (intervention_equipement, intervention_espace) 
+     * soient insérées simultanément. En cas d'erreur, un Rollback automatique est effectué.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function store(Request $request)
     {
         // 1. Validation stricte basée sur ton schéma SQL
