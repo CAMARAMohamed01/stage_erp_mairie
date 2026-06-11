@@ -35,9 +35,8 @@
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Type d'intervention *</label>
                 <select name="type_intervention" required class="w-full border border-gray-300 rounded-lg px-4 py-2">
-                    <option value="Maintenance Préventive"
-                        {{ $intervention->type_intervention == 'Maintenance Préventive' ? 'selected' : '' }}>Maintenance
-                        Préventive</option>
+                    <option value="Maintenance"
+                        {{ $intervention->type_intervention == 'Maintenance' ? 'selected' : '' }}>Maintenance</option>
                     <option value="Dépannage Curatif"
                         {{ $intervention->type_intervention == 'Dépannage Curatif' ? 'selected' : '' }}>Dépannage
                         Curatif</option>
@@ -45,7 +44,11 @@
                         {{ $intervention->type_intervention == 'Contrôle Réglementaire' ? 'selected' : '' }}>Contrôle
                         Réglementaire</option>
                     <option value="Travaux Neufs"
-                        {{ $intervention->type_intervention == 'Travaux Neufs' ? 'selected' : '' }}>Travaux Neufs
+                        {{ $intervention->type_intervention == 'Travaux Neufs' ? 'selected' : '' }}>Travaux
+                        Neufs(Amélioration)
+                    </option>
+                    <option value="Gros Entretiens"
+                        {{ $intervention->type_intervention == 'Gros Entretiens' ? 'selected' : '' }}>Gros Entretiens
                     </option>
                 </select>
             </div>

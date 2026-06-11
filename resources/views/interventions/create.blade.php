@@ -134,10 +134,11 @@
                 <label class="block text-sm font-medium text-gray-700 mb-1">Type d'intervention *</label>
                 <select name="type_intervention" required
                     class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-blue-500">
-                    <option value="Maintenance Préventive">Maintenance Préventive</option>
+                    <option value="Maintenance">Maintenance</option>
                     <option value="Dépannage Curatif">Dépannage Curatif</option>
                     <option value="Contrôle Réglementaire">Contrôle Réglementaire</option>
-                    <option value="Travaux Neufs">Travaux Neufs</option>
+                    <option value="Travaux Neufs">Travaux Neufs(Amélioration)</option>
+                    <option value="Gros Entretiens">Gros Entretiens</option>
                 </select>
             </div>
 
