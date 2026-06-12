@@ -22,7 +22,7 @@ return new class extends Migration {
             $table->string('statut_action', 50);
 
             // L'agent à qui le ticket est assigné (nullable car au début, personne n'est assigné)
-            $table->unsignedBigInteger('id_user'); // NOT NULL
+            $table->unsignedBigInteger('id_user')->nullable();
             $table->unsignedBigInteger('id_adresse')->nullable();
             $table->unsignedBigInteger('id_local')->nullable();
             $table->unsignedBigInteger('id_cat')->nullable();

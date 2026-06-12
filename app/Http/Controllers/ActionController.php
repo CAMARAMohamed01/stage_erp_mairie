@@ -56,8 +56,9 @@ class ActionController extends Controller
         // Récupération des adresses BAN et des locaux pour la localisation
         $adresses = DB::table('Adresse')->orderBy('nom_voie')->orderBy('num_rue')->get();
         $locaux = DB::table('local_')->orderBy('nom_local')->get();
-
-        return view('actions.create', compact('categories', 'tiers', 'adresses', 'locaux'));
+        $batiments = DB::table('batiment')->orderBy('nom_bat')->get();
+        $lieux_publics = DB::table('lieux_publics')->orderBy('nom_lieu')->get();
+        return view('actions.create', compact('categories', 'tiers', 'adresses', 'locaux', 'batiments', 'lieux_publics'));
     }
 
     public function store(Request $request)
@@ -75,7 +76,9 @@ class ActionController extends Controller
                 'emetteur_contact' => 'nullable|string|max:50',
                 'creer_nouveau_tiers' => 'nullable',
                 'id_adresse' => 'nullable|exists:Adresse,id_adresse',
-                'id_local' => 'nullable|exists:local_,id_local'
+                'id_local' => 'nullable|exists:local_,id_local',
+                'id_batiment' => 'nullable|exists:batiment,id_batiment',
+                'id_lieu' => 'nullable|exists:lieux_publics,id_lieu'
             ]);
 
             $id_tiers_final = $request->id_tiers;
@@ -129,6 +132,8 @@ class ActionController extends Controller
                 'emetteur_contact' => $emetteur_contact_final ?: null,
                 'id_adresse' => $request->id_adresse ? (int) $request->id_adresse : null,
                 'id_local' => $request->id_local ? (int) $request->id_local : null,
+                'id_batiment' => $request->id_batiment ? (int) $request->id_batiment : null,
+                'id_lieu' => $request->id_lieu ? (int) $request->id_lieu : null
             ]);
 
             return redirect()->route('actions.index')->with('success', 'Action enregistrée avec succès.');
@@ -143,12 +148,13 @@ class ActionController extends Controller
         $action = Action::findOrFail($id);
         $categories = Categorie::orderBy('libelle')->get();
         $tiers = TiersPhysique::orderBy('nom_tiers')->get();
-
+        $batiments = DB::table('batiment')->orderBy('nom_bat')->get();
+        $lieux_publics = DB::table('lieux_publics')->orderBy('nom_lieu')->get();
         // Récupération pour la vue de modification
         $adresses = DB::table('Adresse')->orderBy('nom_voie')->orderBy('num_rue')->get();
         $locaux = DB::table('local_')->orderBy('nom_local')->get();
 
-        return view('actions.edit', compact('action', 'categories', 'tiers', 'adresses', 'locaux'));
+        return view('actions.edit', compact('action', 'categories', 'tiers', 'adresses', 'locaux', 'batiments', 'lieux_publics'));
     }
 
     public function update(Request $request, $id)
@@ -166,7 +172,9 @@ class ActionController extends Controller
 
             // Validation des modifications géographiques
             'id_adresse' => 'nullable|exists:Adresse,id_adresse',
-            'id_local' => 'nullable|exists:local_,id_local'
+            'id_local' => 'nullable|exists:local_,id_local',
+            'id_batiment' => 'nullable|exists:batiment,id_batiment',
+            'id_lieu' => 'nullable|exists:lieux_publics,id_lieu'
         ]);
 
         $id_tiers_final = $request->id_tiers;
@@ -188,7 +196,9 @@ class ActionController extends Controller
             'emetteur_nom' => $emetteur_nom_final,
             'emetteur_contact' => $request->emetteur_contact,
             'id_adresse' => $request->id_adresse ?: null, //  Mise à jour de l'adresse
-            'id_local' => $request->id_local ?: null       //  Mise à jour du local
+            'id_local' => $request->id_local ?: null,       //  Mise à jour du local
+            'id_batiment' => $request->id_batiment ?: null, //  Mise à jour du bâtiment
+            'id_lieu' => $request->id_lieu ?: null           //  Mise à jour du lieu public
         ]);
 
         return redirect()->route('actions.show', $action->id_action)->with('success', 'Action mise à jour avec succès.');

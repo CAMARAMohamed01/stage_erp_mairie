@@ -20,6 +20,7 @@ class action extends Model
     {
         return $this->belongsTo(Utilisateur::class, 'id_user', 'id_user');
     }
+    //lieu de l'action
     public function createur()
     {
 
@@ -46,5 +47,14 @@ class action extends Model
     public function local()
     {
         return $this->belongsTo(Local::class, 'id_local');
+    }
+    public function lieu()
+    {
+        return $this->belongsTo(LieuPublic::class, 'id_lieu', 'id_lieu');
+    }
+    // batiment
+    public function batiment()
+    {
+        return $this->belongsTo(Batiment::class, 'id_batiment', 'id_batiment');
     }
 }

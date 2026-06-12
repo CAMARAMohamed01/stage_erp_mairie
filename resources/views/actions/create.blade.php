@@ -112,13 +112,13 @@
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <div>
-                            <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Adresse officielle (Voie
+                            <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Adresse (Voirie
                                 BAN)</label>
                             <select name="id_adresse" id="id_adresse"
                                 class="w-full border-slate-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 text-sm py-2.5 bg-white">
-                                <option value="">-- Sélectionner une adresse de voirie --</option>
+                                <option value="">-- Aucune adresse spécifique --</option>
                                 @foreach($adresses as $adr)
-                                    <option value="{{ $adr->id_adresse }}">
+                                    <option value="{{ $adr->id_adresse }}" {{ old('id_adresse') == $adr->id_adresse ? 'selected' : '' }}>
                                         {{ $adr->num_rue }} {{ $adr->nom_voie }} ({{ $adr->code_postal }} {{ $adr->ville }})
                                     </option>
                                 @endforeach
@@ -126,24 +126,49 @@
                         </div>
 
                         <div>
-                            <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Ou Local technique
-                                intérieur</label>
+                            <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Lieu public /
+                                Lieu-dit</label>
+                            <select name="id_lieu" id="id_lieu"
+                                class="w-full border-slate-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 text-sm py-2.5 bg-white">
+                                <option value="">-- Aucun lieu public --</option>
+                                @foreach($lieux_publics as $lieu)
+                                    <option value="{{ $lieu->id_lieu }}" {{ old('id_lieu') == $lieu->id_lieu ? 'selected' : '' }}>
+                                        🌳 {{ $lieu->nom_lieu }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Bâtiment municipal</label>
+                            <select name="id_batiment" id="id_batiment"
+                                class="w-full border-slate-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 text-sm py-2.5 bg-white">
+                                <option value="">-- Aucun bâtiment --</option>
+                                @foreach($batiments as $bat)
+                                    <option value="{{ $bat->id_batiment }}" {{ old('id_batiment') == $bat->id_batiment ? 'selected' : '' }}>
+                                        🏛️ {{ $bat->nom_bat }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Local technique
+                                précis</label>
                             <select name="id_local" id="id_local"
                                 class="w-full border-slate-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 text-sm py-2.5 bg-white">
-                                <option value="">-- Sélectionner un local technique --</option>
+                                <option value="">-- Aucun local technique --</option>
                                 @foreach($locaux as $loc)
-                                    <option value="{{ $loc->id_local }}">🏢 {{ $loc->nom_local }} (Niveau :
-                                        {{ $loc->niveau ?? 'RDC' }})
+                                    <option value="{{ $loc->id_local }}" {{ old('id_local') == $loc->id_local ? 'selected' : '' }}>
+                                        🔑 {{ $loc->nom_local }} (Niveau : {{ $loc->niveau ?? 'RDC' }})
                                     </option>
                                 @endforeach
                             </select>
                         </div>
                     </div>
-                    <p class="text-xs text-slate-400 italic font-medium mt-1">💡 Conseil : Si l'anomalie se situe en pleine
-                        rue, choisissez l'adresse. Si elle concerne un bâtiment municipal, privilégiez le local technique.
-                    </p>
+                    <p class="text-xs text-slate-500 italic font-medium mt-1">💡 Conseil : Renseignez uniquement le niveau
+                        de précision connu (ex: indiquez le Bâtiment si vous ignorez le Local exact).</p>
                 </div>
-
                 {{-- BLOC 3 : DETAILS DE L'INCIDENT --}}
                 <div class="space-y-6">
                     <div class="flex items-center gap-2">

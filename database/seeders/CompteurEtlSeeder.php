@@ -10,7 +10,6 @@ class CompteurEtlSeeder extends Seeder
 {
     public function run(): void
     {
-        // Ingestion exhaustive et structurée de tes 19 lignes métiers
         $rows = [
             ['pds' => '7410200041', 'intra' => '00041', 'bat' => 'Réservoir', 'equip' => 'Général', 'num' => 'I14BA090917', 'pose' => '24/08/2021', 'arret' => null, 'sub' => null, 'num_rue' => null, 'voie' => 'CHEMIN DU GRAND BASSIN', 'actions' => ['pas de consommation depuis 2 ans']],
             ['pds' => '7410200079', 'intra' => '00079', 'bat' => 'EAS', 'equip' => 'Vestiaire Foot', 'num' => 'I23BD098115', 'pose' => '22/02/2024', 'arret' => null, 'sub' => null, 'num_rue' => 27, 'voie' => 'ROUTE DU FIER', 'actions' => ['changer adresse INTRANET', 'créer descriptif']],
@@ -33,180 +32,95 @@ class CompteurEtlSeeder extends Seeder
             ['pds' => '7410212100003', 'intra' => '12100003', 'bat' => 'Espace Michel Doche', 'equip' => 'Salle Doche', 'num' => 'I21IA580879', 'pose' => null, 'arret' => null, 'sub' => null, 'num_rue' => 85, 'voie' => 'RTE DE LA BLONNIERE', 'actions' => ['vérifier N° compteur dans batiment', 'changer adresse INTRANET', 'créer descriptif']],
         ];
 
+        // On récupère les valeurs par défaut
         $idUser = DB::table('utilisateur')->value('id_user') ?? 1;
-        $idCat = DB::table('categorie')->value('id_cat') ?? 1;
-        $idLieuDit = DB::table('lieu_dit')->value('id_lieu_dit') ?? 1;
+        $idCat = DB::table('categorie')->where('libelle', 'ilike', 'Plomberie')->value('id_cat') ?? (DB::table('categorie')->value('id_cat') ?? 1);
 
-        $idTypeErpDefault = DB::table('type_erp')->value('id_type_erp') ?? DB::table('type_erp')->insertGetId([
-            'reglementation_applicable' => 'Règlement sécurité incendie standard',
-            'categorie_erp' => 5,
-            'type_erp' => 'W'
-        ], 'id_type_erp');
+        $nbActionsInserees = 0;
 
         foreach ($rows as $row) {
-            DB::transaction(function () use ($row, $idUser, $idCat, $idLieuDit, $idTypeErpDefault) {
 
-                // =========================================================================
-                // 1. SYNC INTÉLLIGENTE ADRESSE (DÉDUPLICATION BAN VIA LE NOM DE LA VOIE)
-                // =========================================================================
-                $idAdresseFinal = null;
+            // Si la ligne n'a aucune action, on passe à la suivante directement
+            if (empty($row['actions'])) {
+                continue;
+            }
 
-                if (!empty($row['voie'])) {
-                    $voieNettoyee = str_replace(['RTE', 'PL ', 'PL.'], ['ROUTE', 'PLACE ', 'PLACE'], strtoupper($row['voie']));
+            // 1. RECHERCHE DE L'ADRESSE (Mode Lecture Seule)
+            $idAdresseFinal = null;
+            if (!empty($row['voie'])) {
+                $voieNettoyee = str_replace(['RTE', 'PL ', 'PL.'], ['ROUTE', 'PLACE ', 'PLACE'], strtoupper($row['voie']));
+                $idAdresseFinal = DB::table('Adresse')
+                    ->where('nom_voie', 'ilike', '%' . trim($voieNettoyee) . '%')
+                    ->value('id_adresse'); // value() renvoie directement l'ID ou null
+            }
 
-                    $adresseExistante = DB::table('Adresse')
-                        ->where('nom_voie', 'ilike', '%' . trim($voieNettoyee) . '%')
-                        ->first();
+            // 2. RECHERCHE BÂTIMENT OU LIEU PUBLIC (Mode Lecture Seule)
+            $idBatimentParent = null;
+            $idLieuParent = null;
 
-                    if ($adresseExistante) {
-                        $idAdresseFinal = $adresseExistante->id_adresse;
-                    } else {
-                        $idAdresseFinal = DB::table('Adresse')->insertGetId([
-                            'num_rue' => $row['num_rue'],
-                            'nom_voie' => trim($row['voie']),
-                            'code_postal' => '74230',
-                            'ville' => 'Dingy-Saint-Clair',
-                            'id_lieu_dit' => $idLieuDit
-                        ], 'id_adresse');
-                    }
+            if (!empty($row['bat'])) {
+                $nomStructure = trim($row['bat']);
+
+                // On cherche d'abord dans les bâtiments
+                $idBatimentParent = DB::table('batiment')
+                    ->where('nom_bat', 'ilike', $nomStructure)
+                    ->value('id_batiment');
+
+                // Si ce n'est pas un bâtiment, on cherche dans les lieux publics
+                if (!$idBatimentParent) {
+                    $idLieuParent = DB::table('lieux_publics')
+                        ->where('nom_lieu', 'ilike', $nomStructure)
+                        ->value('id_lieu');
                 }
+            }
 
-                if (!$idAdresseFinal) {
-                    $idAdresseFinal = DB::table('Adresse')->value('id_adresse') ?? $idLieuDit;
-                }
+            // 3. RECHERCHE DU LOCAL (Mode Lecture Seule)
+            $idLocalFinal = null;
+            $nomDuLocalCible = !empty($row['equip']) ? trim($row['equip']) : 'Général';
 
-                // =========================================================================
-                // 2. MAILLAGE DES STRUCTURES PARENTES (DÉCOUPAGE STRICT BÂTIMENT VS LIEU PUBLIC)
-                // =========================================================================
-                $idBatimentParent = null;
-                $idLieuParent = null;
+            if ($idBatimentParent) {
+                $idLocalFinal = DB::table('local_')
+                    ->where('id_batiment', $idBatimentParent)
+                    ->where('nom_local', 'ilike', $nomDuLocalCible)
+                    ->value('id_local');
+            } elseif ($idLieuParent) {
+                $idLocalFinal = DB::table('local_')
+                    ->where('id_lieu', $idLieuParent)
+                    ->where('nom_local', 'ilike', $nomDuLocalCible)
+                    ->value('id_local');
+            } else {
+                // Si on a ni batiment ni lieu, on cherche juste par le nom du local
+                $idLocalFinal = DB::table('local_')
+                    ->whereNull('id_batiment')
+                    ->whereNull('id_lieu')
+                    ->where('nom_local', 'ilike', $nomDuLocalCible)
+                    ->value('id_local');
+            }
 
-                if (!empty($row['bat'])) {
-                    $nomStructure = trim($row['bat']);
+            // 4. INSERTION DES ACTIONS (Mode Écriture)
+            foreach ($row['actions'] as $actionTxt) {
+                if (empty(trim($actionTxt)))
+                    continue;
 
-                    // 🎯 Filtrage strict selon tes directives
-                    $estUnLieuPublic = in_array(strtolower($nomStructure), [
-                        'cimetière',
-                        'fontaine déchèterie',
-                        'fontaine decheterie',
-                        'réservoir'
-                    ]);
+                DB::table('action')->insert([
+                    'date_creation' => now(),
+                    'emetteur_nom' => 'Service Eau (Automatique)',
+                    'description' => "Vérification Compteur PDS " . $row['pds'] . " : " . $actionTxt,
+                    'mode_reception' => 'Interne',
+                    'priorite' => 'Normale',
+                    'statut_action' => 'Nouveau',
+                    'id_user' => $idUser,
+                    'id_local' => $idLocalFinal,
+                    'id_batiment' => $idBatimentParent,
+                    'id_lieu' => $idLieuParent,
+                    'id_adresse' => $idAdresseFinal,
+                    'id_cat' => $idCat
+                ]);
 
-                    if ($estUnLieuPublic) {
-                        // A. Table lieux_publics (Espaces communaux extérieurs)
-                        $lieuExistant = DB::table('lieux_publics')->where('nom_lieu', 'ilike', $nomStructure)->first();
-                        if ($lieuExistant) {
-                            $idLieuParent = $lieuExistant->id_lieu;
-                        } else {
-                            $idLieuParent = DB::table('lieux_publics')->insertGetId([
-                                'nom_lieu' => $nomStructure,
-                                'typologie_lieu' => 'Espace Communal Ouvert',
-                                'id_type_erp' => $idTypeErpDefault
-                            ], 'id_lieu');
-                        }
-                    } else {
-                        // B. Table batiment (Espaces communaux bâtis/couverts)
-                        $batimentExistant = DB::table('batiment')->where('nom_bat', 'ilike', $nomStructure)->first();
-                        if ($batimentExistant) {
-                            $idBatimentParent = $batimentExistant->id_batiment;
-                        } else {
-                            $idBatimentParent = DB::table('batiment')->insertGetId([
-                                'nom_bat' => $nomStructure,
-                                'id_parcelle' => 1,
-                                'id_type_erp' => $idTypeErpDefault,
-                                'id_adresse' => $idAdresseFinal
-                            ], 'id_batiment');
-                        }
-                    }
-                }
-
-                // =========================================================================
-                // 3. RECHERCHE, CLAUSE DE NON-REDUNDANCE ET VERIFICATION DU LOCAL INTERNE
-                // =========================================================================
-                $idLocalFinal = null;
-                $nomDuLocalCible = !empty($row['equip']) ? trim($row['equip']) : 'Général';
-
-                if ($idBatimentParent) {
-                    $localExistant = DB::table('local_')
-                        ->where('id_batiment', $idBatimentParent)
-                        ->where('nom_local', 'ilike', $nomDuLocalCible)
-                        ->first();
-                    if ($localExistant)
-                        $idLocalFinal = $localExistant->id_local;
-                } elseif ($idLieuParent) {
-                    $localExistant = DB::table('local_')
-                        ->where('id_lieu', $idLieuParent)
-                        ->where('nom_local', 'ilike', $nomDuLocalCible)
-                        ->first();
-                    if ($localExistant)
-                        $idLocalFinal = $localExistant->id_local;
-                } else {
-                    $localExistant = DB::table('local_')
-                        ->whereNull('id_batiment')
-                        ->whereNull('id_lieu')
-                        ->where('nom_local', 'ilike', $nomDuLocalCible)
-                        ->first();
-                    if ($localExistant)
-                        $idLocalFinal = $localExistant->id_local;
-                }
-
-                // Si le local n'existe pas encore sous la structure parente rattachée, on le crée
-                if (!$idLocalFinal) {
-                    $idLocalFinal = DB::table('local_')->insertGetId([
-                        'nom_local' => substr($nomDuLocalCible, 0, 80),
-                        'statut_occupation' => 'Occupé',
-                        'id_batiment' => $idBatimentParent,
-                        'id_lieu' => $idLieuParent
-                    ], 'id_local');
-                }
-
-                // =========================================================================
-                // 4. INGESTION SÉCURISÉE DES COMPTEURS D'EAU POTABLE
-                // =========================================================================
-                if (!empty($row['pds'])) {
-                    $datePose = $row['pose'] ? Carbon::createFromFormat('d/m/Y', $row['pose'])->format('Y-m-d') : now();
-                    $dateArret = $row['arret'] ? Carbon::createFromFormat('d/m/Y', $row['arret'])->format('Y-m-d') : null;
-
-                    $compteurExiste = DB::table('compteur')->where('point_comptage', $row['pds'])->exists();
-
-                    if (!$compteurExiste) {
-                        DB::table('compteur')->insert([
-                            'point_comptage' => $row['pds'],
-                            'numero_compteur' => $row['num'] ?: ($row['sub'] ?: 'SANS_NUM_' . $row['intra']),
-                            'type_reseau' => 'EAU POTABLE',
-                            'dessert_tout_le_batiment' => ($nomDuLocalCible === 'Général' || $nomDuLocalCible === 'Général Mairie'),
-                            'unite_mesure' => 'm3',
-                            'date_pose' => $datePose,
-                            'date_arret' => $dateArret,
-                            'observations' => 'Réf Intranet: ' . $row['intra'] . ($row['sub'] ? ' - Lien : ' . $row['sub'] : ''),
-                            'id_local' => $idLocalFinal
-                        ]);
-                    }
-                }
-
-                // =========================================================================
-                // 5. INGESTION DES TICKETS ET SIGNALEMENTS EMIS
-                // =========================================================================
-                foreach ($row['actions'] as $actionTxt) {
-                    if (empty($actionTxt))
-                        continue;
-
-                    DB::table('action')->insert([
-                        'date_creation' => now(),
-                        'emetteur_nom' => 'Service Eau (Automatique)',
-                        'description' => "Vérification Compteur PDS " . $row['pds'] . " : " . $actionTxt,
-                        'mode_reception' => 'Interne',
-                        'priorite' => 'Normale',
-                        'statut_action' => 'Nouveau',
-                        'id_user' => $idUser,
-                        'id_local' => $idLocalFinal,
-                        'id_adresse' => $idAdresseFinal,
-                        'id_cat' => $idCat
-                    ]);
-                }
-            });
+                $nbActionsInserees++;
+            }
         }
 
-        $this->command->info('✨ ETL Exécuté avec succès ! Architecture du patrimoine et déduplication BAN validées.');
+        $this->command->info("✨ Succès : {$nbActionsInserees} actions de compteurs ont été recréées et parfaitement reliées à l'infrastructure existante !");
     }
 }

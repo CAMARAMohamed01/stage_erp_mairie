@@ -12,7 +12,7 @@ return new class extends Migration {
     {
         Schema::create('intervention', function (Blueprint $table) {
             $table->id('id_int');
-            $table->string('code_budget', 2)->nullable();
+            $table->string('code_budget', 5)->nullable();
             $table->date('date_cloture')->nullable();
             $table->date('date_ouverture');
             $table->string('type_intervention', 150);

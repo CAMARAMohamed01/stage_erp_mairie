@@ -21,7 +21,27 @@
                 #{{ $action->id_action }}</h1>
             <p class="text-sm text-slate-500 mt-1">Mise à jour des informations de l'anomalie ou du déclarant</p>
         </div>
-
+        @if ($errors->any())
+        <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd"
+                            d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                            clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <h3 class="text-sm font-medium text-red-800">Il y a des erreurs dans le formulaire :</h3>
+                    <ul class="mt-2 text-sm text-red-700 list-disc list-inside">
+                        @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            </div>
+        </div>
+        @endif
         <form action="{{ route('actions.update', $action->id_action) }}" method="POST" class="p-8 space-y-8">
             @csrf
             @method('PUT')
@@ -91,11 +111,10 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div>
-                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Adresse officielle
-                            (BAN)</label>
+                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Adresse (Voirie)</label>
                         <select name="id_adresse" id="id_adresse"
                             class="w-full border-slate-300 rounded-lg shadow-sm text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500 bg-white py-2.5">
-                            <option value="">-- Sélectionner une adresse --</option>
+                            <option value="">-- Aucune adresse spécifique --</option>
                             @foreach($adresses as $adr)
                             <option value="{{ $adr->id_adresse }}"
                                 {{ $action->id_adresse == $adr->id_adresse ? 'selected' : '' }}>
@@ -106,23 +125,50 @@
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Ou Local technique
-                            intérieur</label>
+                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Lieu public /
+                            Lieu-dit</label>
+                        <select name="id_lieu" id="id_lieu"
+                            class="w-full border-slate-300 rounded-lg shadow-sm text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500 bg-white py-2.5">
+                            <option value="">-- Aucun lieu public --</option>
+                            @foreach($lieux_publics as $lieu)
+                            <option value="{{ $lieu->id_lieu }}"
+                                {{ $action->id_lieu == $lieu->id_lieu ? 'selected' : '' }}>
+                                🌳 {{ $lieu->nom_lieu }}
+                            </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Bâtiment municipal</label>
+                        <select name="id_batiment" id="id_batiment"
+                            class="w-full border-slate-300 rounded-lg shadow-sm text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500 bg-white py-2.5">
+                            <option value="">-- Aucun bâtiment --</option>
+                            @foreach($batiments as $bat)
+                            <option value="{{ $bat->id_batiment }}"
+                                {{ $action->id_batiment == $bat->id_batiment ? 'selected' : '' }}>
+                                🏛️ {{ $bat->nom_bat }}
+                            </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Local technique
+                            précis</label>
                         <select name="id_local" id="id_local"
                             class="w-full border-slate-300 rounded-lg shadow-sm text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500 bg-white py-2.5">
-                            <option value="">-- Sélectionner un local technique --</option>
+                            <option value="">-- Aucun local technique --</option>
                             @foreach($locaux as $loc)
                             <option value="{{ $loc->id_local }}"
                                 {{ $action->id_local == $loc->id_local ? 'selected' : '' }}>
-                                🏢 {{ $loc->nom_local }}
+                                🔑 {{ $loc->nom_local }}
                             </option>
                             @endforeach
                         </select>
                     </div>
                 </div>
-            </div>
-
-            {{-- BLOC : DETAILS DE L'INCIDENT --}}
+            </div> {{-- BLOC : DETAILS DE L'INCIDENT --}}
             <div class="space-y-6">
                 <div class="flex items-center gap-2">
                     <span class="bg-slate-700 text-white p-1 rounded">
@@ -167,7 +213,9 @@
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Priorité d'intervention</label>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Priorité d'intervention
+                        <span class="text-red-500">*</span>
+                    </label>
                     <div class="flex gap-6 mt-2">
                         <label class="flex items-center cursor-pointer select-none">
                             <input type="radio" name="priorite" value="Basse"
