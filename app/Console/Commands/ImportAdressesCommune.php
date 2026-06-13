@@ -49,10 +49,8 @@ class ImportAdressesCommune extends Command
                 $ville = !empty($row[7]) ? trim($row[7]) : 'Dingy-Saint-Clair';
                 $longitude = !empty($row[12]) ? floatval($row[12]) : null;
                 $latitude = !empty($row[13]) ? floatval($row[13]) : null;
-
                 // --- STRATÉGIE ETL POUR LE LIEU-DIT ---
                 $nomLieuDit = 'Centre Village';
-
                 if (Str::contains(Str::lower($nomVoie), ['blonnière', 'blonniere']))
                     $nomLieuDit = 'La Blonnière';
                 elseif (Str::contains(Str::lower($nomVoie), 'glandon'))
@@ -67,8 +65,7 @@ class ImportAdressesCommune extends Command
                     $nomLieuDit = 'Le Parmelan';
                 elseif (Str::contains(Str::lower($nomVoie), 'fier'))
                     $nomLieuDit = 'La Plaine du Fier';
-
-                // 1. Maillage ou création du Lieu-dit
+                //Maillage ou création du Lieu-dit
                 $lieuDitRow = DB::table('lieu_dit')->where('nom_lieu_dit', $nomLieuDit)->first();
                 if (!$lieuDitRow) {
                     $idLieuDit = DB::table('lieu_dit')->insertGetId(['nom_lieu_dit' => $nomLieuDit], 'id_lieu_dit');
@@ -76,8 +73,7 @@ class ImportAdressesCommune extends Command
                 } else {
                     $idLieuDit = $lieuDitRow->id_lieu_dit;
                 }
-
-                // 2. Insertion de l'adresse (avec num_rue comme spécifié dans ton CREATE TABLE)
+                // Insertion de l'adresse si elle n'existe pas déjà (numéro + nom de voie + rep)
                 DB::table('Adresse')->updateOrInsert(
                     [
                         'num_rue' => $numero,
