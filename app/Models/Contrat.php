@@ -12,10 +12,9 @@ class Contrat extends Model
     // Configuration de la table
     protected $table = 'contrat';
     protected $primaryKey = 'id_contrat';
-    public $timestamps = false; // Désactivé si tu n'as pas created_at/updated_at dans ton SQL
+    public $timestamps = false;
     protected $guarded = [];
 
-    // Les dates à "caster" automatiquement via Carbon pour faciliter l'affichage
     protected $casts = [
         'date_signature_contrat' => 'date',
         'date_debut_contrat' => 'date',

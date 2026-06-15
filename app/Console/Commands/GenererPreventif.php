@@ -38,7 +38,7 @@ class GenererPreventif extends Command
                 'controle_reglementaire.frequence_mois',
                 'equipement.nom_equipement',
                 'equipement.id_local',
-                'equipement.id_famille' // ✅ On récupère l'id_famille au lieu de id_cat qui n'existe pas dans controle
+                'equipement.id_famille' // On récupère l'id_famille au lieu de id_cat qui n'existe pas dans controle
             )
             ->get();
 
@@ -70,7 +70,7 @@ class GenererPreventif extends Command
                             'description' => "⚠️ MAINTENANCE PRÉVENTIVE SUR ÉQUIPEMENT\n" .
                                 "Échéance réglementaire dépassée depuis le : " . $dateProchaineEcheance->format('d/m/Y') . ".\n" .
                                 "Vérification requise sur l'appareil : " . $liaison->nom_equipement,
-                            'id_cat' => $idCatAlternative, // ✅ Corrigé ici
+                            'id_cat' => $idCatAlternative,
                             'id_local' => $liaison->id_local ?: null,
                             'code_budget' => 'PE',
                             'date_cloture' => null,
@@ -125,7 +125,7 @@ class GenererPreventif extends Command
                     $idCatAlternativeErp = DB::table('categorie')->value('id_cat') ?? 1;
 
                     $existeDejaSurBat = DB::table('intervention')
-                        ->where('id_cat', $idCatAlternativeErp) // ✅ Corrigé ici
+                        ->where('id_cat', $idCatAlternativeErp)
                         ->where('statut_global', 'En cours')
                         ->where('type_intervention', 'LIKE', '[PRÉVENTIF ERP]%')
                         ->where('description', 'LIKE', '%🏛️ Bâtiment : ' . $bat->nom_bat . '%')
@@ -140,7 +140,7 @@ class GenererPreventif extends Command
                                 'description' => "🚨 VÉRIFICATION RÉGLEMENTAIRE OBLIGATOIRE ERP\n" .
                                     "Échéance du contrôle de catégorie dépassée depuis le : " . $dateProchaineEcheanceErp->format('d/m/Y') . ".\n" .
                                     "🏛️ Bâtiment : " . $bat->nom_bat . " (Classé ERP Catégorie " . $liaisonErp->categorie_erp . " - Type " . $liaisonErp->type_erp . ")",
-                                'id_cat' => $idCatAlternativeErp, // ✅ Corrigé ici
+                                'id_cat' => $idCatAlternativeErp,
                                 'id_local' => null,
                                 'code_budget' => 'PV',
                                 'date_cloture' => null,
