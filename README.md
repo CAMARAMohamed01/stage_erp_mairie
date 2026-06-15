@@ -1,58 +1,81 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# ERP - Gestion Municipale Centralisée
 
 <p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
+    <img src="https://img.shields.io/badge/Laravel-FF2D20?style=for-the-badge&logo=laravel&logoColor=white" alt="Laravel">
+    <img src="https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL">
+    <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind CSS">
+    <img src="https://img.shields.io/badge/Security-AES--256--CBC-success?style=for-the-badge" alt="Security">
 </p>
 
-## About Laravel
+## À propos du projet
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+Cette application est un **ERP (Enterprise Resource Planning)** conçu pour centraliser, sécuriser et optimiser les processus techniques et administratifs d'une commune.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Le système remplace les flux de travail historiques basés sur des fichiers Excel disparates par une architecture relationnelle stricte, garantissant l'intégrité des données, la traçabilité des interventions et la sécurité des informations sensibles des citoyens.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Fonctionnalités Principales
 
-## Learning Laravel
+- ** Cartographie & Patrimoine :** Modélisation granulaire de l'infrastructure communale (Lieu-dit > Lieu Public > Bâtiment > Local Technique > Équipement).
+- ** Gestion des Interventions :** Suivi complet des tickets (actions citoyennes et interventions techniques) avec assignation dynamique des ressources et rattachement budgétaire.
+- ** Sécurité & RGPD :** Chiffrement de bout en bout (AES-256-CBC) des données financières et bancaires (IBAN, BIC) directement dans les modèles Eloquent. Masquage des données sensibles sur les interfaces front-end.
+- ** Flux ETL Intégrés :** Commandes CLI personnalisées pour l'ingestion, le nettoyage (_Data Cleansing_) et la liaison intelligente des données historiques avec architecture de rollback sécurisée.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## Architecture & Technologies
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+- **Framework Backend :** Laravel (PHP)
+- **Base de données :** PostgreSQL (Utilisation avancée des clés étrangères, contraintes d'intégrité, et typage spatial pour les parcelles).
+- **Frontend :** Blade Templating couplé à Tailwind CSS pour une interface claire et réactive.
+- **Architecture des données :** Conception en "entonnoir" pour lier les requêtes approximatives à des localisations physiques strictes.
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+## Installation & Déploiement
 
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+Pour configurer le projet en environnement de développement ou de production :
 
 ```bash
-composer require laravel/boost --dev
+# 1. Cloner le dépôt
+git clone [URL_DU_DEPOT]
 
-php artisan boost:install
+# 2. Installer les dépendances PHP
+composer install
+
+# 3. Installer les dépendances Node.js (Frontend)
+npm install && npm run build
+
+# 4. Configurer l'environnement
+cp .env.example .env
+php artisan key:generate
+
+# 5. Configurer la base de données dans le fichier .env
+# DB_CONNECTION=pgsql
+# DB_HOST=127.0.0.1
+# DB_PORT=5432
+# DB_DATABASE=bdd_mairie
+# ...
+
+# 6. Exécuter les migrations (Structure de la BDD)
+php artisan migrate
+
+# 7. Lancer le serveur local
+php artisan serve
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+Commandes Personnalisées (ETL)
+Le projet intègre des scripts d'importation massifs pour migrer l'historique de la commune. Ces scripts gèrent le dédoublonnage, la détection des hiérarchies géographiques et la gestion des encodages.
 
-## Contributing
+Importer l'historique des actions et interventions :
+php artisan import:historique storage/app/historique.csv
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Annuler un import (Rollback de sécurité) :
+Cette commande purge les tables enfants et tables pivots avant de supprimer les enregistrements racines pour garantir l'intégrité des clés étrangères.
+php artisan import:historique storage/app/historique.csv --rollback
 
-## Code of Conduct
+Lier le référentiel matériel (Compteurs) aux actions :
+php artisan db:seed --class=CompteurEtlSeeder
+**Guide d'évolution:**
+Si vous devez maintenir ou faire évoluer ce code, voici les points d'entrée cruciaux :
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Sécurité des données : Le chiffrement des données financières est géré nativement via les Mutateurs/Accesseurs Laravel. Ne modifiez pas le typage (TEXT) des colonnes chiffrées dans PostgreSQL.
 
-## Security Vulnerabilities
+Modèle Géographique : Si vous ajoutez de nouvelles entités spatiales, veillez à respecter la hiérarchie établie dans les formulaires de saisie (id_local > id_batiment > id_lieu > id_adresse).
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Scripts ETL : Les algorithmes de croisement de données se trouvent dans app/Console/Commands/. Si les formats de fichiers Excel de la mairie changent, c'est ici qu'il faudra mettre à jour les index (mapping des colonnes).

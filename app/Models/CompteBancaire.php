@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Crypt;
+
 class CompteBancaire extends Model
 {
     protected $table = 'compte_bancaire';
@@ -48,9 +49,8 @@ class CompteBancaire extends Model
         }
     }
 
-    /**
-     * Déchiffrement automatique à la lecture
-     */
+    //Déchiffrement automatique à la lecture
+
     public function getIbanAttribute($value)
     {
         try {
@@ -81,5 +81,4 @@ class CompteBancaire extends Model
             return $value;
         }
     }
-
 }
