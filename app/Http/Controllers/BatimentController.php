@@ -228,7 +228,7 @@ class BatimentController extends Controller
             'id_parcelle' => 'required|integer|exists:parcelle,id_parcelle',
             'id_type_erp' => 'required|integer|exists:type_erp,id_type_erp',
             'id_adresse' => 'required|integer|exists:Adresse,id_adresse',
-            'id_immo' => 'required|integer|exists:immobilisation_inventaire_,id_immo|unique:batiment,id_immo,' . $id . ',id_batiment',
+            'id_immo' => 'nullable|integer|exists:immobilisation_inventaire_,id_immo|unique:batiment,id_immo,' . $id . ',id_batiment',
             'id_contrats' => 'nullable|array',
             'id_contrats.*' => 'exists:contrat,id_contrat',
         ]);

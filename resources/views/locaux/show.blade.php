@@ -5,6 +5,22 @@
 @section('content')
     <div class="max-w-7xl mx-auto space-y-6">
 
+        {{-- --- BLOC D'AFFICHAGE DES MESSAGES DE SUCCÈS OU D'ERREUR --- --}}
+        @if (session('error'))
+            <div class="p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded shadow-sm">
+                <p class="font-bold">Erreur</p>
+                <p>{{ session('error') }}</p>
+            </div>
+        @endif
+
+        @if (session('success'))
+            <div class="p-4 bg-green-50 border-l-4 border-green-500 text-green-700 rounded shadow-sm">
+                <p class="font-bold">Succès</p>
+                <p>{{ session('success') }}</p>
+            </div>
+        @endif
+        {{-- ----------------------------------------------------------- --}}
+
         <div
             class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 flex flex-wrap justify-between items-center gap-4">
             <div>
@@ -29,16 +45,32 @@
                         class="text-slate-700 font-medium">{{ $local->surface_m2 ? $local->surface_m2 . ' m²' : 'Non mesurée' }}</span>
                 </p>
             </div>
+
             <div class="flex gap-2">
                 <button onclick="history.back()"
                     class="px-4 py-2 border border-slate-300 text-slate-700 text-sm font-semibold rounded-lg hover:bg-slate-50 transition">
                     ← Retour
                 </button>
+
+                {{-- Bouton Modifier (Droit : ecriture) --}}
                 @can('check-permission', ['Patrimoine & Equipements', 'ecriture'])
                     <a href="{{ route('locaux.edit', $local->id_local) }}"
                         class="px-4 py-2 bg-slate-900 text-white text-sm font-semibold rounded-lg hover:bg-slate-800 transition">
                         Modifier la pièce
                     </a>
+                @endcan
+
+                {{-- Bouton Supprimer (Droit : suppression) --}}
+                @can('check-permission', ['Patrimoine & Equipements', 'suppression'])
+                    <form action="{{ route('locaux.destroy', $local->id_local) }}" method="POST"
+                        onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette pièce ?');">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit"
+                            class="px-4 py-2 bg-red-600 text-white text-sm font-semibold rounded-lg hover:bg-red-700 transition">
+                            Supprimer
+                        </button>
+                    </form>
                 @endcan
             </div>
         </div>

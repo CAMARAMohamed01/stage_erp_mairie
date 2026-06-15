@@ -125,8 +125,8 @@
 
                     <div>
                         <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Immobilisation
-                            Comptable <span class="text-red-500">*</span></label>
-                        <select name="id_immo" id="select_immo" required
+                            Comptable</label>
+                        <select name="id_immo" id="select_immo"
                             class="w-full rounded-lg border-slate-300 text-sm bg-slate-50">
                             <option value="">-- Sélectionner --</option>
                             @foreach($immos as $immo)
