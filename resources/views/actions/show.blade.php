@@ -77,7 +77,7 @@
                             <span class="block text-[10px] uppercase font-bold text-slate-400 tracking-wider">Statut</span>
                             <span
                                 class="inline-block mt-1 px-2.5 py-0.5 text-xs font-extrabold rounded-full
-                                                    {{ $action->statut_action === 'Nouveau' ? 'bg-blue-100 text-blue-800' : ($action->statut_action === 'En cours' ? 'bg-amber-100 text-amber-800' : 'bg-green-100 text-green-800') }}">
+                                                        {{ $action->statut_action === 'Nouveau' ? 'bg-blue-100 text-blue-800' : ($action->statut_action === 'En cours' ? 'bg-amber-100 text-amber-800' : 'bg-green-100 text-green-800') }}">
                                 {{ $action->statut_action }}
                             </span>
                         </div>
@@ -87,7 +87,7 @@
                                 class="block text-[10px] uppercase font-bold text-slate-400 tracking-wider">Priorité</span>
                             <span
                                 class="inline-block mt-1 px-2.5 py-0.5 text-xs font-extrabold rounded-full
-                                                    {{ $action->priorite === 'Haute' ? 'bg-red-100 text-red-700' : ($action->priorite === 'Normale' ? 'bg-slate-100 text-slate-700' : 'bg-green-100 text-green-700') }}">
+                                                        {{ $action->priorite === 'Haute' ? 'bg-red-100 text-red-700' : ($action->priorite === 'Normale' ? 'bg-slate-100 text-slate-700' : 'bg-green-100 text-green-700') }}">
                                 {{ $action->priorite }}
                             </span>
                         </div>
@@ -109,7 +109,7 @@
                     </div>
                 </div>
 
-                {{-- 📍 BLOC AMÉLIORÉ : LOCALISATION DU SIGNALEMENT --}}
+                {{-- 📍 BLOC LOCALISATION EXHAUSTIF --}}
                 <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-4">
                     <h3
                         class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5 border-b pb-2">
@@ -122,14 +122,60 @@
                     </h3>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {{-- Cas Adresse Voirie (BAN) --}}
+                        {{-- 1. Bâtiment --}}
+                        <div
+                            class="p-4 rounded-xl border {{ $action->id_batiment ? 'border-indigo-200 bg-indigo-50/30' : 'border-slate-100 bg-slate-50/30' }} flex gap-3 items-start">
+                            <span class="text-2xl mt-0.5">🏛️</span>
+                            <div>
+                                <span
+                                    class="block text-[11px] font-bold uppercase tracking-wider text-slate-400">Bâtiment</span>
+                                @if($action->id_batiment && $action->batiment)
+                                    <p class="font-bold text-slate-800 mt-1 text-sm">{{ $action->batiment->nom_bat }}</p>
+                                @else
+                                    <p class="text-slate-400 text-xs italic mt-1">Aucun bâtiment rattaché</p>
+                                @endif
+                            </div>
+                        </div>
+
+                        {{-- 2. Local Intérieur --}}
+                        <div
+                            class="p-4 rounded-xl border {{ $action->id_local ? 'border-blue-200 bg-blue-50/20' : 'border-slate-100 bg-slate-50/30' }} flex gap-3 items-start">
+                            <span class="text-2xl mt-0.5">🚪</span>
+                            <div>
+                                <span class="block text-[11px] font-bold uppercase tracking-wider text-slate-400">Pièce /
+                                    Local Intérieur</span>
+                                @if($action->id_local && $action->local)
+                                    <p class="font-bold text-slate-800 mt-1 text-sm">{{ $action->local->nom_local }}</p>
+                                    <p class="text-xs text-slate-500 font-medium">Niveau : {{ $action->local->niveau ?? 'RDC' }}
+                                    </p>
+                                @else
+                                    <p class="text-slate-400 text-xs italic mt-1">Aucun local spécifique</p>
+                                @endif
+                            </div>
+                        </div>
+
+                        {{-- 3. Espace Public --}}
+                        <div
+                            class="p-4 rounded-xl border {{ $action->id_lieu ? 'border-emerald-200 bg-emerald-50/20' : 'border-slate-100 bg-slate-50/30' }} flex gap-3 items-start">
+                            <span class="text-2xl mt-0.5">🌳</span>
+                            <div>
+                                <span class="block text-[11px] font-bold uppercase tracking-wider text-slate-400">Espace
+                                    Public</span>
+                                @if($action->id_lieu && $action->lieu)
+                                    <p class="font-bold text-slate-800 mt-1 text-sm">{{ $action->lieu->nom_lieu }}</p>
+                                @else
+                                    <p class="text-slate-400 text-xs italic mt-1">Aucun espace public lié</p>
+                                @endif
+                            </div>
+                        </div>
+
+                        {{-- 4. Adresse Voirie (BAN) --}}
                         <div
                             class="p-4 rounded-xl border {{ $action->id_adresse ? 'border-amber-200 bg-amber-50/20' : 'border-slate-100 bg-slate-50/30' }} flex gap-3 items-start">
                             <span class="text-2xl mt-0.5">🛣️</span>
                             <div>
-                                <span
-                                    class="block text-[11px] font-bold uppercase tracking-wider text-slate-400">Emplacement
-                                    Domaine Public</span>
+                                <span class="block text-[11px] font-bold uppercase tracking-wider text-slate-400">Adresse /
+                                    Voirie</span>
                                 @if($action->id_adresse && $action->adresse)
                                     <p class="font-bold text-slate-800 mt-1 text-sm">{{ $action->adresse->num_rue }}
                                         {{ $action->adresse->nom_voie }}
@@ -138,24 +184,7 @@
                                         {{ $action->adresse->ville }}
                                     </p>
                                 @else
-                                    <p class="text-slate-400 text-xs italic mt-1">Aucune adresse de voirie BAN liée</p>
-                                @endif
-                            </div>
-                        </div>
-
-                        {{-- Cas Local technique Intérieur --}}
-                        <div
-                            class="p-4 rounded-xl border {{ $action->id_local ? 'border-blue-200 bg-blue-50/20' : 'border-slate-100 bg-slate-50/30' }} flex gap-3 items-start">
-                            <span class="text-2xl mt-0.5">🏢</span>
-                            <div>
-                                <span class="block text-[11px] font-bold uppercase tracking-wider text-slate-400">Patrimoine
-                                    Bâti Municipal</span>
-                                @if($action->id_local && $action->local)
-                                    <p class="font-bold text-slate-800 mt-1 text-sm">{{ $action->local->nom_local }}</p>
-                                    <p class="text-xs text-slate-500 font-medium">Niveau : {{ $action->local->niveau ?? 'RDC' }}
-                                    </p>
-                                @else
-                                    <p class="text-slate-400 text-xs italic mt-1">Aucun local intérieur spécifique rattaché</p>
+                                    <p class="text-slate-400 text-xs italic mt-1">Aucune adresse BAN liée</p>
                                 @endif
                             </div>
                         </div>
@@ -206,7 +235,7 @@
                         <div class="flex justify-between items-center">
                             <span class="text-slate-400 font-medium">Créé par agent :</span>
                             <span
-                                class="text-xs bg-slate-100 text-slate-700 px-2..5 py-1 font-extrabold rounded-md border border-slate-200 uppercase tracking-wider"
+                                class="text-xs bg-slate-100 text-slate-700 px-2.5 py-1 font-extrabold rounded-md border border-slate-200 uppercase tracking-wider"
                                 title="Enregistré par {{ $action->agent->prenom_user ?? 'Agent' }} {{ $action->agent->nom_user ?? '' }}">
                                 👤 {{ $action->agent->initiales ?? 'AG' }}
                             </span>

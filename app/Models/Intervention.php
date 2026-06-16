@@ -4,7 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-
+use App\Models\Projet;
+use App\Models\Action;
+use App\Models\Utilisateur;
+use App\Models\Equipement;
+use App\Models\SuiviAction;
+use App\Models\Categorie;
+use App\Models\ControleReglementaire;
 
 class Intervention extends Model
 {
@@ -35,6 +41,10 @@ class Intervention extends Model
         'id_action',
         'id_operation',
         'id_projet',
+        'id_lieu',
+        'id_user',
+        'id_equipement',
+        'id_batiment'
     ];
     public function projet()
     {
@@ -81,9 +91,9 @@ class Intervention extends Model
         return $this->belongsTo(Local::class, 'id_local', 'id_local');
     }
     // lieupublique
-    public function lieupublic()
+    public function lieuPublic()
     {
-        return $this->belongsTo(LieuPublic::class, 'id_lieu_public', 'id_lieu_public');
+        return $this->belongsTo(LieuPublic::class, 'id_lieu', 'id_lieu');
     }
     // contrat
     public function contrat()
@@ -115,4 +125,30 @@ class Intervention extends Model
     {
         return $this->hasMany(Document::class, 'id_int', 'id_int');
     }
+    // vers le compteur
+    public function compteur()
+    {
+        return $this->belongsTo(Compteur::class, 'id_compteur', 'id_compteur');
+    }
+    // vers le tronçon
+    public function troncon()
+    {
+        return $this->belongsTo(Troncon::class, 'id_troncon', 'id_troncon');
+    }
+    //vers base adresse
+    public function adresse()
+    {
+        return $this->belongsTo(Adresse::class, 'id_adresse', 'id_adresse');
+    }
+    // vers le contrôle
+    public function controle()
+    {
+        return $this->belongsTo(ControleReglementaire::class, 'id_controle', 'id_controle');
+    }
+    //vers batiment
+    public function batiment()
+    {
+        return $this->belongsTo(Batiment::class, 'id_batiment', 'id_batiment');
+    }
+
 }

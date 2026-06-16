@@ -39,4 +39,9 @@ class LieuPublic extends Model
     {
         return $this->hasMany(Document::class, 'id_lieu', 'id_lieu');
     }
+    // Relation avec les interventions
+    public function interventions()
+    {
+        return $this->hasMany(Intervention::class, 'id_lieu', 'id_lieu');
+    }
 }
