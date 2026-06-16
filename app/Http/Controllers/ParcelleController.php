@@ -25,10 +25,11 @@ class ParcelleController extends Controller
     {
         $request->validate([
             'num_parcelle' => 'required|string|max:5',
-            'section_cadastrale' => 'required|string|min:1|max:2', // Permet les sections composées comme AA, BC, ZC...
+            'section_cadastrale' => 'required|string|min:1|max:2',
             'type_parcelle' => 'nullable|string|max:50',
             'surface_cadastrale' => 'nullable|numeric',
-            'id_lieu_dit' => 'required|integer|exists:lieu_dit,id_lieu_dit',
+            // id_lieu_dit est maintenant nullable
+            'id_lieu_dit' => 'nullable|integer|exists:lieu_dit,id_lieu_dit',
             'geojson_data' => 'nullable|json'
         ]);
 
@@ -52,7 +53,6 @@ class ParcelleController extends Controller
         return redirect()->route('parcelles.index')->with('success', 'Parcelle cadastrale créée.');
     }
 
-    // --- FICHE DÉTAILLÉE (MISE À JOUR) ---
     public function show($id)
     {
         $parcelle = Parcelle::with(['lieuDit', 'batiments', 'lieuxPublics', 'immobilisation'])
@@ -78,8 +78,6 @@ class ParcelleController extends Controller
 
         $documents = DB::table('document')->where('id_parcelle', $id)->orderByDesc('date_upload')->get();
 
-        // RECHERCHE DES TIERS DISPONIBLES : Pour pouvoir ajouter un propriétaire
-        // On récupère les physiques et morales pour un affichage propre
         $tousLesTiers = DB::table('tiers')
             ->leftJoin('tiers_physique', 'tiers.id_tiers', '=', 'tiers_physique.id_tiers')
             ->leftJoin('tiers_morale', 'tiers.id_tiers', '=', 'tiers_morale.id_tiers')
@@ -89,7 +87,6 @@ class ParcelleController extends Controller
         return view('parcelles.show', compact('parcelle', 'proprietaires', 'dossiersUrba', 'documents', 'tousLesTiers'));
     }
 
-    // --- AJOUTER UN PROPRIÉTAIRE (PIVOT) ---
     public function ajouterProprietaire(Request $request, $id)
     {
         $request->validate([
@@ -99,7 +96,6 @@ class ParcelleController extends Controller
             'prix_parcelle' => 'nullable|numeric|min:0'
         ]);
 
-        // Vérification si ce tiers est déjà propriétaire de cette parcelle
         $existe = DB::table('proprio_parcelle')
             ->where('id_parcelle', $id)
             ->where('id_tiers', $request->id_tiers)
@@ -120,7 +116,6 @@ class ParcelleController extends Controller
         return redirect()->back()->with('success', '👥 Propriétaire ajouté avec succès à la parcelle.');
     }
 
-    // --- RETIRER UN PROPRIÉTAIRE (DISSOCIATION PIVOT) ---
     public function retirerProprietaire($id, $idTiers)
     {
         DB::table('proprio_parcelle')
@@ -131,14 +126,13 @@ class ParcelleController extends Controller
         return redirect()->back()->with('success', '🗑️ Le propriétaire a été dissocié de la parcelle.');
     }
 
-    // --- SUPPRESSION SÉCURISÉE DE LA PARCELLE ---
     public function destroy($id)
     {
         $parcelle = Parcelle::findOrFail($id);
 
-        // 1. VÉRIFICATION : Est-ce que des éléments importants (Bâtiments ou Lieux Publics) dépendent de cette parcelle ?
         $batimentsCount = DB::table('batiment')->where('id_parcelle', $id)->count();
-        $lieuxCount = DB::table('lieux_publics')->where('id_parcelle', $id)->count();
+        // CORRECTION : On vérifie la table pivot espace_parcelle
+        $lieuxCount = DB::table('espace_parcelle')->where('id_parcelle', $id)->count();
 
         if ($batimentsCount > 0 || $lieuxCount > 0) {
             return redirect()->back()->with('error', "🛑 Suppression impossible : cette parcelle cadastrale contient actuellement {$batimentsCount} bâtiment(s) et {$lieuxCount} lieu(x) public(s). Veuillez d'abord modifier ces éléments.");
@@ -147,15 +141,12 @@ class ParcelleController extends Controller
         try {
             DB::beginTransaction();
 
-            // 2. Nettoyage automatique des tables pivots & liaisons secondaires facultatives
             DB::table('proprio_parcelle')->where('id_parcelle', $id)->delete();
             DB::table('dossier_parcelle')->where('id_parcelle', $id)->delete();
             DB::table('gestionnaire_parcelle')->where('id_parcelle', $id)->delete();
 
-            // Passer la clé étrangère des documents liés à NULL pour ne pas perdre les fichiers
             DB::table('document')->where('id_parcelle', $id)->update(['id_parcelle' => null]);
 
-            // 3. Suppression de la parcelle
             $parcelle->delete();
 
             DB::commit();
@@ -166,6 +157,7 @@ class ParcelleController extends Controller
             return redirect()->back()->with('error', '🛑 Une erreur est survenue lors de la suppression : ' . $e->getMessage());
         }
     }
+
     public function edit($id)
     {
         $parcelle = DB::table('parcelle')
@@ -184,10 +176,10 @@ class ParcelleController extends Controller
     {
         $request->validate([
             'num_parcelle' => 'required|string|max:5',
-            'section_cadastrale' => 'required|string|min:1|max:2', // Permet les sections composées comme AA, BC, ZC...
+            'section_cadastrale' => 'required|string|min:1|max:2',
             'type_parcelle' => 'nullable|string|max:50',
             'surface_cadastrale' => 'nullable|numeric',
-            'id_lieu_dit' => 'required|integer|exists:lieu_dit,id_lieu_dit',
+            'id_lieu_dit' => 'nullable|integer|exists:lieu_dit,id_lieu_dit',
             'geojson_data' => 'nullable|json'
         ]);
 

@@ -4,7 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-
+use App\Models\LieuDit;
+use App\Models\Batiment;
 class Parcelle extends Model
 {
     use HasFactory;
@@ -19,16 +20,21 @@ class Parcelle extends Model
     {
         return $this->belongsTo(LieuDit::class, 'id_lieu_dit', 'id_lieu_dit');
     }
+    public function espacesPublics()
+    {
+        return $this->belongsToMany(LieuPublic::class, 'espace_parcelle', 'id_parcelle', 'id_lieu');
+    }
+
 
     public function batiments()
     {
         return $this->hasMany(Batiment::class, 'id_parcelle', 'id_parcelle');
     }
 
-    public function lieuxPublics()
-    {
-        return $this->hasMany(LieuPublic::class, 'id_parcelle', 'id_parcelle');
-    }
+    // public function lieuxPublics()
+    // {
+    //     return $this->hasMany(LieuPublic::class, 'id_parcelle', 'id_parcelle');
+    // }
 
     public function immobilisation()
     {

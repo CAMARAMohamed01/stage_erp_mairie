@@ -18,9 +18,26 @@ class LieuPublic extends Model
     {
         return $this->belongsToMany(Projet::class, 'projet_lieu', 'id_lieu', 'id_projet');
     }
+    public function parcelles()
+    {
+        return $this->belongsToMany(Parcelle::class, 'espace_parcelle', 'id_lieu', 'id_parcelle');
+    }
+    public function adresse()
+    {
+        return $this->belongsTo(Adresse::class, 'id_adresse', 'id_adresse');
+    }
     public function contratsAdministratifs()
     {
         return $this->belongsToMany(\App\Models\Contrat::class, 'contrat_lieu', 'id_lieu', 'id_contrat');
+    }
+    public function batiment()
+    {
+        // On précise (Modèle cible, clé étrangère locale, clé primaire cible)
+        return $this->belongsTo(Batiment::class, 'id_batiment', 'id_batiment');
+    }
+    public function typeErp()
+    {
+        return $this->belongsTo(TypeErp::class, 'id_type_erp', 'id_type_erp');
     }
 
     // Les compteurs associés à ce lieu public (via les locaux de ce lieu)

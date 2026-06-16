@@ -31,8 +31,9 @@ class ProjetController extends Controller
         // On récupère les périmètres possibles
         $batiments = DB::table('batiment')->orderBy('nom_bat')->get();
         $lieux = DB::table('lieux_publics')->orderBy('nom_lieu')->get();
+        $quartiers = DB::table('lieu_dit')->orderBy('nom_lieu_dit')->get();
 
-        return view('projets.create', compact('utilisateurs', 'batiments', 'lieux'));
+        return view('projets.create', compact('utilisateurs', 'batiments', 'lieux', 'quartiers'));
     }
 
     public function show($id)
@@ -56,6 +57,8 @@ class ProjetController extends Controller
             'batiments.*' => 'exists:batiment,id_batiment',
             'lieux' => 'nullable|array',
             'lieux.*' => 'exists:lieux_publics,id_lieu',
+            'quartiers' => 'nullable|array',
+            'quartiers.*' => 'exists:lieu_dit,id_lieu_dit',
         ]);
 
         $projet = Projet::create($validated);
@@ -67,18 +70,20 @@ class ProjetController extends Controller
         if ($request->has('lieux')) {
             $projet->lieuxPublics()->attach($request->lieux);
         }
-
+        if ($request->has('quartiers')) {
+            $projet->quartiers()->attach($request->quartiers);
+        }
         return redirect()->route('projets.index')->with('success', 'Projet et son périmètre créés avec succès.');
     }
 
     public function edit($id)
     {
-        $projet = Projet::with(['batiments', 'lieuxPublics'])->findOrFail($id);
+        $projet = Projet::with(['batiments', 'lieuxPublics', 'quartiers'])->findOrFail($id);
         $utilisateurs = DB::table('utilisateur')->get();
         $batiments = DB::table('batiment')->orderBy('nom_bat')->get();
         $lieux = DB::table('lieux_publics')->orderBy('nom_lieu')->get();
-
-        return view('projets.edit', compact('projet', 'utilisateurs', 'batiments', 'lieux'));
+        $quartiers = DB::table('lieu_dit')->orderBy('nom_lieu_dit')->get();
+        return view('projets.edit', compact('projet', 'utilisateurs', 'batiments', 'lieux', 'quartiers'));
     }
 
     public function update(Request $request, $id)
@@ -96,6 +101,8 @@ class ProjetController extends Controller
             'batiments.*' => 'exists:batiment,id_batiment',
             'lieux' => 'nullable|array',
             'lieux.*' => 'exists:lieux_publics,id_lieu',
+            'quartiers' => 'nullable|array',
+            'quartiers.*' => 'exists:lieu_dit,id_lieu_dit',
         ]);
 
         $projet->update($validated);
@@ -103,6 +110,7 @@ class ProjetController extends Controller
         // La méthode sync() met à jour la table pivot (ajoute les nouveaux, supprime les décochés)
         $projet->batiments()->sync($request->input('batiments', []));
         $projet->lieuxPublics()->sync($request->input('lieux', []));
+        $projet->quartiers()->sync($request->input('quartiers', []));
 
         return redirect()->route('projets.index')->with('success', 'Projet mis à jour.');
     }
@@ -113,7 +121,9 @@ class ProjetController extends Controller
         // On détache d'abord les relations pour éviter les erreurs de clés étrangères
         $projet->batiments()->detach();
         $projet->lieuxPublics()->detach();
+        $projet->lieuxDits()->detach();
         $projet->delete();
+
 
         return redirect()->route('projets.index')->with('success', 'Projet supprimé.');
     }
