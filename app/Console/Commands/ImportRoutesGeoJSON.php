@@ -3,6 +3,7 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\DB;
 /**
  * Class ImportRoutesGeoJSON
  * * Flux ETL (Extract, Transform, Load) dédié à l'intégration des données géospatiales.

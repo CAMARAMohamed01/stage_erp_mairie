@@ -22,18 +22,15 @@ class InterventionController extends Controller
 {
     public function index(Request $request)
     {
-        // dd(auth()->user()->can('check-permission', ['Interventions', 'lecture'])); // Debug pour vérifier les permissions
         // 1. On commence la requête
         $query = Intervention::with('categorie');
 
-
-        // Filtre par statut existant
+        // 2. Filtre par statut (corrigé : une seule fois avec filled)
         if ($request->filled('statut') && $request->statut !== 'Tous') {
-            // Attention au nom exact de ton champ, ici 'statut_global' selon tes vues
             $query->where('statut_global', $request->statut);
         }
 
-        // Filtre textuel (ID ou description ou type)
+        // 3. Filtre textuel (ID, description ou type)
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
@@ -46,12 +43,8 @@ class InterventionController extends Controller
                 }
             });
         }
-        // 2. Si un statut est sélectionné dans le filtre, on ajoute une condition
-        if ($request->has('statut') && $request->statut !== 'Tous') {
-            $query->where('statut_global', $request->statut);
-        }
 
-        // 3. On récupère les résultats triés
+        // 4. On récupère les résultats triés
         $interventions = $query->orderBy('date_ouverture', 'desc')->get();
 
         return view('interventions.index', compact('interventions'));

@@ -4,36 +4,28 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class ImportPatrimoineComplexe extends Command
 {
     protected $signature = 'erp:import-patrimoine';
-    protected $description = 'ETL : Migration du patrimoine avec protection stricte contre la duplication des adresses et des lieux publics';
+    protected $description = 'ETL : Importation avec moteur de recherche d\'adresses anti-accents et anti-abréviations.';
 
     public function handle()
     {
-        $this->info("🚀 Début de la migration stricte du patrimoine (Zéro doublon garanti)...");
+        $this->info("🚀 Début de l'importation (Moteur de recherche d'adresses avancé)...");
 
-        // 1. DICTIONNAIRE DU PATRIMOINE (Bâtiments complexes - Noms inchangés)
+        // 1. DICTIONNAIRE : On utilise uniquement le mot-clé le plus fort de la voie (sans se soucier de route/place/chemin)
         $patrimoine = [
             [
                 'batiment' => 'Bibliothèque',
-                'adresse_recherche' => ['num' => 87, 'voie' => "place de l'église", 'ville' => 'Dingy-Saint-Clair', 'cp' => '74230', 'ld' => 'Centre Village'],
-                'surface_bat' => 170,
+                'adresse_recherche' => ['num' => 87, 'mot_cle' => 'eglise'],
                 'type_erp' => 'R',
                 'locaux' => [
                     ['nom' => 'Bibliothèque', 'etage' => 'RDC', 'surface' => 100, 'remarques' => null],
                     ['nom' => 'Bureau APED', 'etage' => 'RDC', 'surface' => 10, 'remarques' => null],
                     ['nom' => 'Grenette', 'etage' => 'RDC', 'surface' => 40, 'remarques' => null],
                     ['nom' => 'WC publics', 'etage' => 'RDC', 'surface' => 20, 'remarques' => null],
-                ]
-            ],
-            [
-                'batiment' => 'Bibliothèque',
-                'adresse_recherche' => ['num' => 93, 'voie' => "place de l'église", 'ville' => 'Dingy-Saint-Clair', 'cp' => '74230', 'ld' => 'Centre Village'],
-                'surface_bat' => 160,
-                'type_erp' => 'W',
-                'locaux' => [
                     ['nom' => 'Appartement', 'etage' => '1er + Mezzanine', 'surface' => 50, 'remarques' => null],
                     ['nom' => 'Salle Ados', 'etage' => '1er étage', 'surface' => 30, 'remarques' => null],
                     ['nom' => 'Grenier', 'etage' => '2e étage', 'surface' => 80, 'remarques' => null],
@@ -41,11 +33,10 @@ class ImportPatrimoineComplexe extends Command
             ],
             [
                 'batiment' => 'Mairie',
-                'adresse_recherche' => ['num' => 55, 'voie' => "place de l'église", 'ville' => 'Dingy-Saint-Clair', 'cp' => '74230', 'ld' => 'Centre Village'],
-                'surface_bat' => 454,
+                'adresse_recherche' => ['num' => 55, 'mot_cle' => 'eglise'],
                 'type_erp' => 'W',
                 'locaux' => [
-                    ['nom' => 'Mairie', 'etage' => '1er étage', 'surface' => 142, 'remarques' => null],
+                    ['nom' => 'Local principal', 'etage' => '1er étage', 'surface' => 142, 'remarques' => null],
                     ['nom' => 'Mairie', 'etage' => 'RDC', 'surface' => 156, 'remarques' => 'bureaux'],
                     ['nom' => 'Local serveur', 'etage' => '1er étage', 'surface' => null, 'remarques' => null],
                     ['nom' => 'Espace antenne orange', 'etage' => '2e étage', 'surface' => null, 'remarques' => null],
@@ -55,8 +46,7 @@ class ImportPatrimoineComplexe extends Command
             ],
             [
                 'batiment' => 'Créche',
-                'adresse_recherche' => ['num' => 33, 'voie' => 'route de chez Brachet', 'ville' => 'Dingy-Saint-Clair', 'cp' => '74230', 'ld' => 'Centre Village'],
-                'surface_bat' => 313,
+                'adresse_recherche' => ['num' => 33, 'mot_cle' => 'brachet'],
                 'type_erp' => 'R',
                 'locaux' => [
                     ['nom' => 'créche', 'etage' => 'RDC', 'surface' => 263, 'remarques' => null],
@@ -64,12 +54,11 @@ class ImportPatrimoineComplexe extends Command
                 ]
             ],
             [
-                'batiment' => 'maison médicale',
-                'adresse_recherche' => ['num' => 73, 'voie' => 'route de chez Brachet', 'ville' => 'Dingy-Saint-Clair', 'cp' => '74230', 'ld' => 'Centre Village'],
-                'surface_bat' => 200,
+                'batiment' => 'Maison médicale',
+                'adresse_recherche' => ['num' => 73, 'mot_cle' => 'brachet'],
                 'type_erp' => 'U',
                 'locaux' => [
-                    ['nom' => 'Local paramédical', 'etage' => 'RDC', 'surface' => 60, 'remarques' => null],
+                    ['nom' => 'Local Maison médicale', 'etage' => 'RDC', 'surface' => 60, 'remarques' => null],
                     ['nom' => 'Dépendances', 'etage' => 'Local autre', 'surface' => 20, 'remarques' => null],
                     ['nom' => 'Grenier', 'etage' => '2e étage', 'surface' => 120, 'remarques' => 'étage combles perdues'],
                     ['nom' => 'Appartement', 'etage' => 'RDC + 1', 'surface' => 60, 'remarques' => null],
@@ -77,8 +66,7 @@ class ImportPatrimoineComplexe extends Command
             ],
             [
                 'batiment' => 'Presbytère',
-                'adresse_recherche' => ['num' => 52, 'voie' => 'route de chez Brachet', 'ville' => 'Dingy-Saint-Clair', 'cp' => '74230', 'ld' => 'Centre Village'],
-                'surface_bat' => 535,
+                'adresse_recherche' => ['num' => 52, 'mot_cle' => 'brachet'],
                 'type_erp' => 'W',
                 'locaux' => [
                     ['nom' => 'ancien presbytere', 'etage' => 'corps', 'surface' => 495, 'remarques' => null],
@@ -88,8 +76,7 @@ class ImportPatrimoineComplexe extends Command
             ],
             [
                 'batiment' => 'Espace Michel Doche',
-                'adresse_recherche' => ['num' => 85, 'voie' => 'route de la Blonnière', 'ville' => 'Dingy-Saint-Clair', 'cp' => '74230', 'ld' => 'La Blonnière'],
-                'surface_bat' => 1099,
+                'adresse_recherche' => ['num' => 85, 'mot_cle' => 'blonniere'],
                 'type_erp' => 'L',
                 'locaux' => [
                     ['nom' => 'Restaurant scolaire', 'etage' => 'RDC', 'surface' => 1099, 'remarques' => null],
@@ -97,14 +84,13 @@ class ImportPatrimoineComplexe extends Command
                     ['nom' => 'Salle Fier', 'etage' => '1er étage', 'surface' => null, 'remarques' => null],
                     ['nom' => 'Salle Parmelan', 'etage' => '1er étage', 'surface' => null, 'remarques' => null],
                     ['nom' => 'Grenier', 'etage' => '1er étage', 'surface' => null, 'remarques' => null],
-                    ['nom' => 'Local théatre / Aped', 'etage' => null, 'surface' => null, 'remarques' => 'Dépendances'],
-                    ['nom' => 'Local mairie', 'etage' => null, 'surface' => null, 'remarques' => 'Dépendances'],
+                    ['nom' => 'Local théatre / Aped', 'etage' => 'Dépendances', 'surface' => null, 'remarques' => null],
+                    ['nom' => 'Local mairie', 'etage' => 'Dépendances', 'surface' => null, 'remarques' => null],
                 ]
             ],
             [
                 'batiment' => 'Maison forestière',
-                'adresse_recherche' => ['num' => 40, 'voie' => 'route de la maison forestière', 'ville' => 'Dingy-Saint-Clair', 'cp' => '74230', 'ld' => 'Centre Village'],
-                'surface_bat' => 295,
+                'adresse_recherche' => ['num' => 40, 'mot_cle' => 'forestiere'],
                 'type_erp' => 'W',
                 'locaux' => [
                     ['nom' => 'maison forestiere', 'etage' => null, 'surface' => 295, 'remarques' => null]
@@ -112,8 +98,7 @@ class ImportPatrimoineComplexe extends Command
             ],
             [
                 'batiment' => 'Services techniques',
-                'adresse_recherche' => ['num' => 20, 'voie' => 'route de la maison forestière', 'ville' => 'Dingy-Saint-Clair', 'cp' => '74230', 'ld' => 'Centre Village'],
-                'surface_bat' => 220,
+                'adresse_recherche' => ['num' => 20, 'mot_cle' => 'forestiere'],
                 'type_erp' => 'W',
                 'locaux' => [
                     ['nom' => 'Local technique', 'etage' => 'RDC', 'surface' => 220, 'remarques' => null]
@@ -121,8 +106,7 @@ class ImportPatrimoineComplexe extends Command
             ],
             [
                 'batiment' => 'Espace jeunes',
-                'adresse_recherche' => ['num' => null, 'voie' => 'chemin de la maison  forestière', 'ville' => 'Dingy-Saint-Clair', 'cp' => '74230', 'ld' => 'Centre Village'],
-                'surface_bat' => 124,
+                'adresse_recherche' => ['num' => null, 'mot_cle' => 'forestiere'],
                 'type_erp' => 'L',
                 'locaux' => [
                     ['nom' => 'ancien club house', 'etage' => 'RDC', 'surface' => 124, 'remarques' => null],
@@ -134,27 +118,31 @@ class ImportPatrimoineComplexe extends Command
             ],
             [
                 'batiment' => 'Bâtiment jeunesse',
-                'adresse_recherche' => ['num' => 65, 'voie' => "place de l'église", 'ville' => 'Dingy-Saint-Clair', 'cp' => '74230', 'ld' => 'Centre Village'],
-                'surface_bat' => 761,
+                'adresse_recherche' => ['num' => 65, 'mot_cle' => 'eglise'],
                 'type_erp' => 'R',
                 'locaux' => [
-                    ['nom' => 'batiment jeunesse', 'etage' => null, 'surface' => 761, 'remarques' => null],
                     ['nom' => 'salle d\'activités + vestiaires', 'etage' => null, 'surface' => 100, 'remarques' => null],
                 ]
             ],
             [
                 'batiment' => 'Maison Tessier',
-                'adresse_recherche' => ['num' => 213, 'voie' => 'route du chef lieu', 'ville' => 'Dingy-Saint-Clair', 'cp' => '74230', 'ld' => 'Centre Village'],
-                'surface_bat' => 191,
+                'adresse_recherche' => ['num' => 213, 'mot_cle' => 'chef'],
                 'type_erp' => 'W',
                 'locaux' => [
                     ['nom' => 'Maison Tessier', 'etage' => null, 'surface' => 191, 'remarques' => null]
                 ]
             ],
             [
+                'batiment' => 'WC du stade',
+                'adresse_recherche' => ['num' => null, 'mot_cle' => 'chef'],
+                'type_erp' => 'X',
+                'locaux' => [
+                    ['nom' => 'WC du stade', 'etage' => null, 'surface' => 20, 'remarques' => 'bloc sanitaire'],
+                ]
+            ],
+            [
                 'batiment' => 'EAS',
-                'adresse_recherche' => ['num' => 47, 'voie' => 'route du fier', 'ville' => 'Dingy-Saint-Clair', 'cp' => '74230', 'ld' => 'La Plaine du Fier'],
-                'surface_bat' => 49,
+                'adresse_recherche' => ['num' => 47, 'mot_cle' => 'fier'],
                 'type_erp' => 'X',
                 'locaux' => [
                     ['nom' => 'vestiaires', 'etage' => null, 'surface' => null, 'remarques' => null],
@@ -163,9 +151,24 @@ class ImportPatrimoineComplexe extends Command
                 ]
             ],
             [
-                'batiment' => 'école Maurice Anjot',
-                'adresse_recherche' => ['num' => 65, 'voie' => "place de l'église", 'ville' => 'Dingy-Saint-Clair', 'cp' => '74230', 'ld' => 'Centre Village'],
-                'surface_bat' => 1195,
+                'batiment' => 'Chalet Ablon',
+                'adresse_recherche' => ['num' => null, 'mot_cle' => 'ablon'],
+                'type_erp' => 'W',
+                'locaux' => [
+                    ['nom' => 'toilettes seches', 'etage' => null, 'surface' => 3, 'remarques' => null],
+                ]
+            ],
+            [
+                'batiment' => 'Chalet Ablon (Le Perthuis)',
+                'adresse_recherche' => ['num' => null, 'mot_cle' => 'perthuis'],
+                'type_erp' => 'W',
+                'locaux' => [
+                    ['nom' => 'chalet du Perthuis', 'etage' => null, 'surface' => 80, 'remarques' => null],
+                ]
+            ],
+            [
+                'batiment' => 'Ecole primaire (Maurice Anjot)',
+                'adresse_recherche' => ['num' => 65, 'mot_cle' => 'eglise'],
                 'type_erp' => 'R',
                 'locaux' => [
                     ['nom' => 'Ecole maurice Anjot', 'etage' => null, 'surface' => 1195, 'remarques' => null],
@@ -173,9 +176,56 @@ class ImportPatrimoineComplexe extends Command
                 ]
             ],
             [
+                'batiment' => 'Chapelle St Clair',
+                'adresse_recherche' => ['num' => null, 'mot_cle' => 'clair'],
+                'type_erp' => 'V',
+                'locaux' => [
+                    ['nom' => 'chapelle St Clair', 'etage' => null, 'surface' => 60, 'remarques' => null]
+                ]
+            ],
+            [
+                'batiment' => 'Chapelle la blonnière',
+                'adresse_recherche' => ['num' => null, 'mot_cle' => 'blonniere'],
+                'type_erp' => 'V',
+                'locaux' => [
+                    ['nom' => 'chapelle', 'etage' => null, 'surface' => 50, 'remarques' => null]
+                ]
+            ],
+            [
+                'batiment' => 'Four à pain (la blonnière)',
+                'adresse_recherche' => ['num' => null, 'mot_cle' => 'blonniere'],
+                'type_erp' => 'W',
+                'locaux' => [
+                    ['nom' => 'Four à pain', 'etage' => null, 'surface' => 15, 'remarques' => null]
+                ]
+            ],
+            [
+                'batiment' => 'Four à pain (glandon)',
+                'adresse_recherche' => ['num' => null, 'mot_cle' => 'glandon'],
+                'type_erp' => 'W',
+                'locaux' => [
+                    ['nom' => 'Four à pain', 'etage' => null, 'surface' => 15, 'remarques' => null]
+                ]
+            ],
+            [
+                'batiment' => 'Four à pain (les tappes)',
+                'adresse_recherche' => ['num' => null, 'mot_cle' => 'tappes'],
+                'type_erp' => 'W',
+                'locaux' => [
+                    ['nom' => 'four à pain', 'etage' => null, 'surface' => 15, 'remarques' => null]
+                ]
+            ],
+            [
+                'batiment' => 'cabane du garde',
+                'adresse_recherche' => ['num' => null, 'mot_cle' => 'fournet'],
+                'type_erp' => 'W',
+                'locaux' => [
+                    ['nom' => 'cabane du garde', 'etage' => null, 'surface' => 10, 'remarques' => null]
+                ]
+            ],
+            [
                 'batiment' => 'Eglise',
-                'adresse_recherche' => ['num' => 55, 'voie' => "place de l'église", 'ville' => 'Dingy-Saint-Clair', 'cp' => '74230', 'ld' => 'Centre Village'],
-                'surface_bat' => 542,
+                'adresse_recherche' => ['num' => 55, 'mot_cle' => 'eglise'],
                 'type_erp' => 'V',
                 'locaux' => [
                     ['nom' => 'Eglise', 'etage' => null, 'surface' => 542, 'remarques' => null]
@@ -183,137 +233,77 @@ class ImportPatrimoineComplexe extends Command
             ]
         ];
 
-        // 2. DICTIONNAIRE DES LIEUX PUBLICS / INFRASTRUCTURES ISOLÉES
-        $infrastructuresPublics = [
-            ['nom' => 'WC du stade', 'typo' => 'bloc sanitaire'],
-            ['nom' => 'Chalet Ablon', 'typo' => 'toilettes seches'],
-            ['nom' => 'Chalet Ablon', 'typo' => 'chalet d\'alpage'],
-            ['nom' => 'Chalet Ablon', 'typo' => 'chalet du Perthuis'],
-            ['nom' => 'Chapelle', 'typo' => 'chapelle St Clair'],
-            ['nom' => 'Chapelle', 'typo' => 'chapelle'],
-            ['nom' => 'Four à pain', 'typo' => 'Four à pain (la blonnière)'],
-            ['nom' => 'Four à pain', 'typo' => 'Four à pain (glandon)'],
-            ['nom' => 'Four à pain', 'typo' => 'four à pain (les tappes)'],
-            ['nom' => 'cabane du garde', 'typo' => 'cabane du garde'],
-        ];
+        // 2. NETTOYAGE
+        DB::statement('TRUNCATE TABLE local_, batiment CASCADE;');
 
-        // Vidage propre avant ré-importation
-        DB::statement('TRUNCATE TABLE local_ CASCADE;');
-        DB::statement('DELETE FROM batiment;');
-        DB::statement('DELETE FROM lieux_publics;');
-
-        // SÉCURITÉ PARCELLE DEFAUT
-        $idParcelleDefaut = DB::table('parcelle')->value('id_parcelle');
-        if (!$idParcelleDefaut) {
-            $idLieuDitDefaut = DB::table('lieu_dit')->where('nom_lieu_dit', 'Centre Village')->value('id_lieu_dit') ?? 1;
-            $idImmoDefaut = DB::table('immobilisation_inventaire_')->value('id_immo') ?? 1;
-
-            $idParcelleDefaut = DB::table('parcelle')->insertGetId([
-                'section_cadastrale' => 'A',
-                'num_parcelle' => '0001',
-                'type_parcelle' => 'Domaine Communal',
-                'id_lieu_dit' => $idLieuDitDefaut,
-                'id_immo' => $idImmoDefaut
-            ], 'id_parcelle');
+        // 3. CHARGEMENT DE TOUTES LES ADRESSES EN MÉMOIRE POUR ANALYSE
+        $toutesLesAdresses = DB::table('Adresse')->get();
+        if ($toutesLesAdresses->isEmpty()) {
+            $this->error("Erreur fatale : La table 'Adresse' est vide !");
+            return 1;
         }
 
-        $indexImmo = 1;
+        $idAdresseDefaut = $toutesLesAdresses->first()->id_adresse;
 
-        // --- STRATÉGIE 1 : IMPORTATION DES BÂTIMENTS ---
+        $idErpDefaut = DB::table('type_erp')->value('id_type_erp');
+        if (!$idErpDefaut) {
+            $idErpDefaut = DB::table('type_erp')->insertGetId([
+                'reglementation_applicable' => 'Code de l\'urbanisme',
+                'categorie_erp' => 5,
+                'type_erp' => 'W'
+            ], 'id_type_erp');
+        }
+
+        // 4. BOUCLE D'INSERTION
         foreach ($patrimoine as $item) {
             $search = $item['adresse_recherche'];
 
-            $adresse = DB::table('Adresse')
-                ->where('nom_voie', 'ilike', trim($search['voie']))
-                ->where('num_rue', $search['num'])
-                ->first();
+            // LA MAGIE OPÈRE ICI : On cherche l'adresse en ignorant les accents et les espaces
+            $adresseTrouvee = $toutesLesAdresses->first(function ($adr) use ($search) {
+                // Str::slug transforme "PL DE L'ÉGLISE" en "pl-de-leglise"
+                $voieBddNettoyee = Str::slug($adr->nom_voie);
 
-            if ($adresse) {
-                $idAdresse = $adresse->id_adresse;
-            } else {
-                $idLieuDit = DB::table('lieu_dit')->where('nom_lieu_dit', 'ilike', $search['ld'])->value('id_lieu_dit') ?? 1;
-                $idAdresse = DB::table('Adresse')->insertGetId([
-                    'num_rue' => $search['num'],
-                    'nom_voie' => $search['voie'],
-                    'code_postal' => $search['cp'],
-                    'ville' => $search['ville'],
-                    'id_lieu_dit' => $idLieuDit
-                ], 'id_adresse');
-            }
+                $matchMotCle = str_contains($voieBddNettoyee, $search['mot_cle']);
 
-            $immoExiste = DB::table('immobilisation_inventaire_')->where('id_immo', $indexImmo)->exists();
-            if (!$immoExiste) {
-                DB::table('immobilisation_inventaire_')->insertOrIgnore([
-                    'id_immo' => $indexImmo,
-                    'num_inventaire' => 'INV-' . str_pad($indexImmo, 4, '0', STR_PAD_LEFT),
-                    'libelle_comptable' => 'Immo ' . $item['batiment']
-                ]);
-            }
+                if (!empty($search['num'])) {
+                    return $adr->num_rue == $search['num'] && $matchMotCle;
+                }
 
-            $idTypeErp = DB::table('type_erp')->where('type_erp', $item['type_erp'])->value('id_type_erp') ?? 1;
+                return $matchMotCle;
+            });
 
+            $idAdresseFinale = $adresseTrouvee ? $adresseTrouvee->id_adresse : $idAdresseDefaut;
+
+            // Création du bâtiment
             $idBatiment = DB::table('batiment')->insertGetId([
                 'nom_bat' => $item['batiment'],
-                'surface_totale_m2' => $item['surface_bat'],
-                'date_construction' => '1980-01-01',
-                'id_parcelle' => $idParcelleDefaut,
-                'id_type_erp' => $idTypeErp,
-                'id_adresse' => $idAdresse,
-                'id_immo' => $indexImmo
+                'surface_totale_m2' => collect($item['locaux'])->sum('surface') > 0 ? collect($item['locaux'])->sum('surface') : null,
+                'id_type_erp' => $idErpDefaut,
+                'id_adresse' => $idAdresseFinale,
+                'id_parcelle' => null,
+                'id_immo' => null
             ], 'id_batiment');
 
-            if ($adresse && $adresse->latitude && $adresse->longitude) {
-                $geojson = json_encode([
-                    'type' => 'Point',
-                    'coordinates' => [$adresse->longitude, $adresse->latitude]
-                ]);
-                DB::update(
-                    "UPDATE batiment SET geom_batiment = ST_SetSRID(ST_GeomFromGeoJSON(?), 4326) WHERE id_batiment = ?",
-                    [$geojson, $idBatiment]
-                );
-            }
-
+            // Création des locaux liés à ce bâtiment
             foreach ($item['locaux'] as $loc) {
                 DB::table('local_')->insert([
                     'nom_local' => $loc['nom'],
                     'niveau' => $loc['etage'],
                     'surface_m2' => $loc['surface'],
                     'remarque' => $loc['remarques'],
-                    'id_batiment' => $idBatiment
+                    'id_batiment' => $idBatiment,
+                    'id_lieu' => null
                 ]);
             }
 
-            $this->info("🟩 Bâtiment créé de façon unique : {$item['batiment']}");
-            $indexImmo++;
-        }
-
-        // --- STRATÉGIE 2 : IMPORTATION DES LIEUX PUBLICS (PROTECTION CONTRE LES DOUBLONS CRÉÉE) ---
-        foreach ($infrastructuresPublics as $infra) {
-
-            // 🛡️ ANCRE D'UNICITÉ : On vérifie si la paire Nom + Typologie existe déjà en base
-            $existeLieu = DB::table('lieux_publics')
-                ->where('nom_lieu', $infra['nom'])
-                ->where('typologie_lieu', $infra['typo'])
-                ->exists();
-
-            if (!$existeLieu) {
-                DB::table('lieux_publics')->insert([
-                    'nom_lieu' => $infra['nom'],
-                    'typologie_lieu' => $infra['typo'],
-                    'id_batiment' => null,
-                    'id_parcelle' => $idParcelleDefaut,
-                    'id_immo' => null,
-                    'id_type_erp' => null,
-                    'id_decision_reglement' => null
-                ]);
-
-                $this->info("🟦 Lieu Public créé (Unique) : {$infra['nom']} — Typologie: {$infra['typo']}");
+            if ($adresseTrouvee) {
+                $this->info("🟩 Bâtiment inséré : {$item['batiment']} (Lié à : {$adresseTrouvee->num_rue} {$adresseTrouvee->nom_voie})");
             } else {
-                $this->comment("⚠️ Lieu Public ignoré (Doublon détecté) : {$infra['nom']} ({$infra['typo']})");
+                $this->comment("🟨 Bâtiment inséré : {$item['batiment']} (Mot-clé '{$search['mot_cle']}' introuvable -> Adresse par défaut)");
             }
         }
 
-        $this->info("✨ Terminé ! Le patrimoine a été entièrement migré sans aucune altération de nom et sans répétition.");
+        $this->info("✨ Terminé ! Bâtiments et Locaux importés avec succès.");
         return 0;
     }
 }

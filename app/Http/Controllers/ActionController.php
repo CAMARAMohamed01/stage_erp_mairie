@@ -20,28 +20,36 @@ class ActionController extends Controller
     {
         $query = Action::query()->with(['categorie', 'adresse', 'local', 'tiers', 'createur']);
 
+        // 1. Filtre textuel optimisé (Description, Émetteur OU Numéro d'action)
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('description', 'ilike', '%' . $search . '%')
                     ->orWhere('emetteur_nom', 'ilike', '%' . $search . '%');
+
+                // Permet aux agents de taper "15" pour trouver le signalement #15
+                if (is_numeric($search)) {
+                    $q->orWhere('id_action', $search);
+                }
             });
         }
 
-        if ($request->filled('statut')) {
+        // 2. Filtre par statut (avec protection si la valeur par défaut est "Tous")
+        if ($request->filled('statut') && $request->statut !== 'Tous') {
             $query->where('statut_action', $request->statut);
         }
 
-        if ($request->filled('categorie_id')) {
+        // 3. Filtre par catégorie (avec protection similaire)
+        if ($request->filled('categorie_id') && $request->categorie_id !== 'Tous' && $request->categorie_id !== '') {
             $query->where('id_cat', $request->categorie_id);
         }
 
+        // 4. Récupération des résultats
         $actions = $query->orderBy('date_creation', 'desc')->get();
         $categories = Categorie::orderBy('libelle')->get();
 
         return view('actions.index', compact('actions', 'categories'));
     }
-
     public function show($id)
     {
         $action = Action::with(['categorie', 'adresse', 'local', 'tiers', 'createur'])->findOrFail($id);
