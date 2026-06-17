@@ -467,6 +467,18 @@ class InterventionController extends Controller
             ->with('success', 'Matériel ajouté avec succès au bon de travaux.');
     }
 
+    public function destroyMateriel($id)
+    {
+        // On récupère l'achat du matériel (ajuste le nom du modèle si besoin)
+        $materiel = DB::table('achat_materiel_consommable')->where('id_achat', $id)->first();
 
+        if (!$materiel) {
+            return back()->with('error', 'Élément introuvable.');
+        }
+
+        DB::table('achat_materiel_consommable')->where('id_achat', $id)->delete();
+
+        return back()->with('success', '✅ Ligne de matériel supprimée avec succès.');
+    }
 
 }

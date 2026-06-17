@@ -169,6 +169,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/interventions/{idInt}/documents', [InterventionController::class, 'uploadDocument'])
         ->middleware('can:check-permission,"Patrimoine & Equipements","ecriture"')
         ->name('interventions.documents.store');
+    Route::delete('/interventions/materiel/{id}', [InterventionController::class, 'destroyMateriel'])->name('interventions.materiel.destroy');
     // ========================================================
     // 🔏 SECURISE : MODULE BATIMENTS & LIEUX PUBLICS (MATRICE)
     // ========================================================
@@ -455,11 +456,6 @@ Route::middleware('auth')->group(function () {
     // 💳 SECURISE : MODULE DOSSIERS FINANCIERS (COMPTABILITE)
     // ========================================================
 
-    // Route::get('/finances/dossiers', [DossierFinancierController::class, 'index'])->middleware('can:check-permission,"Finances & Achats","lecture"')->name('dossiers-financiers.index');
-    // Route::get('/finances/dossiers/create', [DossierFinancierController::class, 'create'])->middleware('can:check-permission,"Finances & Achats","ecriture"')->name('dossiers-financiers.create');
-    // Route::post('/finances/dossiers', [DossierFinancierController::class, 'store'])->middleware('can:check-permission,"Finances & Achats","ecriture"')->name('dossiers-financiers.store');
-    // Route::get('/finances/dossiers/{id}', [DossierFinancierController::class, 'show'])->middleware('can:check-permission,"Finances & Achats","lecture"')->name('dossiers-financiers.show');
-    // Route::post('/finances/dossiers/{id}/ligne', [DossierFinancierController::class, 'ajouterLigne'])->middleware('can:check-permission,"Finances & Achats","ecriture"')->name('dossiers-financiers.ligne.store');
     Route::resource('dossiers-financiers', DossierFinancierController::class)
         ->middleware('can:check-permission,"Finances & Achats","lecture"');
 

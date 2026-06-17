@@ -54,10 +54,10 @@
 
                 <div>
                     <label class="block text-sm font-bold text-slate-700 mb-2">Lieu-dit <span
-                            class="text-red-500">*</span></label>
-                    <select name="id_lieu_dit" required
+                            class="text-slate-400 font-normal text-xs">(Optionnel)</span></label>
+                    <select name="id_lieu_dit"
                         class="w-full border-slate-300 rounded-md shadow-sm focus:ring-violet-500 focus:border-violet-500 @error('id_lieu_dit') border-red-500 @enderror">
-                        <option value="">-- Sélectionner --</option>
+                        <option value="">-- Aucun --</option>
                         @foreach($lieuxDits as $lieuDit)
                         <option value="{{ $lieuDit->id_lieu_dit }}"
                             {{ old('id_lieu_dit') == $lieuDit->id_lieu_dit ? 'selected' : '' }}>

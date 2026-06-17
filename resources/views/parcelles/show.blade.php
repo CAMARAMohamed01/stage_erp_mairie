@@ -5,6 +5,11 @@
 @endsection
 
 @section('content')
+    @if(session('error'))
+        <div class="p-4 mb-4 bg-red-100 text-red-700 border border-red-400 rounded">
+            {{ session('error') }}
+        </div>
+    @endif
     <div class="max-w-7xl mx-auto space-y-6">
         <div class="flex justify-between items-center mb-6">
             <div class="flex items-center gap-3">
@@ -183,10 +188,14 @@
                         </div>
                         <div class="pt-2 border-t">
                             <span class="font-semibold text-slate-500 block mb-1">Espaces publics / Lieux :</span>
-                            @foreach($parcelle->lieuxPublics as $lieu)
-                                <span class="block p-1.5 bg-slate-50 text-slate-700 rounded mb-1">🌳
-                                    {{ $lieu->nom_lieu }}</span>
-                            @endforeach
+                            @forelse($parcelle->lieuxPublics as $lieu)
+                                <a href="{{ route('lieux.show', $lieu->id_lieu) }}"
+                                    class="block p-1.5 bg-slate-50 text-slate-700 hover:text-green-700 hover:bg-green-50 transition rounded mb-1">
+                                    🌳 {{ $lieu->nom_lieu }}
+                                </a>
+                            @empty
+                                <span class="text-xs text-slate-400 italic">Aucun espace public lié à cette parcelle.</span>
+                            @endforelse
                         </div>
                     </div>
                 </div>

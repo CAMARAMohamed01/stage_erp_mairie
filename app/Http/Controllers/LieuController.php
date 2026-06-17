@@ -215,7 +215,7 @@ class LieuController extends Controller
         if (!$lieu)
             abort(404, 'Espace public introuvable');
 
-        // NOUVEAU : Récupération des parcelles associées
+        // Récupération des parcelles associées
         $parcelles = DB::table('espace_parcelle')
             ->join('parcelle', 'espace_parcelle.id_parcelle', '=', 'parcelle.id_parcelle')
             ->leftJoin('lieu_dit', 'parcelle.id_lieu_dit', '=', 'lieu_dit.id_lieu_dit')
@@ -258,32 +258,68 @@ class LieuController extends Controller
 
     public function destroy($id)
     {
+        //dd($id);
         try {
             DB::beginTransaction();
             $lieu = LieuPublic::findOrFail($id);
 
+            // 1. Détacher les relations Many-to-Many
             $lieu->contratsAdministratifs()->detach();
-            $lieu->parcelles()->detach(); // On détache les parcelles
+            $lieu->parcelles()->detach();
 
+            DB::table('projet_lieu')->where('id_lieu', $id)->delete();
+            DB::table('ouverture_lieu')->where('id_lieu', $id)->delete();
+            DB::table('intervention_espace')->where('id_lieu', $id)->delete();
+
+            // 2. Gestion des LOCAUX et de TOUS LEURS ENFANTS
             $locauxIds = DB::table('local_')->where('id_lieu', $id)->pluck('id_local');
             if ($locauxIds->isNotEmpty()) {
+                // Suppressions dures
                 DB::table('compteur')->whereIn('id_local', $locauxIds)->delete();
+                DB::table('ouverture_local')->whereIn('id_local', $locauxIds)->delete();
+                DB::table('contrat_local')->whereIn('id_local', $locauxIds)->delete();
+                DB::table('document')->whereIn('id_local', $locauxIds)->delete();
+
+                // Conservations (détachement)
+                DB::table('action')->whereIn('id_local', $locauxIds)->update(['id_local' => null]);
+                DB::table('intervention')->whereIn('id_local', $locauxIds)->update(['id_local' => null]);
+                DB::table('equipement')->whereIn('id_local', $locauxIds)->update(['id_local' => null]);
+
+                // Suppression des locaux
+                DB::table('local_')->whereIn('id_local', $locauxIds)->delete();
             }
 
-            DB::table('document')->where('id_lieu', $id)->delete();
+            // 3. CONSERVATION DE L'HISTORIQUE DU LIEU (Détachement)
+            DB::table('action')->where('id_lieu', $id)->update(['id_lieu' => null]);
+            DB::table('intervention')->where('id_lieu', $id)->update(['id_lieu' => null]);
             DB::table('equipement')->where('id_lieu', $id)->update(['id_lieu' => null]);
+
+            // 4. SUPPRESSION DES DÉPENDANCES STRICTES DU LIEU
+            DB::table('document')->where('id_lieu', $id)->delete();
             DB::table('patrimoine_vegetal')->where('id_lieu', $id)->delete();
             DB::table('emplacement_funeraire')->where('id_lieu', $id)->delete();
             DB::table('plan_entretien_vert')->where('id_lieu', $id)->delete();
-            DB::table('intervention_espace')->where('id_lieu', $id)->delete();
 
-            DB::table('local_')->where('id_lieu', $id)->delete();
+            // 5. Supprimer le lieu lui-même (et son geom_lieu avec)
             $lieu->delete();
 
             DB::commit();
 
-            return redirect()->route('lieux.index')->with('success', '✅ Le lieu public a été supprimé.');
+            return redirect()->route('lieux.index')->with('success', '✅ Le lieu public et ses dépendances directes ont été supprimés avec succès.');
 
+        } catch (\Illuminate\Database\QueryException $e) {
+            DB::rollBack();
+
+            // ANALYSE DE L'ERREUR POSTGRESQL
+            $message = $e->getMessage();
+            $tableBloquante = 'inconnue';
+
+            // PostgreSQL renvoie souvent "violates foreign key constraint ... on table "nom_de_la_table""
+            if (preg_match('/on table "([^"]+)"/', $message, $matches)) {
+                $tableBloquante = $matches[1];
+            }
+
+            return redirect()->back()->with('error', "🛑 Suppression bloquée : Le lieu (ou l'un de ses locaux) est encore utilisé dans la table '{$tableBloquante}'. Il faut d'abord nettoyer cette table.");
         } catch (\Exception $e) {
             DB::rollBack();
             return redirect()->back()->with('error', "🛑 Erreur inattendue : " . $e->getMessage());

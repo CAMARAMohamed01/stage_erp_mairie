@@ -128,10 +128,11 @@ class ParcelleController extends Controller
 
     public function destroy($id)
     {
+        //dd("Début de la méthode destroy pour l'ID : " . $id);
         $parcelle = Parcelle::findOrFail($id);
 
         $batimentsCount = DB::table('batiment')->where('id_parcelle', $id)->count();
-        // CORRECTION : On vérifie la table pivot espace_parcelle
+        // On vérifie la table pivot espace_parcelle
         $lieuxCount = DB::table('espace_parcelle')->where('id_parcelle', $id)->count();
 
         if ($batimentsCount > 0 || $lieuxCount > 0) {

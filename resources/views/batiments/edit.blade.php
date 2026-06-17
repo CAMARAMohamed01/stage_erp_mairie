@@ -58,14 +58,16 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
                     <div>
                         <div class="flex justify-between items-center mb-1">
+                            {{-- 🎯 CORRECTION : Retrait de l'étoile rouge et ajout de (Optionnelle) --}}
                             <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Adresse Physique
-                                <span class="text-red-500">*</span></label>
+                                (Optionnelle)</label>
                             <button type="button" onclick="openModal('modalAdresse')"
                                 class="text-xs text-blue-600 font-semibold hover:underline">➕ Créer adresse</button>
                         </div>
-                        <select name="id_adresse" id="select_adresse" required
+                        {{-- 🎯 CORRECTION : Retrait de 'required' --}}
+                        <select name="id_adresse" id="select_adresse"
                             class="w-full rounded-lg border-slate-300 text-sm bg-slate-50">
-                            <option value="">-- Sélectionner --</option>
+                            <option value="">-- Aucune --</option>
                             @foreach($adresses as $adresse)
                                 <option value="{{ $adresse->id_adresse }}" {{ $adresse->id_adresse == $batiment->id_adresse ? 'selected' : '' }}>
                                     {{ $adresse->num_rue }} {{ $adresse->nom_voie }}, {{ $adresse->ville }}
@@ -77,13 +79,13 @@
                     <div>
                         <div class="flex justify-between items-center mb-1">
                             <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Parcelle
-                                Cadastrale <span class="text-red-500">*</span></label>
+                                Cadastrale (Optionnelle)</label>
                             <button type="button" onclick="openModal('modalParcelle')"
                                 class="text-xs text-blue-600 font-semibold hover:underline">➕ Créer parcelle</button>
                         </div>
-                        <select name="id_parcelle" id="select_parcelle" required
+                        <select name="id_parcelle" id="select_parcelle"
                             class="w-full rounded-lg border-slate-300 text-sm bg-slate-50">
-                            <option value="">-- Sélectionner --</option>
+                            <option value="">-- Aucune --</option>
                             @foreach($parcelles as $parcelle)
                                 <option value="{{ $parcelle->id_parcelle }}" {{ $parcelle->id_parcelle == $batiment->id_parcelle ? 'selected' : '' }}>
                                     Section {{ $parcelle->section_cadastrale }} - N° {{ $parcelle->num_parcelle }}
@@ -125,10 +127,10 @@
 
                     <div>
                         <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Immobilisation
-                            Comptable</label>
+                            Comptable (Optionnelle)</label>
                         <select name="id_immo" id="select_immo"
                             class="w-full rounded-lg border-slate-300 text-sm bg-slate-50">
-                            <option value="">-- Sélectionner --</option>
+                            <option value="">-- Aucune --</option>
                             @foreach($immos as $immo)
                                 <option value="{{ $immo->id_immo }}" {{ $immo->id_immo == $batiment->id_immo ? 'selected' : '' }}>
                                     {{ $immo->num_inventaire }} ({{ $immo->libelle_comptable }})
@@ -263,7 +265,8 @@
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-slate-500">Immobilisation liée</label>
-                        <select name="id_immo" required class="w-full rounded-md border-slate-300 text-sm bg-slate-50">
+                        <select name="id_immo" class="w-full rounded-md border-slate-300 text-sm bg-slate-50">
+                            <option value="">-- Aucune (Optionnelle) --</option>
                             @foreach($immos as $immo)
                                 <option value="{{ $immo->id_immo }}">{{ $immo->num_inventaire }}</option>
                             @endforeach
@@ -287,7 +290,6 @@
     <script src="https://unpkg.com/@geoman-io/leaflet-geoman-free@latest/dist/leaflet-geoman.js"></script>
 
     <script>
-        // --- GESTION DES FENÊTRES MODALES & AJAX ---
         function openModal(id) {
             const modal = document.getElementById(id);
             modal.classList.remove('hidden');
@@ -322,17 +324,14 @@
                         formElement.reset();
                     }
                 })
-                .catch(error => alert("Erreur d'insertion. Vérifiez la conformité des données."));
+                .catch(error => alert("Erreur d'insertion. Vérifiez la conformité des données foncières."));
         }
 
-        // --- GESTION DE LA CARTE LEAFLET & GEOMAN ---
         document.addEventListener("DOMContentLoaded", function () {
-            // Configuration du zoom maximum débloqué à 22
             var map = L.map('map', {
                 maxZoom: 22
             }).setView([45.928, 6.223], 15);
 
-            // Ajout des tuiles avec zoom numérique loupe (maxNativeZoom) pour éviter la carte blanche
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 maxZoom: 22,
                 maxNativeZoom: 19,
@@ -354,25 +353,30 @@
 
             var currentMarker = null;
             var geojsonInput = document.getElementById('geojson_data');
+            var selectAdresse = document.getElementById('select_adresse');
 
-            // CHARGEMENT DU POINT EXISTANT
-            var mapElement = document.getElementById('map');
-            var geojsonStr = mapElement.getAttribute('data-geojson');
+            selectAdresse.addEventListener('change', function () {
+                var selectedOption = this.options[this.selectedIndex];
+                var lat = selectedOption.getAttribute('data-lat');
+                var lng = selectedOption.getAttribute('data-lng');
 
-            if (geojsonStr && geojsonStr.trim() !== '') {
-                try {
-                    var existingLayer = L.geoJSON(JSON.parse(geojsonStr)).addTo(map);
-                    existingLayer.eachLayer(function (layer) {
-                        currentMarker = layer;
-                        currentMarker.on('pm:dragend', updateGeoJSON);
-                    });
-                    if (currentMarker && currentMarker.getLatLng) {
-                        map.setView(currentMarker.getLatLng(), 18);
+                if (lat && lng && lat !== "" && lng !== "") {
+                    var targetLatLng = [parseFloat(lat), parseFloat(lng)];
+                    map.setView(targetLatLng, 19);
+
+                    if (currentMarker) {
+                        map.removeLayer(currentMarker);
                     }
-                } catch (e) {
-                    console.error("Erreur de parsing du GeoJSON existant", e);
+
+                    currentMarker = L.marker(targetLatLng, {
+                        draggable: true
+                    }).addTo(map);
+
+                    currentMarker.pm.enable();
+                    updateGeoJSON();
+                    currentMarker.on('pm:dragend', updateGeoJSON);
                 }
-            }
+            });
 
             map.on('pm:create', function (e) {
                 if (currentMarker) {

@@ -21,6 +21,21 @@
 
 <body class="p-10 bg-white text-slate-800 text-sm max-w-4xl mx-auto" onload="window.print()">
 
+    @php
+        // Détermination de l'adresse "en cascade" pour l'impression
+        $adresseFinale = null;
+        $sourceAdresse = '';
+
+        if ($action->adresse) {
+            $adresseFinale = $action->adresse;
+        } elseif ($action->batiment && $action->batiment->adresse) {
+            $adresseFinale = $action->batiment->adresse;
+            $sourceAdresse = ' (via Bâtiment)';
+        } elseif ($action->lieu && $action->lieu->adresse) {
+            $adresseFinale = $action->lieu->adresse;
+            $sourceAdresse = ' (via Lieu public)';
+        }
+    @endphp
 
     <div class="flex justify-between items-start border-b-2 border-slate-900 pb-6 mb-8">
         <div>
@@ -60,19 +75,21 @@
             <h2 class="bg-slate-100 p-2 font-bold uppercase text-xs tracking-wider text-slate-700 mb-4 rounded">📍
                 Localisation Géographique / Patrimoine</h2>
             <div class="grid grid-cols-2 gap-6">
-                {{-- Adresse Voirie --}}
+                {{-- Adresse Voirie (Mise à jour avec la cascade) --}}
                 <div class="p-3 border border-slate-200 rounded-lg">
-                    <span class="block text-xs font-bold text-slate-400 uppercase tracking-wide">Domaine public /
-                        Voirie</span>
-                    @if($action->id_adresse && $action->adresse)
-                        <p class="font-bold text-slate-800 mt-1">{{ $action->adresse->num_rue }}
-                            {{ $action->adresse->nom_voie }}
+                    <span class="block text-xs font-bold text-slate-400 uppercase tracking-wide">
+                        Domaine public / Voirie <span
+                            class="text-slate-500 font-normal italic lowercase">{{ $sourceAdresse }}</span>
+                    </span>
+                    @if($adresseFinale)
+                        <p class="font-bold text-slate-800 mt-1">{{ $adresseFinale->num_rue }}
+                            {{ $adresseFinale->nom_voie }}
                         </p>
-                        <p class="text-xs text-slate-500 font-medium">{{ $action->adresse->code_postal }}
-                            {{ $action->adresse->ville }}
+                        <p class="text-xs text-slate-500 font-medium">{{ $adresseFinale->code_postal }}
+                            {{ $adresseFinale->ville }}
                         </p>
                     @else
-                        <p class="text-slate-400 text-xs italic mt-1.5">Aucune adresse de voirie spécifiée</p>
+                        <p class="text-slate-400 text-xs italic mt-1.5">Aucune adresse directe ou déduite spécifiée</p>
                     @endif
                 </div>
 
@@ -122,7 +139,6 @@
                 <div class="space-y-2">
                     <p><span class="text-slate-400 font-medium">Statut d'instruction :</span> <span
                             class="font-black text-slate-900 border border-slate-400 rounded px-2 py-0.5 bg-slate-50">{{ strtoupper($action->statut_action) }}</span>
-                    </p>
                     </p>
                     <p><span class="text-slate-400 font-medium">Attribution administrative :</span> <span
                             class="font-medium text-slate-800">Brigade des Services Techniques</span></p>

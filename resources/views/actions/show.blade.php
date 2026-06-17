@@ -38,8 +38,8 @@
                 <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-8 space-y-6">
                     <div class="flex justify-between items-start border-b border-slate-100 pb-4">
                         <div>
-                            <span class="text-xs font-bold uppercase tracking-widest text-blue-600">Doléance
-                                Citoyenne</span>
+                            <!-- <span class="text-xs font-bold uppercase tracking-widest text-blue-600">Doléance
+                                    Citoyenne</span> -->
                             <h1 class="text-3xl font-black text-slate-900 mt-1 tracking-tight">Signalement
                                 #{{ $action->id_action }}</h1>
                         </div>
@@ -77,7 +77,7 @@
                             <span class="block text-[10px] uppercase font-bold text-slate-400 tracking-wider">Statut</span>
                             <span
                                 class="inline-block mt-1 px-2.5 py-0.5 text-xs font-extrabold rounded-full
-                                                        {{ $action->statut_action === 'Nouveau' ? 'bg-blue-100 text-blue-800' : ($action->statut_action === 'En cours' ? 'bg-amber-100 text-amber-800' : 'bg-green-100 text-green-800') }}">
+                                                                {{ $action->statut_action === 'Nouveau' ? 'bg-blue-100 text-blue-800' : ($action->statut_action === 'En cours' ? 'bg-amber-100 text-amber-800' : 'bg-green-100 text-green-800') }}">
                                 {{ $action->statut_action }}
                             </span>
                         </div>
@@ -87,7 +87,7 @@
                                 class="block text-[10px] uppercase font-bold text-slate-400 tracking-wider">Priorité</span>
                             <span
                                 class="inline-block mt-1 px-2.5 py-0.5 text-xs font-extrabold rounded-full
-                                                        {{ $action->priorite === 'Haute' ? 'bg-red-100 text-red-700' : ($action->priorite === 'Normale' ? 'bg-slate-100 text-slate-700' : 'bg-green-100 text-green-700') }}">
+                                                                {{ $action->priorite === 'Haute' ? 'bg-red-100 text-red-700' : ($action->priorite === 'Normale' ? 'bg-slate-100 text-slate-700' : 'bg-green-100 text-green-700') }}">
                                 {{ $action->priorite }}
                             </span>
                         </div>
@@ -170,21 +170,41 @@
                         </div>
 
                         {{-- 4. Adresse Voirie (BAN) --}}
+                        @php
+                            // Détermination de l'adresse "en cascade"
+                            $adresseFinale = null;
+                            $sourceAdresse = '';
+
+                            if ($action->adresse) {
+                                $adresseFinale = $action->adresse;
+                            } elseif ($action->batiment && $action->batiment->adresse) {
+                                $adresseFinale = $action->batiment->adresse;
+                                $sourceAdresse = ' (Déduite du Bâtiment)';
+                            } elseif ($action->lieu && $action->lieu->adresse) {
+                                // Note: remplace '$action->lieu' par le nom exact de ta relation si c'est '$action->lieuPublic'
+                                $adresseFinale = $action->lieu->adresse;
+                                $sourceAdresse = ' (Déduite du Lieu)';
+                            }
+                        @endphp
+
                         <div
-                            class="p-4 rounded-xl border {{ $action->id_adresse ? 'border-amber-200 bg-amber-50/20' : 'border-slate-100 bg-slate-50/30' }} flex gap-3 items-start">
+                            class="p-4 rounded-xl border {{ $adresseFinale ? 'border-amber-200 bg-amber-50/20' : 'border-slate-100 bg-slate-50/30' }} flex gap-3 items-start">
                             <span class="text-2xl mt-0.5">🛣️</span>
                             <div>
-                                <span class="block text-[11px] font-bold uppercase tracking-wider text-slate-400">Adresse /
-                                    Voirie</span>
-                                @if($action->id_adresse && $action->adresse)
-                                    <p class="font-bold text-slate-800 mt-1 text-sm">{{ $action->adresse->num_rue }}
-                                        {{ $action->adresse->nom_voie }}
+                                <span class="block text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                                    Adresse / Voirie <span
+                                        class="text-amber-600 font-normal italic lowercase">{{ $sourceAdresse }}</span>
+                                </span>
+
+                                @if($adresseFinale)
+                                    <p class="font-bold text-slate-800 mt-1 text-sm">
+                                        {{ $adresseFinale->num_rue }} {{ $adresseFinale->nom_voie }}
                                     </p>
-                                    <p class="text-xs text-slate-500 font-medium">{{ $action->adresse->code_postal }}
-                                        {{ $action->adresse->ville }}
+                                    <p class="text-xs text-slate-500 font-medium">
+                                        {{ $adresseFinale->code_postal }} {{ $adresseFinale->ville }}
                                     </p>
                                 @else
-                                    <p class="text-slate-400 text-xs italic mt-1">Aucune adresse BAN liée</p>
+                                    <p class="text-slate-400 text-xs italic mt-1">Aucune adresse directe ou liée</p>
                                 @endif
                             </div>
                         </div>

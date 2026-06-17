@@ -20,7 +20,7 @@ class Parcelle extends Model
     {
         return $this->belongsTo(LieuDit::class, 'id_lieu_dit', 'id_lieu_dit');
     }
-    public function espacesPublics()
+    public function lieuxPublics()
     {
         return $this->belongsToMany(LieuPublic::class, 'espace_parcelle', 'id_parcelle', 'id_lieu');
     }

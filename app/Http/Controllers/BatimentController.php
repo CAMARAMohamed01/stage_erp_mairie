@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\Contrat;
 use App\Models\Batiment;
+use Illuminate\Support\Facades\Schema;
 
 class BatimentController extends Controller
 {
@@ -156,14 +157,14 @@ class BatimentController extends Controller
 
     public function store(Request $request)
     {
-        // 🎯 MISE À JOUR : 'id_immo' devient 'nullable'
+        //  'id_immo' devient 'nullable'
         $request->validate([
             'nom_bat' => 'required|string|max:100',
             'surface_totale_m2' => 'nullable|numeric',
             'date_construction' => 'nullable|date',
-            'id_parcelle' => 'required|integer|exists:parcelle,id_parcelle',
+            'id_parcelle' => 'nullable|integer|exists:parcelle,id_parcelle',
             'id_type_erp' => 'required|integer|exists:type_erp,id_type_erp',
-            'id_adresse' => 'required|integer|exists:Adresse,id_adresse',
+            'id_adresse' => 'nullable|integer|exists:Adresse,id_adresse',
             'id_immo' => 'nullable|integer|exists:immobilisation_inventaire_,id_immo|unique:batiment,id_immo',
             'geojson_data' => 'nullable|json',
             'id_contrats' => 'nullable|array',
@@ -175,9 +176,9 @@ class BatimentController extends Controller
             'nom_bat' => $request->nom_bat,
             'surface_totale_m2' => $request->surface_totale_m2,
             'date_construction' => $request->date_construction,
-            'id_parcelle' => $request->id_parcelle,
+            'id_parcelle' => $request->id_parcelle ?: null,
             'id_type_erp' => $request->id_type_erp,
-            'id_adresse' => $request->id_adresse,
+            'id_adresse' => $request->id_adresse ?: null,
             'id_immo' => $request->id_immo ?: null, // 🎯 FORCE LE NULL SI VIDE
         ]);
 
@@ -225,9 +226,9 @@ class BatimentController extends Controller
             'nom_bat' => 'required|string|max:100',
             'surface_totale_m2' => 'nullable|numeric',
             'date_construction' => 'nullable|date',
-            'id_parcelle' => 'required|integer|exists:parcelle,id_parcelle',
+            'id_parcelle' => 'nullable|integer|exists:parcelle,id_parcelle',
             'id_type_erp' => 'required|integer|exists:type_erp,id_type_erp',
-            'id_adresse' => 'required|integer|exists:Adresse,id_adresse',
+            'id_adresse' => 'nullable|integer|exists:Adresse,id_adresse',
             'id_immo' => 'nullable|integer|exists:immobilisation_inventaire_,id_immo|unique:batiment,id_immo,' . $id . ',id_batiment',
             'id_contrats' => 'nullable|array',
             'id_contrats.*' => 'exists:contrat,id_contrat',
@@ -239,10 +240,10 @@ class BatimentController extends Controller
             'nom_bat' => $request->nom_bat,
             'surface_totale_m2' => $request->surface_totale_m2,
             'date_construction' => $request->date_construction,
-            'id_parcelle' => $request->id_parcelle,
+            'id_parcelle' => $request->id_parcelle ?: null,
             'id_type_erp' => $request->id_type_erp,
-            'id_adresse' => $request->id_adresse,
-            'id_immo' => $request->id_immo,
+            'id_adresse' => $request->id_adresse ?: null,
+            'id_immo' => $request->id_immo ?: null, // FORCE LE NULL SI VIDE
         ]);
 
         if ($request->filled('geojson_data')) {
@@ -309,34 +310,73 @@ class BatimentController extends Controller
 
     public function destroy($id)
     {
-        $batiment = DB::table('batiment')->where('id_batiment', $id)->first();
+        //dd("BINGO ! La méthode destroy a bien été déclenchée pour le bâtiment n°" . $id);
+        try {
+            DB::beginTransaction();
 
-        if (!$batiment) {
-            return redirect()->route('batiments.index')->with('error', 'Bâtiment introuvable.');
+
+            $batiment = Batiment::findOrFail($id);
+
+            //  (On empêche la suppression s'il y a des "enfants" lourds)
+            $equipementsLies = DB::table('equipement')
+                ->leftJoin('local_', 'equipement.id_local', '=', 'local_.id_local')
+                ->where('equipement.id_immo', $batiment->id_immo)
+                ->orWhere('local_.id_batiment', $id)
+                ->count();
+
+            if ($equipementsLies > 0) {
+                return redirect()->back()->with('error', "🛑 Impossible de supprimer : $equipementsLies équipement(s) sont encore rattachés à ce bâtiment.");
+            }
+
+            $locauxLies = DB::table('local_')->where('id_batiment', $id)->count();
+            $lieuxLies = DB::table('lieux_publics')->where('id_batiment', $id)->count();
+
+            if ($locauxLies > 0 || $lieuxLies > 0) {
+                return redirect()->back()->with('error', "🛑 Impossible de supprimer : Ce bâtiment contient encore $locauxLies local/locaux et $lieuxLies lieu(x) public(s). Vous devez les supprimer ou les réaffecter d'abord.");
+            }
+
+            // (On coupe les liens sans supprimer la donnée d'origine)
+            // On détache les contrats
+            if (method_exists($batiment, 'contratsAdministratifs')) {
+                $batiment->contratsAdministratifs()->detach();
+            } else {
+                DB::table('contrat_batiment')->where('id_batiment', $id)->delete();
+            }
+
+            // On détache les projets (si tu as une table projet_batiment)
+            if (Schema::hasTable('projet_batiment')) {
+                DB::table('projet_batiment')->where('id_batiment', $id)->delete();
+            }
+
+            // SUPPRESSION DES DÉPENDANCES STRICTES
+            // On supprime les documents liés à ce bâtiment
+            DB::table('document')->where('id_batiment', $id)->delete();
+
+            //  SUPPRESSION DU BÂTIMENT
+            $batiment->delete();
+
+            // Si on arrive ici sans erreur, on valide la transaction !
+            DB::commit();
+
+            return redirect()->route('batiments.index')
+                ->with('success', '✅ Le bâtiment a été retiré du patrimoine communal avec succès.');
+
+        } catch (\Illuminate\Database\QueryException $e) {
+            DB::rollBack();
+
+            // ANALYSE DE L'ERREUR POSTGRESQL (Pour afficher un message propre)
+            $message = $e->getMessage();
+            $tableBloquante = 'inconnue';
+
+            if (preg_match('/on table "([^"]+)"/', $message, $matches)) {
+                $tableBloquante = $matches[1];
+            }
+
+            return redirect()->back()->with('error', "🛑 Suppression bloquée : Le bâtiment est encore utilisé dans la table '{$tableBloquante}'. Il faut d'abord nettoyer cette liaison.");
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', "🛑 Erreur inattendue : " . $e->getMessage());
         }
-
-        // Vérification des équipements liés (via l'immo commune ou via un local)
-        $equipementsLies = DB::table('equipement')
-            ->leftJoin('local_', 'equipement.id_local', '=', 'local_.id_local')
-            ->where('equipement.id_immo', $batiment->id_immo)
-            ->orWhere('local_.id_batiment', $id)
-            ->count();
-
-        if ($equipementsLies > 0) {
-            return redirect()->back()->with('error', "🛑 Impossible de supprimer : $equipementsLies équipement(s) sont encore rattachés à ce bâtiment.");
-        }
-
-        // Structure : Locaux et Lieux publics rattachés
-        $locauxLies = DB::table('local_')->where('id_batiment', $id)->count();
-        $lieuxLies = DB::table('lieux_publics')->where('id_batiment', $id)->count();
-
-        if ($locauxLies > 0 || $lieuxLies > 0) {
-            return redirect()->back()->with('error', "🛑 Impossible de supprimer : Ce bâtiment contient encore $locauxLies local/locaux et $lieuxLies lieu(x) public(s). Vous devez les supprimer ou les réaffecter d'abord.");
-        }
-
-        DB::table('batiment')->where('id_batiment', $id)->delete();
-
-        return redirect()->route('batiments.index')
-            ->with('success', '✅ Le bâtiment a été retiré du patrimoine communal avec succès.');
     }
 }

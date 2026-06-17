@@ -78,6 +78,49 @@
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
             <div class="lg:col-span-2 space-y-6">
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div class="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
+                        <h3 class="text-sm font-bold text-slate-800 tracking-tight flex items-center gap-2">
+                            ⚡ Compteurs Réseaux ({{ $compteurs->count() }})
+                        </h3>
+                        @can('check-permission', ['Patrimoine & Equipements', 'ecriture'])
+                            <a href="{{ route('compteurs.create', ['id_local' => $local->id_local]) }}"
+                                class="text-xs text-blue-600 font-semibold hover:underline">
+                                ➕ Ajouter un compteur
+                            </a>
+                        @endcan
+                    </div>
+                    <div class="p-4">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead>
+                                <tr class="text-slate-400 font-bold border-b border-slate-100 pb-2">
+                                    <th class="pb-2">Point de comptage</th>
+                                    <th class="pb-2">Réseau</th>
+                                    <th class="pb-2 text-right">N° Compteur</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                @forelse($compteurs as $compteur)
+                                    <tr>
+                                        <td class="py-2.5 font-semibold text-slate-800">{{ $compteur->point_comptage }}</td>
+                                        <td class="py-2.5">
+                                            <span
+                                                class="px-2 py-0.5 bg-blue-50 text-blue-700 rounded">{{ $compteur->type_reseau }}</span>
+                                        </td>
+                                        <td class="py-2.5 text-right text-slate-600 font-mono">
+                                            {{ $compteur->numero_compteur ?? 'N/A' }}
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="3" class="py-4 text-center text-slate-400 italic">Aucun compteur associé à
+                                            ce local.</td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
 
                 <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
                     <div class="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
@@ -112,43 +155,7 @@
                     </div>
                 </div>
 
-                <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                    <div class="p-4 bg-slate-50 border-b border-slate-200">
-                        <h3 class="text-sm font-bold text-slate-800 tracking-tight flex items-center gap-2">
-                            ⚡ Compteurs Réseaux ({{ $compteurs->count() }})
-                        </h3>
-                    </div>
-                    <div class="p-4">
-                        <table class="w-full text-left text-xs border-collapse">
-                            <thead>
-                                <tr class="text-slate-400 font-bold border-b border-slate-100 pb-2">
-                                    <th class="pb-2">Point de comptage</th>
-                                    <th class="pb-2">Réseau</th>
-                                    <th class="pb-2 text-right">N° Compteur</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-slate-100">
-                                @forelse($compteurs as $compteur)
-                                    <tr>
-                                        <td class="py-2.5 font-semibold text-slate-800">{{ $compteur->point_comptage }}</td>
-                                        <td class="py-2.5">
-                                            <span
-                                                class="px-2 py-0.5 bg-blue-50 text-blue-700 rounded">{{ $compteur->type_reseau }}</span>
-                                        </td>
-                                        <td class="py-2.5 text-right text-slate-600 font-mono">
-                                            {{ $compteur->numero_compteur ?? 'N/A' }}
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="3" class="py-4 text-center text-slate-400 italic">Aucun compteur associé à
-                                            ce local.</td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+
             </div>
 
             <div class="space-y-6">
@@ -230,21 +237,26 @@
                 </div>
                 <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
                     <div class="p-4 bg-red-50/50 border-b border-red-100">
-                        <h3 class="text-sm font-bold text-red-800 tracking-tight flex items-center gap-2">
-                            🚨 Incidents en cours ({{ $actions->count() }})
-                        </h3>
+                        <h3 class="text-sm font-bold text-red-800 tracking-tight flex items-center gap-2">🚨 Actions
+                            Actives ({{ $actions->count() }})</h3>
                     </div>
                     <div class="p-4 space-y-3 max-h-52 overflow-y-auto">
                         @forelse($actions as $sig)
-                            <div class="p-2.5 bg-slate-50 border border-slate-150 rounded-lg text-xs">
-                                <div class="flex justify-between font-semibold text-slate-800">
-                                    <span class="truncate pr-2">⚠️ {{ $sig->statut_action }}</span>
-                                    <span class="text-red-600 shrink-0">{{ $sig->priorite ?? 'Normale' }}</span>
+                            {{-- On transforme la div en lien cliquable --}}
+                            <a href="{{ route('actions.show', $sig->id_action) }}"
+                                class="block p-2.5 bg-slate-50 border border-slate-150 rounded-lg text-xs hover:bg-red-50 hover:border-red-200 transition group cursor-pointer shadow-sm">
+                                <div
+                                    class="flex justify-between font-semibold text-slate-800 group-hover:text-red-800 transition">
+                                    <span>⚠️ {{ $sig->statut_action }}</span>
+                                    <span class="text-red-600">{{ $sig->priorite ?? 'Normale' }}</span>
                                 </div>
-                                <p class="text-slate-500 mt-1 line-clamp-2">{{ $sig->description }}</p>
-                            </div>
+                                <p class="text-slate-500 mt-1 truncate group-hover:text-red-600 transition">
+                                    {{ $sig->description }}
+                                </p>
+                            </a>
                         @empty
-                            <p class="text-xs text-slate-400 italic text-center py-2">Parfait ! Aucun incident déclaré ici.</p>
+                            <p class="text-xs text-slate-400 italic text-center py-2">Parfait ! Aucune action en attente sur
+                                ce lieu.</p>
                         @endforelse
                     </div>
                 </div>

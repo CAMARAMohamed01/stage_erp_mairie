@@ -57,13 +57,13 @@
                     <div>
                         <div class="flex justify-between items-center mb-1">
                             <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Adresse Physique
-                                <span class="text-red-500">*</span></label>
+                                (Optionnelle)</label>
                             <button type="button" onclick="openModal('modalAdresse')"
                                 class="text-xs text-blue-600 font-semibold hover:underline">➕ Créer adresse</button>
                         </div>
-                        <select name="id_adresse" id="select_adresse" required
+                        <select name="id_adresse" id="select_adresse"
                             class="w-full rounded-lg border-slate-300 text-sm bg-slate-50">
-                            <option value="">-- Sélectionner --</option>
+                            <option value="">-- Aucun --</option>
                             @foreach($adresses as $adresse)
                                 <option value="{{ $adresse->id_adresse }}" data-lat="{{ $adresse->latitude }}"
                                     data-lng="{{ $adresse->longitude }}">
@@ -75,13 +75,13 @@
                     <div>
                         <div class="flex justify-between items-center mb-1">
                             <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Parcelle
-                                Cadastrale <span class="text-red-500">*</span></label>
+                                Cadastrale (Optionnelle)</label>
                             <button type="button" onclick="openModal('modalParcelle')"
                                 class="text-xs text-blue-600 font-semibold hover:underline">➕ Créer parcelle</button>
                         </div>
-                        <select name="id_parcelle" id="select_parcelle" required
+                        <select name="id_parcelle" id="select_parcelle"
                             class="w-full rounded-lg border-slate-300 text-sm bg-slate-50">
-                            <option value="">-- Sélectionner --</option>
+                            <option value="">-- Aucun --</option>
                             @foreach($parcelles as $parcelle)
                                 <option value="{{ $parcelle->id_parcelle }}">Section {{ $parcelle->section_cadastrale }} - N°
                                     {{ $parcelle->num_parcelle }}
@@ -122,8 +122,6 @@
                     </div>
 
                     <div class="md:col-span-2">
-                        {{-- 🎯 MODIFICATION : L'immobilisation comptable n'est plus obligatoire (Retrait de l'étoile rouge
-                        et de required) --}}
                         <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Immobilisation
                             Comptable (Optionnelle)</label>
                         <select name="id_immo" id="select_immo"
@@ -246,8 +244,6 @@
                         </select>
                     </div>
                     <div>
-                        {{-- 🎯 MODIFICATION : L'immobilisation est rendue optionnelle aussi dans le formulaire de création
-                        de parcelle cadastrale --}}
                         <label class="block text-xs font-medium text-slate-500">Immobilisation liée</label>
                         <select name="id_immo" class="w-full rounded-md border-slate-300 text-sm bg-slate-50">
                             <option value="">-- Aucune (Optionnelle) --</option>
