@@ -43,5 +43,11 @@ class Batiment extends Model
     public function immobilisation()
     {
         return $this->belongsTo(ImmobilisationInventaire::class, 'id_immo', 'id_immo');
+
+    }
+    // Un bâtiment peut être concerné par plusieurs projets (via la table pivot projet_batiment)
+    public function projets()
+    {
+        return $this->belongsToMany(Projet::class, 'projet_batiment', 'id_batiment', 'id_projet');
     }
 }

@@ -18,7 +18,7 @@ class ActionController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Action::query()->with(['categorie', 'adresse', 'local', 'tiers', 'createur']);
+        $query = Action::query()->with(['categorie', 'adresse', 'local', 'tiers', 'createur', 'lieuDit']);
 
         // 1. Filtre textuel optimisé (Description, Émetteur OU Numéro d'action)
         if ($request->filled('search')) {
@@ -52,7 +52,7 @@ class ActionController extends Controller
     }
     public function show($id)
     {
-        $action = Action::with(['categorie', 'adresse', 'local', 'tiers', 'createur'])->findOrFail($id);
+        $action = Action::with(['categorie', 'adresse', 'local', 'tiers', 'createur', 'lieuDit'])->findOrFail($id);
         return view('actions.show', compact('action'));
     }
 
@@ -66,7 +66,8 @@ class ActionController extends Controller
         $locaux = DB::table('local_')->orderBy('nom_local')->get();
         $batiments = DB::table('batiment')->orderBy('nom_bat')->get();
         $lieux_publics = DB::table('lieux_publics')->orderBy('nom_lieu')->get();
-        return view('actions.create', compact('categories', 'tiers', 'adresses', 'locaux', 'batiments', 'lieux_publics'));
+        $lieux_dit = DB::table('lieu_dit')->orderBy('nom_lieu_dit')->get();
+        return view('actions.create', compact('categories', 'tiers', 'adresses', 'locaux', 'batiments', 'lieux_publics', 'lieux_dit'));
     }
 
     public function store(Request $request)
@@ -86,7 +87,8 @@ class ActionController extends Controller
                 'id_adresse' => 'nullable|exists:Adresse,id_adresse',
                 'id_local' => 'nullable|exists:local_,id_local',
                 'id_batiment' => 'nullable|exists:batiment,id_batiment',
-                'id_lieu' => 'nullable|exists:lieux_publics,id_lieu'
+                'id_lieu' => 'nullable|exists:lieux_publics,id_lieu',
+                'id_lieu_dit' => 'nullable|exists:lieu_dit,id_lieu_dit'
             ]);
 
             $id_tiers_final = $request->id_tiers;
@@ -141,7 +143,8 @@ class ActionController extends Controller
                 'id_adresse' => $request->id_adresse ? (int) $request->id_adresse : null,
                 'id_local' => $request->id_local ? (int) $request->id_local : null,
                 'id_batiment' => $request->id_batiment ? (int) $request->id_batiment : null,
-                'id_lieu' => $request->id_lieu ? (int) $request->id_lieu : null
+                'id_lieu' => $request->id_lieu ? (int) $request->id_lieu : null,
+                'id_lieu_dit' => $request->id_lieu_dit ? (int) $request->id_lieu_dit : null
             ]);
 
             return redirect()->route('actions.index')->with('success', 'Action enregistrée avec succès.');
@@ -161,8 +164,9 @@ class ActionController extends Controller
         // Récupération pour la vue de modification
         $adresses = DB::table('Adresse')->orderBy('nom_voie')->orderBy('num_rue')->get();
         $locaux = DB::table('local_')->orderBy('nom_local')->get();
+        $lieux_dit = DB::table('lieu_dit')->orderBy('nom_lieu_dit')->get();
 
-        return view('actions.edit', compact('action', 'categories', 'tiers', 'adresses', 'locaux', 'batiments', 'lieux_publics'));
+        return view('actions.edit', compact('action', 'categories', 'tiers', 'adresses', 'locaux', 'batiments', 'lieux_publics', 'lieux_dit'));
     }
 
     public function update(Request $request, $id)
@@ -177,12 +181,14 @@ class ActionController extends Controller
             'id_tiers' => 'nullable|exists:tiers,id_tiers',
             'emetteur_nom' => 'required_without:id_tiers',
             'emetteur_contact' => 'nullable|string|max:50',
-
+            //statut de l'action
+            'statut_action' => 'required|string|max:50',
             // Validation des modifications géographiques
             'id_adresse' => 'nullable|exists:Adresse,id_adresse',
             'id_local' => 'nullable|exists:local_,id_local',
             'id_batiment' => 'nullable|exists:batiment,id_batiment',
-            'id_lieu' => 'nullable|exists:lieux_publics,id_lieu'
+            'id_lieu' => 'nullable|exists:lieux_publics,id_lieu',
+            'id_lieu_dit' => 'nullable|exists:lieu_dit,id_lieu_dit'
         ]);
 
         $id_tiers_final = $request->id_tiers;
@@ -200,13 +206,15 @@ class ActionController extends Controller
             'id_cat' => $request->id_cat,
             'mode_reception' => $request->mode_reception,
             'priorite' => $request->priorite,
+            'statut_action' => $request->statut_action,
             'id_tiers' => $id_tiers_final,
             'emetteur_nom' => $emetteur_nom_final,
             'emetteur_contact' => $request->emetteur_contact,
             'id_adresse' => $request->id_adresse ?: null, //  Mise à jour de l'adresse
             'id_local' => $request->id_local ?: null,       //  Mise à jour du local
             'id_batiment' => $request->id_batiment ?: null, //  Mise à jour du bâtiment
-            'id_lieu' => $request->id_lieu ?: null           //  Mise à jour du lieu public
+            'id_lieu' => $request->id_lieu ?: null,         //  Mise à jour du lieu public
+            'id_lieu_dit' => $request->id_lieu_dit ?: null   //  Mise à jour du lieu-dit    
         ]);
 
         return redirect()->route('actions.show', $action->id_action)->with('success', 'Action mise à jour avec succès.');

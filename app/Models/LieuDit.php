@@ -18,9 +18,18 @@ class LieuDit extends Model
     {
         return $this->hasMany(Adresse::class, 'id_lieu_dit', 'id_lieu_dit');
     }
+    public function actions()
+    {
+        return $this->hasMany(Action::class, 'id_lieu_dit', 'id_lieu_dit');
+    }
 
     public function parcelles()
     {
         return $this->hasMany(Parcelle::class, 'id_lieu_dit', 'id_lieu_dit');
+    }
+    // Un lieu-dit peut être concerné par plusieurs projets (via la table pivot projet_quartier)
+    public function projets()
+    {
+        return $this->belongsToMany(Projet::class, 'projet_quartier', 'id_lieu_dit', 'id_projet');
     }
 }

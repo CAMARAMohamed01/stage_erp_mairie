@@ -73,44 +73,72 @@
                             <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider">Périmètre d'action du
                                 projet</h3>
                         </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            @php
-                                $batimentsLies = $projet->batiments->pluck('id_batiment')->toArray();
-                                $lieuxLies = $projet->lieuxPublics->pluck('id_lieu')->toArray();
-                            @endphp
+
+                        @php
+                            $batimentsLies = $projet->batiments->pluck('id_batiment')->toArray();
+                            $lieuxLies = $projet->lieuxPublics->pluck('id_lieu')->toArray();
+                            $voiesLies = $projet->voies->pluck('id_voie')->toArray();
+                            $lieuxDitsLies = $projet->lieuxDits->pluck('id_lieu_dit')->toArray();
+                        @endphp
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
 
                             <div>
                                 <label
-                                    class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Bâtiments
-                                    concernés</label>
+                                    class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Bâtiments</label>
                                 <select name="batiments[]" multiple
-                                    class="w-full rounded-lg border-slate-300 shadow-sm focus:ring-2 focus:ring-blue-500 h-40">
+                                    class="w-full rounded-lg border-slate-300 shadow-sm focus:ring-2 focus:ring-blue-500 h-32">
                                     @foreach($batiments as $bat)
                                         <option value="{{ $bat->id_batiment }}" {{ in_array($bat->id_batiment, $batimentsLies) ? 'selected' : '' }}>
-                                            {{ $bat->nom_bat }} (Réf:
-                                            #{{ $bat->id_batiment }}{{ $bat->surface_totale_m2 ? ' - ' . $bat->surface_totale_m2 . ' m²' : '' }})
+                                            {{ $bat->nom_bat }}
                                         </option>
                                     @endforeach
                                 </select>
-                                <p class="text-[10px] text-slate-500 mt-2 italic">Maintenez CTRL (ou Cmd sur Mac) pour
-                                    sélectionner plusieurs bâtiments.</p>
                             </div>
 
                             <div>
                                 <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Lieux
-                                    publics concernés</label>
+                                    publics</label>
                                 <select name="lieux[]" multiple
-                                    class="w-full rounded-lg border-slate-300 shadow-sm focus:ring-2 focus:ring-blue-500 h-40">
+                                    class="w-full rounded-lg border-slate-300 shadow-sm focus:ring-2 focus:ring-blue-500 h-32">
                                     @foreach($lieux as $lieu)
                                         <option value="{{ $lieu->id_lieu }}" {{ in_array($lieu->id_lieu, $lieuxLies) ? 'selected' : '' }}>
                                             {{ $lieu->nom_lieu }}
-                                            {{ $lieu->typologie_lieu ? '[' . $lieu->typologie_lieu . ']' : '' }} (Réf:
-                                            #{{ $lieu->id_lieu }})
                                         </option>
                                     @endforeach
                                 </select>
                             </div>
+
+                            <div>
+                                <label
+                                    class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Voies</label>
+                                <select name="voies[]" multiple
+                                    class="w-full rounded-lg border-slate-300 shadow-sm focus:ring-2 focus:ring-blue-500 h-32">
+                                    @foreach($voies as $voie)
+                                        <option value="{{ $voie->id_voie }}" {{ in_array($voie->id_voie, $voiesLies) ? 'selected' : '' }}>
+                                            {{ $voie->nom_voie ?? 'Sans nom' }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div>
+                                <label
+                                    class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Quartiers /
+                                    Lieux-dits</label>
+                                <select name="lieux_dits[]" multiple
+                                    class="w-full rounded-lg border-slate-300 shadow-sm focus:ring-2 focus:ring-blue-500 h-32">
+                                    @foreach($lieuxDits as $ld)
+                                        <option value="{{ $ld->id_lieu_dit }}" {{ in_array($ld->id_lieu_dit, $lieuxDitsLies) ? 'selected' : '' }}>
+                                            {{ $ld->nom_lieu_dit }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+
                         </div>
+                        <p class="text-[10px] text-slate-500 mt-2 italic">Maintenez CTRL (ou Cmd sur Mac) pour sélectionner
+                            ou désélectionner plusieurs éléments.</p>
                     </div>
 
                     <div class="md:col-span-2">

@@ -35,15 +35,28 @@ class Projet extends Model
         return $this->belongsTo(Utilisateur::class, 'id_user');
     }
     // Un projet peut concerner plusieurs bâtiments (via la table pivot projet_batiment)
+    // Bâtiments (N:N)
     public function batiments()
     {
-        return $this->belongsToMany(Batiment::class, 'projet_batiment', 'id_projet', 'id_batiment');
+        return $this->belongsToMany(Batiment::class, 'projet_batiment', 'id_projet', 'id_batiment', 'id_projet', 'id_batiment');
     }
 
-    // Un projet peut concerner plusieurs lieux publics
+    // Lieux Publics (N:N)
     public function lieuxPublics()
     {
-        return $this->belongsToMany(LieuPublic::class, 'projet_lieu', 'id_projet', 'id_lieu');
+        return $this->belongsToMany(LieuPublic::class, 'projet_lieu', 'id_projet', 'id_lieu', 'id_projet', 'id_lieu');
+    }
+
+    // Voies (N:N)
+    public function voies()
+    {
+        return $this->belongsToMany(Voie::class, 'projet_voie', 'id_projet', 'id_voie', 'id_projet', 'id_voie');
+    }
+
+    // Lieux-dits / Quartiers (N:N)
+    public function lieuxDits()
+    {
+        return $this->belongsToMany(LieuDit::class, 'projet_quartier', 'id_projet', 'id_lieu_dit', 'id_projet', 'id_lieu_dit');
     }
 
     // Un projet peut concerner plusieurs locaux

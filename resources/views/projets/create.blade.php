@@ -76,39 +76,57 @@
                             <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider">Périmètre prévisionnel de
                                 l'opération</h3>
                         </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+
                             <div>
                                 <label
-                                    class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Bâtiments
-                                    concernés</label>
+                                    class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Bâtiments</label>
                                 <select name="batiments[]" multiple
-                                    class="w-full rounded-lg border-slate-300 shadow-sm focus:ring-2 focus:ring-blue-500 h-40">
+                                    class="w-full rounded-lg border-slate-300 shadow-sm focus:ring-2 focus:ring-blue-500 h-32">
                                     @foreach($batiments as $bat)
-                                        <option value="{{ $bat->id_batiment }}">
-                                            {{ $bat->nom_bat }} (Réf:
-                                            #{{ $bat->id_batiment }}{{ $bat->surface_totale_m2 ? ' - ' . $bat->surface_totale_m2 . ' m²' : '' }})
-                                        </option>
+                                        <option value="{{ $bat->id_batiment }}">{{ $bat->nom_bat }}</option>
                                     @endforeach
                                 </select>
-                                <p class="text-[10px] text-slate-500 mt-2 italic">Maintenez CTRL (ou Cmd sur Mac) pour
-                                    sélectionner plusieurs bâtiments.</p>
                             </div>
 
                             <div>
                                 <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Lieux
-                                    publics concernés</label>
+                                    publics</label>
                                 <select name="lieux[]" multiple
-                                    class="w-full rounded-lg border-slate-300 shadow-sm focus:ring-2 focus:ring-blue-500 h-40">
+                                    class="w-full rounded-lg border-slate-300 shadow-sm focus:ring-2 focus:ring-blue-500 h-32">
                                     @foreach($lieux as $lieu)
-                                        <option value="{{ $lieu->id_lieu }}">
-                                            {{ $lieu->nom_lieu }}
-                                            {{ $lieu->typologie_lieu ? '[' . $lieu->typologie_lieu . ']' : '' }} (Réf:
-                                            #{{ $lieu->id_lieu }})
-                                        </option>
+                                        <option value="{{ $lieu->id_lieu }}">{{ $lieu->nom_lieu }}</option>
                                     @endforeach
                                 </select>
                             </div>
+
+                            <div>
+                                <label
+                                    class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Voies</label>
+                                <select name="voies[]" multiple
+                                    class="w-full rounded-lg border-slate-300 shadow-sm focus:ring-2 focus:ring-blue-500 h-32">
+                                    @foreach($voies as $voie)
+                                        <option value="{{ $voie->id_voie }}">{{ $voie->nom_voie ?? 'Sans nom' }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div>
+                                <label
+                                    class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Quartiers /
+                                    Lieux-dits</label>
+                                <select name="lieux_dits[]" multiple
+                                    class="w-full rounded-lg border-slate-300 shadow-sm focus:ring-2 focus:ring-blue-500 h-32">
+                                    @foreach($lieuxDits as $ld)
+                                        <option value="{{ $ld->id_lieu_dit }}">{{ $ld->nom_lieu_dit }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
                         </div>
+                        <p class="text-[10px] text-slate-500 mt-2 italic">Maintenez CTRL (ou Cmd sur Mac) pour sélectionner
+                            plusieurs éléments.</p>
                     </div>
 
                     <div class="md:col-span-2">

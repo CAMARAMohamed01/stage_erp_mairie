@@ -125,8 +125,7 @@
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Lieu public /
-                            Lieu-dit</label>
+                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Lieu public </label>
                         <select name="id_lieu" id="id_lieu"
                             class="w-full border-slate-300 rounded-lg shadow-sm text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500 bg-white py-2.5">
                             <option value="">-- Aucun lieu public --</option>
@@ -163,6 +162,19 @@
                             <option value="{{ $loc->id_local }}"
                                 {{ $action->id_local == $loc->id_local ? 'selected' : '' }}>
                                 🔑 {{ $loc->nom_local }}
+                            </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Lieu-dit</label>
+                        <select name="id_lieu_dit" id="id_lieu_dit"
+                            class="w-full border-slate-300 rounded-lg shadow-sm text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500 bg-white py-2.5">
+                            <option value="">-- Aucun lieu-dit --</option>
+                            @foreach($lieux_dit as $lieu_dit)
+                            <option value="{{ $lieu_dit->id_lieu_dit }}"
+                                {{ $action->id_lieu_dit == $lieu_dit->id_lieu_dit ? 'selected' : '' }}>
+                                🏞️ {{ $lieu_dit->nom_lieu_dit }}
                             </option>
                             @endforeach
                         </select>
@@ -208,6 +220,27 @@
                             <option value="{{ $cat->id_cat }}" {{ $action->id_cat == $cat->id_cat ? 'selected' : '' }}>
                                 {{ $cat->libelle }}</option>
                             @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Statut de l'action</label>
+                        <select name="statut_action" required
+                            class="w-full border-slate-300 rounded-lg shadow-sm text-sm focus:ring-2 focus:ring-blue-500 py-2.5 bg-blue-50 font-bold text-blue-900 border-blue-300">
+                            <option value="Nouveau"
+                                {{ old('statut_action', $action->statut_action) == 'Nouveau' ? 'selected' : '' }}>
+                                Nouveau</option>
+                            <option value="En cours"
+                                {{ old('statut_action', $action->statut_action) == 'En cours' ? 'selected' : '' }}>En
+                                cours</option>
+                            <option value="En attente"
+                                {{ old('statut_action', $action->statut_action) == 'En attente' ? 'selected' : '' }}>En
+                                attente (Devis/Matériel)</option>
+                            <option value="Abandonné"
+                                {{ old('statut_action', $action->statut_action) == 'Abandonné' ? 'selected' : '' }}>
+                                Abandonné</option>
+                            <option value="Terminé"
+                                {{ old('statut_action', $action->statut_action) == 'Terminé' ? 'selected' : '' }}>
+                                Clôturé / Terminé</option>
                         </select>
                     </div>
                 </div>

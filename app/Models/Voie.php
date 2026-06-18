@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-
+use Illuminate\Support\Facades\DB;
 class Voie extends Model
 {
     protected $table = 'voie';
@@ -17,7 +17,13 @@ class Voie extends Model
         return $this->hasMany(Troncon::class, 'id_voie', 'id_voie')
             ->orderBy('pk_debut'); // On trie par Point Kilométrique
     }
-
+    /**
+     * Les projets qui concernent cette voie
+     */
+    public function projets()
+    {
+        return $this->belongsToMany(Projet::class, 'projet_voie', 'id_voie', 'id_projet');
+    }
     // Les ouvrages d'art liés à cette voie (ponts, murs)
     public function ouvrages()
     {

@@ -57,4 +57,8 @@ class action extends Model
     {
         return $this->belongsTo(Batiment::class, 'id_batiment', 'id_batiment');
     }
+    public function lieuDit()
+    {
+        return $this->belongsTo(LieuDit::class, 'id_lieu_dit', 'id_lieu_dit');
+    }
 }

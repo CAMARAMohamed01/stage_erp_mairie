@@ -165,6 +165,19 @@
                                 @endforeach
                             </select>
                         </div>
+                        <div class="mb-4">
+                            <label for="id_lieu_dit" class="block text-sm font-medium text-gray-700">Lieu-dit
+                                concerné</label>
+                            <select name="id_lieu_dit" id="id_lieu_dit"
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                                <option value="">-- Aucun lieu-dit spécifique --</option>
+                                @foreach($lieux_dit as $lieu)
+                                    <option value="{{ $lieu->id_lieu_dit }}" {{ old('id_lieu_dit') == $lieu->id_lieu_dit ? 'selected' : '' }}>
+                                        {{ $lieu->nom_lieu_dit }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
                     </div>
                     <p class="text-xs text-slate-500 italic font-medium mt-1">💡 Conseil : Renseignez uniquement le niveau
                         de précision connu (ex: indiquez le Bâtiment si vous ignorez le Local exact).</p>
@@ -192,6 +205,18 @@
                                 <option value="Accueil">🏢 Accueil Mairie</option>
                                 <option value="Application">📱 Application Mobile</option>
                                 <option value="Courrier">✉️ Courrier</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Statut initial de
+                                l'action</label>
+                            <select name="statut_action" required
+                                class="w-full border-slate-300 rounded-lg shadow-sm text-sm focus:ring-2 focus:ring-blue-500 py-2.5 bg-white">
+                                <option value="Nouveau">Nouveau</option>
+                                <option value="En cours">En cours</option>
+                                <option value="En attente">En attente</option>
+                                <option value="Abandonné">Abandonné</option>
+                                <option value="Terminé">Terminé</option>
                             </select>
                         </div>
                         <div>

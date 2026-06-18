@@ -84,9 +84,8 @@
                                                 default => 'bg-amber-50 text-amber-700 border-amber-100'
                                             };
                                         @endphp
-                                        <span class="px-2 py-0.5 text-[10px] font-bold rounded-full border {{ $badge }}">
-                                            {{ $decision->statut_decision }}
-                                        </span>
+                                        <span
+                                            class="px-2 py-0.5 text-[10px] font-bold rounded-full border {{ $badge }}">{{ $decision->statut_decision }}</span>
                                     </div>
                                     <p class="text-xs text-slate-600 italic">«
                                         {{ $decision->commentaire_elus ?? 'Sans commentaire' }} »
@@ -148,6 +147,7 @@
                         </table>
                     </div>
                 </div>
+
             </div>
 
             <div class="space-y-6">
@@ -177,13 +177,14 @@
                 <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
                     <h3
                         class="text-sm font-bold text-slate-800 uppercase tracking-wider mb-4 border-b pb-2 text-center lg:text-left">
-                        📍 Périmètre d'impact</h3>
+                        📍 Périmètre d'impact
+                    </h3>
 
                     <div class="space-y-5">
                         <div>
                             <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-2">Bâtiments
                                 concernés</p>
-                            @if($projet->batiments->count() > 0)
+                            @if($projet->batiments && $projet->batiments->count() > 0)
                                 <div class="flex flex-wrap gap-2">
                                     @foreach($projet->batiments as $bat)
                                         <span
@@ -200,7 +201,7 @@
                         <div class="border-t pt-4">
                             <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-2">Lieux publics
                                 concernés</p>
-                            @if($projet->lieuxPublics->count() > 0)
+                            @if($projet->lieuxPublics && $projet->lieuxPublics->count() > 0)
                                 <div class="flex flex-wrap gap-2">
                                     @foreach($projet->lieuxPublics as $lieu)
                                         <span
@@ -211,6 +212,40 @@
                                 </div>
                             @else
                                 <p class="text-xs text-slate-400 italic">Aucun lieu public lié.</p>
+                            @endif
+                        </div>
+
+                        <div class="border-t pt-4">
+                            <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-2">Voies concernées
+                            </p>
+                            @if($projet->voies && $projet->voies->count() > 0)
+                                <div class="flex flex-wrap gap-2">
+                                    @foreach($projet->voies as $voie)
+                                        <span
+                                            class="px-2.5 py-1 bg-stone-50 text-stone-700 border border-stone-200 text-xs font-bold rounded-md flex items-center gap-1">
+                                            Ancienne 🛣️ {{ $voie->nom_voie ?? 'Voie sans nom' }}
+                                        </span>
+                                    @endforeach
+                                </div>
+                            @else
+                                <p class="text-xs text-slate-400 italic">Aucune voie liée.</p>
+                            @endif
+                        </div>
+
+                        <div class="border-t pt-4">
+                            <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-2">Quartiers /
+                                Lieux-dits concernés</p>
+                            @if($projet->lieuxDits && $projet->lieuxDits->count() > 0)
+                                <div class="flex flex-wrap gap-2">
+                                    @foreach($projet->lieuxDits as $ld)
+                                        <span
+                                            class="px-2.5 py-1 bg-fuchsia-50 text-fuchsia-700 border border-fuchsia-200 text-xs font-bold rounded-md flex items-center gap-1">
+                                            🏘️ {{ $ld->nom_lieu_dit }}
+                                        </span>
+                                    @endforeach
+                                </div>
+                            @else
+                                <p class="text-xs text-slate-400 italic">Aucun quartier lié.</p>
                             @endif
                         </div>
                     </div>
