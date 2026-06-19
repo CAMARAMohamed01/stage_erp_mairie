@@ -413,18 +413,33 @@ class InterventionController extends Controller
     {
         $intervention = Intervention::findOrFail($id);
 
-        // 1. On détache les équipements (Table pivot)
+        // 1. VÉRIFICATION AVANT SUPPRESSION : Y a-t-il des achats liés ?
+        $hasAchats = \Illuminate\Support\Facades\DB::table('achat_materiel_consommable')
+            ->where('id_int', $id)
+            ->exists();
 
-        $intervention->equipements()->detach();
-        $intervention->agents()->detach();
-        // 2. NOUVEAU : On supprime les comptes-rendus / l'historique liés
-        $intervention->suiviActions()->delete();
+        if ($hasAchats) {
+            return redirect()->back()->with('error', '🛑 Impossible de supprimer cette intervention : des matériels ou fournitures y sont encore rattachés. Veuillez d\'abord les supprimer depuis la fiche.');
+        }
 
-        // 3. On peut enfin supprimer l'intervention en toute sécurité
-        $intervention->delete();
+        try {
+            // 2. NETTOYAGE DES RELATIONS (Tes lignes)
+            $intervention->equipements()->detach();
+            $intervention->agents()->detach();
 
-        return redirect()->route('interventions.index')
-            ->with('success', 'Intervention et son historique supprimés définitivement.');
+            // On supprime les comptes-rendus / l'historique liés
+            $intervention->suiviActions()->delete();
+
+            // 3. SUPPRESSION FINALE
+            $intervention->delete();
+
+            return redirect()->route('interventions.index')
+                ->with('success', '✅ Intervention et son historique supprimés définitivement.');
+
+        } catch (\Illuminate\Database\QueryException $e) {
+            // 4. SÉCURITÉ GLOBALE : Si une autre table bloque, on intercepte sans faire planter l'application
+            return redirect()->back()->with('error', '🛑 Impossible de supprimer cette intervention car elle est encore référencée ailleurs dans le système.');
+        }
     }
     // 1. Affiche le formulaire
     public function formulaireCloture($id)
