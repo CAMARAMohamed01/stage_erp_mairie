@@ -13,7 +13,7 @@ use App\Models\Adresse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Models\Tiers;
-
+use Carbon\Carbon;
 class ActionController extends Controller
 {
     public function index(Request $request)
@@ -286,5 +286,104 @@ class ActionController extends Controller
         $action = Action::with(['categorie', 'adresse', 'local', 'createur'])->findOrFail($id);
 
         return view('actions.print', compact('action'));
+    }
+    public function exportExcel()
+    {
+        // 1. Récupérer toutes les actions avec leurs relations utiles (lieu au lieu de lieuPublic)
+        $actions = Action::with(['categorie', 'local', 'batiment', 'lieu', 'createur'])
+            ->orderBy('date_creation', 'desc')
+            ->get();
+
+        $fileName = 'export_actions_' . date('Y-m-d_H-i-s') . '.csv';
+
+        // 2. Entêtes HTTP pour forcer le navigateur à télécharger le fichier
+        $headers = [
+            "Content-type" => "text/csv; charset=UTF-8",
+            "Content-Disposition" => "attachment; filename=$fileName",
+            "Pragma" => "no-cache",
+            "Cache-Control" => "must-revalidate, post-check=0, pre-check=0",
+            "Expires" => "0"
+        ];
+
+        // 3. Noms des colonnes demandées (Identique à ton fichier d'historique)
+        $columns = [
+            'index',
+            'date_ouverture',
+            'initiales',
+            'code_budget',
+            'nom_bat/lieu public',
+            'nom_local',
+            'Categorie',
+            'priorite',
+            'action',
+            'couts associés',
+            'statut_global',
+            'date_cloture',
+            'Prochaine étape/délai'
+        ];
+
+        // 4. Fonction de création du fichier ligne par ligne
+        $callback = function () use ($actions, $columns) {
+            $file = fopen('php://output', 'w');
+
+            // Ajout du "BOM UTF-8" hyper important pour qu'Excel lise correctement les accents (é, à, etc.)
+            fputs($file, chr(0xEF) . chr(0xBB) . chr(0xBF));
+
+            // Écriture de la première ligne d'en-tête (séparateur point-virgule pour l'Excel français)
+            fputcsv($file, $columns, ';');
+
+            foreach ($actions as $action) {
+                // Déduction du bâtiment ou lieu public (utilisation de la relation "lieu")
+                $nomBatLieu = $action->batiment->nom_bat ?? ($action->lieu->nom_lieu ?? '');
+
+                // Recherche de l'intervention liée pour récupérer le budget, la date de clôture et les coûts
+                $intervention = DB::table('intervention')->where('id_action', $action->id_action)->first();
+
+                $codeBudget = $intervention->code_budget ?? '';
+                $dateCloture = ($intervention && $intervention->date_cloture)
+                    ? Carbon::parse($intervention->date_cloture)->format('d/m/Y')
+                    : '';
+
+                $couts = 0;
+                $prochaineEtape = '';
+
+                // Si une intervention existe, on compile ses coûts de suivi
+                if ($intervention) {
+                    $suivis = DB::table('suivi_action')->where('id_int', $intervention->id_int)->get();
+                    $couts = $suivis->sum('cout_associe');
+
+                    // On récupère le dernier compte rendu pour remplir la "Prochaine étape"
+                    $dernierSuivi = $suivis->last();
+                    if ($dernierSuivi) {
+                        $prochaineEtape = $dernierSuivi->description_etape;
+                    }
+                }
+
+                // Construction de la ligne de données
+                $row = [
+                    $action->id_action,
+                    $action->date_creation ? Carbon::parse($action->date_creation)->format('d/m/Y') : '',
+                    $action->createur->initiales ?? $action->emetteur_nom,
+                    $codeBudget,
+                    $nomBatLieu,
+                    $action->local->nom_local ?? '',
+                    $action->categorie->libelle ?? '',
+                    $action->priorite ?? '',
+                    $action->description ?? '',
+                    $couts > 0 ? number_format($couts, 2, ',', ' ') . ' €' : '',
+                    $action->statut_action ?? '',
+                    $dateCloture,
+                    $prochaineEtape
+                ];
+
+                // Ajout de la ligne dans le fichier
+                fputcsv($file, $row, ';');
+            }
+
+            fclose($file);
+        };
+
+        // 5. Retourner le flux directement à l'utilisateur
+        return response()->stream($callback, 200, $headers);
     }
 }
