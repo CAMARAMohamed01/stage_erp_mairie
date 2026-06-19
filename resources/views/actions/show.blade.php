@@ -39,7 +39,7 @@
                     <div class="flex justify-between items-start border-b border-slate-100 pb-4">
                         <div>
                             <!-- <span class="text-xs font-bold uppercase tracking-widest text-blue-600">Doléance
-                                                            Citoyenne</span> -->
+                                                                Citoyenne</span> -->
                             <h1 class="text-3xl font-black text-slate-900 mt-1 tracking-tight">Signalement
                                 #{{ $action->id_action }}</h1>
                         </div>
@@ -77,7 +77,7 @@
                             <span class="block text-[10px] uppercase font-bold text-slate-400 tracking-wider">Statut</span>
                             <span
                                 class="inline-block mt-1 px-2.5 py-0.5 text-xs font-extrabold rounded-full
-                                                                                        {{ $action->statut_action === 'Nouveau' ? 'bg-blue-100 text-blue-800' : ($action->statut_action === 'En cours' ? 'bg-amber-100 text-amber-800' : 'bg-green-100 text-green-800') }}">
+                                                                                            {{ $action->statut_action === 'Nouveau' ? 'bg-blue-100 text-blue-800' : ($action->statut_action === 'En cours' ? 'bg-amber-100 text-amber-800' : 'bg-green-100 text-green-800') }}">
                                 {{ $action->statut_action }}
                             </span>
                         </div>
@@ -87,7 +87,7 @@
                                 class="block text-[10px] uppercase font-bold text-slate-400 tracking-wider">Priorité</span>
                             <span
                                 class="inline-block mt-1 px-2.5 py-0.5 text-xs font-extrabold rounded-full
-                                                                                        {{ $action->priorite === 'Haute' ? 'bg-red-100 text-red-700' : ($action->priorite === 'Normale' ? 'bg-slate-100 text-slate-700' : 'bg-green-100 text-green-700') }}">
+                                                                                            {{ $action->priorite === 'Haute' ? 'bg-red-100 text-red-700' : ($action->priorite === 'Normale' ? 'bg-slate-100 text-slate-700' : 'bg-green-100 text-green-700') }}">
                                 {{ $action->priorite }}
                             </span>
                         </div>

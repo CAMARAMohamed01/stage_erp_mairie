@@ -7,7 +7,7 @@
 
         <div class="flex flex-wrap justify-between items-center gap-4">
             <div>
-                <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Bâtiments & Lieux Publics</h1>
+                <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Bâtiments </h1>
                 <p class="text-sm text-slate-500 mt-1">Inventaire complet du patrimoine de la commune et suivi de leur
                     classification ERP.</p>
             </div>

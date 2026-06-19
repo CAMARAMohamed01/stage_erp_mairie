@@ -110,9 +110,9 @@ class CompteurEtlSeeder extends Seeder
                         if ($batimentExistant) {
                             $idBatimentParent = $batimentExistant->id_batiment;
                         } else {
+                            // LIGNE CORRIGÉE ICI : 'id_parcelle' retiré
                             $idBatimentParent = DB::table('batiment')->insertGetId([
                                 'nom_bat' => $nomStructure,
-                                'id_parcelle' => 1,
                                 'id_type_erp' => $idTypeErpDefault,
                                 'id_adresse' => $idAdresseFinal
                             ], 'id_batiment');
