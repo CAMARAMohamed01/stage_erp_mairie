@@ -36,6 +36,12 @@
                                 projet</option>
                             <option value="Maintenance" {{ old('type_projet') == 'Maintenance' ? 'selected' : '' }}>
                                 Maintenance</option>
+                            <option value="Aménagement" {{ old('type_projet') == 'Aménagement' ? 'selected' : '' }}>
+                                Aménagement</option>
+                            <option value="Renovation" {{ old('type_projet') == 'Renovation' ? 'selected' : '' }}>
+                                Rénovation</option>
+                            <option value="Grand projet" {{ old('type_projet') == 'Grand projet' ? 'selected' : '' }}>Grand
+                                projet</option>
                             <option value="Étude" {{ old('type_projet') == 'Étude' ? 'selected' : '' }}>Étude</option>
                         </select>
                     </div>

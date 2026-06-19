@@ -37,6 +37,10 @@
                 <select name="type_intervention" required class="w-full border border-gray-300 rounded-lg px-4 py-2">
                     <option value="Maintenance"
                         {{ $intervention->type_intervention == 'Maintenance' ? 'selected' : '' }}>Maintenance</option>
+                    <option value="Réparation" {{ $intervention->type_intervention == 'Réparation' ? 'selected' : '' }}>
+                        Réparation</option>
+                    <option value="Aménagement"
+                        {{ $intervention->type_intervention == 'Aménagement' ? 'selected' : '' }}>Aménagement</option>
                     <option value="Dépannage Curatif"
                         {{ $intervention->type_intervention == 'Dépannage Curatif' ? 'selected' : '' }}>Dépannage
                         Curatif</option>
@@ -61,7 +65,7 @@
                     <option value="En attente de pièces"
                         {{ $intervention->statut_global == 'En attente de pièces' ? 'selected' : '' }}>En attente de
                         pièces</option>
-                    <option value="Terminé" {{ $intervention->statut_global == 'Terminé' ? 'selected' : '' }}>Terminé
+                    <option value="Terminée" {{ $intervention->statut_global == 'Terminée' ? 'selected' : '' }}>Terminée
                     </option>
                 </select>
             </div>

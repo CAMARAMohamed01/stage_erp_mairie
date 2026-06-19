@@ -135,6 +135,8 @@
                 <select name="type_intervention" required
                     class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-blue-500">
                     <option value="Maintenance">Maintenance</option>
+                    <option value="Réparation">Réparation</option>
+                    <option value="Aménagement">Aménagement</option>
                     <option value="Dépannage Curatif">Dépannage Curatif</option>
                     <option value="Contrôle Réglementaire">Contrôle Réglementaire</option>
                     <option value="Travaux Neufs">Travaux Neufs(Amélioration)</option>
