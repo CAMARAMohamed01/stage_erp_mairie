@@ -60,7 +60,16 @@
                     @forelse($controles as $controle)
                         <tr class="hover:bg-slate-50/70 transition-colors">
                             <td class="p-4">
-                                <p class="font-semibold text-slate-800">{{ $controle->designation }}</p>
+                                <div class="flex items-center gap-2 mb-0.5">
+                                    <p class="font-semibold text-slate-800">{{ $controle->designation }}</p>
+                                    @if($controle->numero_controle)
+                                        <span
+                                            class="px-2 py-0.5 text-[10px] font-mono font-bold bg-slate-100 text-slate-600 rounded border border-slate-200"
+                                            title="Numéro de contrôle">
+                                            {{ $controle->numero_controle }}
+                                        </span>
+                                    @endif
+                                </div>
                                 <p class="text-xs text-slate-500">{{ $controle->domaine_technique ?? 'Domaine non précisé' }}
                                 </p>
                             </td>

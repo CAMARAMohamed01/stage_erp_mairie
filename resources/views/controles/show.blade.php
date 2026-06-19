@@ -52,6 +52,12 @@
 
                     <div class="grid grid-cols-2 gap-6 text-sm">
                         <div>
+                            <p class="text-slate-500 mb-1 font-semibold">Numéro de contrôle</p>
+                            <p class="text-slate-800 font-medium bg-slate-50 p-2 rounded border border-slate-100">
+                                {{ $controle->numero_controle ?? 'Non spécifié' }}
+                            </p>
+                        </div>
+                        <div>
                             <p class="text-slate-500 mb-1 font-semibold">Périodicité</p>
                             <p class="text-slate-800 font-medium bg-slate-50 p-2 rounded border border-slate-100">
                                 {{ $controle->frequence_mois ? $controle->frequence_mois . ' mois' : 'Aucune fréquence fixe' }}
@@ -69,7 +75,7 @@
                                 {{ $controle->intervenant_prevu ?? 'Libre' }}
                             </p>
                         </div>
-                        <div>
+                        <div class="col-span-2">
                             <p class="text-slate-500 mb-1 font-semibold">Livrable attendu</p>
                             <p class="text-slate-800 font-medium bg-slate-50 p-2 rounded border border-slate-100">
                                 📄 {{ $controle->type_document_attendu ?? 'Aucun document exigé' }}

@@ -15,17 +15,25 @@
 
     <form action="{{ route('controles.update', $controle->id_controle) }}" method="POST">
         @csrf
-        @csrf
         @method('PUT')
 
         <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-6">
-            <div>
-                <label class="block text-sm font-semibold text-slate-700 mb-1">Désignation du contrôle *</label>
-                <input type="text" name="designation" value="{{ old('designation', $controle->designation) }}" required
-                    class="w-full border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Désignation du contrôle *</label>
+                    <input type="text" name="designation" value="{{ old('designation', $controle->designation) }}"
+                        required
+                        class="w-full border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Numéro de contrôle</label>
+                    <input type="text" name="numero_controle"
+                        value="{{ old('numero_controle', $controle->numero_controle) }}"
+                        class="w-full border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500">
+                </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 border-t pt-4 border-slate-100">
                 <div>
                     <label class="block text-sm font-semibold text-slate-700 mb-1">Domaine technique</label>
                     <input type="text" name="domaine_technique"

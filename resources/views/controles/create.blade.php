@@ -19,15 +19,25 @@
 
         {{-- BLOC 1 : FORMULAIRE PRINCIPAL --}}
         <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-6">
-            <div>
-                <label class="block text-sm font-semibold text-slate-700 mb-1">Désignation du contrôle *</label>
-                <input type="text" name="designation" value="{{ old('designation') }}" required
-                    placeholder="Ex: Vérification périodique des installations électriques"
-                    class="w-full border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 @error('designation') border-red-500 @enderror">
-                @error('designation') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Désignation du contrôle *</label>
+                    <input type="text" name="designation" value="{{ old('designation') }}" required
+                        placeholder="Ex: Vérification périodique des installations électriques"
+                        class="w-full border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 @error('designation') border-red-500 @enderror">
+                    @error('designation') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Numéro de contrôle</label>
+                    <input type="text" name="numero_controle" value="{{ old('numero_controle') }}"
+                        placeholder="Ex: AX001..."
+                        class="w-full border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 @error('numero_controle') border-red-500 @enderror">
+                    @error('numero_controle') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 border-t pt-4 border-slate-100">
                 <div>
                     <label class="block text-sm font-semibold text-slate-700 mb-1">Domaine technique</label>
                     <input type="text" name="domaine_technique" value="{{ old('domaine_technique') }}"
